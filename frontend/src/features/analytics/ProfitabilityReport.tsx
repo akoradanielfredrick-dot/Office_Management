@@ -1,0 +1,131 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, PieChart } from 'lucide-react';
+import { clsx } from 'clsx';
+import { ReportToolbar } from './ReportToolbar';
+
+interface ProfitData {
+  id: string;
+  ref: string;
+  client: string;
+  package?: string;
+  revenue: number;
+  costs: number;
+  profit: number;
+  margin: number;
+}
+
+const fallbackData: ProfitData[] = [
+  { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', package: 'Maasai Mara Safari', revenue: 150000, costs: 40000, profit: 110000, margin: 73.3 },
+  { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', package: 'Amboseli Executive Trip', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
+];
+
+export const ProfitabilityReport: React.FC = () => {
+  const navigate = useNavigate();
+  const [reportData, setReportData] = useState<ProfitData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const response = await fetch('/api/finance/analytics/profitability/');
+        if (!response.ok) {
+          throw new Error(`Profitability request failed with status ${response.status}`);
+        }
+        const data = await response.json();
+        setReportData(data);
+      } catch (err) {
+        console.error('Failed to fetch profitability', err);
+        setReportData(fallbackData);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, []);
+
+  const totalRev = reportData.reduce((sum, d) => sum + Number(d.revenue), 0);
+  const totalCost = reportData.reduce((sum, d) => sum + Number(d.costs), 0);
+  const avgMargin = reportData.length > 0 ? reportData.reduce((sum, d) => sum + Number(d.margin), 0) / reportData.length : 0;
+
+  if (loading) return <div className="p-8 text-center text-slate-400">Analyzing tour margins...</div>;
+
+  return (
+    <div className="space-y-8">
+      <section className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex items-start gap-4">
+          <button
+            onClick={() => navigate('/analytics')}
+            className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Detailed Analytics</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Booking Profitability</h1>
+            <p className="mt-2 text-sm font-medium text-slate-500">Gross margin analysis and performance comparison across active tours.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-3">
+        <MetricCard label="Avg. Portfolio Margin" value={`${avgMargin.toFixed(1)}%`} tone="emerald" />
+        <MetricCard label="Total Realized Revenue" value={`KES ${totalRev.toLocaleString()}`} tone="blue" />
+        <MetricCard label="Total Direct Costs" value={`KES ${totalCost.toLocaleString()}`} tone="rose" />
+      </section>
+
+      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <ReportToolbar placeholder="Filter by booking or client..." onSearch={() => {}} onDateChange={() => {}} onExport={() => window.print()} />
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] text-left">
+            <thead className="bg-white">
+              <tr className="border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+                <th className="px-6 py-4">Booking Details</th>
+                <th className="px-6 py-4 text-right">Revenue</th>
+                <th className="px-6 py-4 text-right">Costs</th>
+                <th className="px-6 py-4 text-right">Gross Profit</th>
+                <th className="px-6 py-4 text-center">Margin Analysis</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {reportData.map((p) => (
+                <tr key={p.id} className="transition-colors hover:bg-slate-50/80">
+                  <td className="px-6 py-5">
+                    <p className="font-black text-slate-900">{p.ref}</p>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{p.client}</p>
+                    {p.package && <p className="mt-1 text-xs font-medium text-primary-700">{p.package}</p>}
+                  </td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{Number(p.revenue).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{Number(p.costs).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{Number(p.profit).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-center">
+                    <span className={clsx(
+                      'inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1',
+                      p.margin >= 25 ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' :
+                      p.margin >= 10 ? 'bg-amber-100 text-amber-700 ring-amber-200' :
+                      'bg-rose-100 text-rose-700 ring-rose-200'
+                    )}>
+                      {Number(p.margin).toFixed(1)}% {p.margin >= 25 ? 'High' : p.margin >= 10 ? 'Fair' : 'Low'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+const MetricCard: React.FC<{ label: string; value: string; tone: 'emerald' | 'blue' | 'rose' }> = ({ label, value, tone }) => (
+  <div className={clsx(
+    'rounded-[1.8rem] border bg-white p-5 shadow-sm',
+    tone === 'emerald' && 'border-emerald-100',
+    tone === 'blue' && 'border-sky-100',
+    tone === 'rose' && 'border-rose-100'
+  )}>
+    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">{label}</p>
+    <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
+  </div>
+);

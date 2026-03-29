@@ -1,0 +1,360 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<style>
+  .mr-admin-shell {
+    display: grid;
+    gap: 24px;
+  }
+
+  .mr-admin-hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #dbe4df;
+    border-radius: 30px;
+    padding: 32px;
+    color: #fff;
+    background:
+      linear-gradient(135deg, rgba(15, 45, 15, 0.96), rgba(26, 74, 26, 0.94)),
+      linear-gradient(180deg, #153d15, #0f2d0f);
+    box-shadow: 0 22px 60px -30px rgba(15, 45, 15, 0.65);
+  }
+
+  .mr-admin-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px);
+    background-size: 42px 42px;
+  }
+
+  .mr-admin-hero-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 28px;
+  }
+
+  .mr-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    color: rgba(255,255,255,0.7);
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .mr-admin-hero h1 {
+    margin: 0;
+    font-size: clamp(34px, 4vw, 46px);
+    line-height: 1.02;
+    color: #fff;
+    letter-spacing: -0.03em;
+  }
+
+  .mr-admin-hero p {
+    margin: 12px 0 0;
+    max-width: 800px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.82);
+  }
+
+  .mr-admin-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .mr-admin-stat {
+    padding: 18px 20px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+  }
+
+  .mr-admin-stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: rgba(255,255,255,0.64);
+    margin-bottom: 8px;
+    font-weight: 800;
+  }
+
+  .mr-admin-stat-value {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .mr-admin-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .mr-card {
+    background: #fff;
+    border: 1px solid #dbe4df;
+    border-radius: 28px;
+    box-shadow: 0 18px 55px -34px rgba(15, 36, 20, 0.22);
+    overflow: hidden;
+  }
+
+  .mr-card-head {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #eef2ef;
+  }
+
+  .mr-card-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #162033;
+    letter-spacing: -0.02em;
+  }
+
+  .mr-card-subtitle {
+    margin: 8px 0 0;
+    color: #6b7587;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .mr-app-list {
+    display: grid;
+    gap: 14px;
+    padding: 22px 24px 24px;
+  }
+
+  .mr-app {
+    border: 1px solid #e7ede9;
+    border-radius: 22px;
+    padding: 18px 18px 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfb 100%);
+  }
+
+  .mr-app-name {
+    margin: 0 0 12px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #768194;
+    font-weight: 800;
+  }
+
+  .mr-model {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid #eef2ef;
+  }
+
+  .mr-model:first-child {
+    border-top: none;
+  }
+
+  .mr-model-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #162033;
+  }
+
+  .mr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mr-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: #f6faf6;
+    color: #1f5f2b !important;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .mr-link.alt {
+    background: #f5f7fb;
+    color: #4f5d75 !important;
+  }
+
+  .mr-side {
+    display: grid;
+    gap: 20px;
+  }
+
+  .mr-side-block {
+    padding: 22px 24px 24px;
+  }
+
+  .mr-side-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .mr-side-item {
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: #f8faf8;
+    border: 1px solid #eef2ef;
+  }
+
+  .mr-side-item strong {
+    display: block;
+    color: #162033;
+    margin-bottom: 6px;
+  }
+
+  .mr-side-item span {
+    color: #6b7587;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .mr-empty {
+    color: #6b7587;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 1100px) {
+    .mr-admin-grid {
+      grid-template-columns: 1fr;
+    }
+    .mr-admin-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="mr-admin-shell">
+  <section class="mr-admin-hero">
+    <div class="mr-admin-hero-inner">
+      <div>
+        <span class="mr-eyebrow">Administration Workspace</span>
+        <h1>Office Management Administration</h1>
+        <p>
+          Manage roles, finance, bookings, quotations, and internal records from a central administrative control panel.
+        </p>
+      </div>
+
+      <div class="mr-admin-stats">
+        <div class="mr-admin-stat">
+          <div class="mr-admin-stat-label">Applications</div>
+          <div class="mr-admin-stat-value">{{ app_list|length }}</div>
+        </div>
+        <div class="mr-admin-stat">
+          <div class="mr-admin-stat-label">Session</div>
+          <div class="mr-admin-stat-value">Admin Access</div>
+        </div>
+        <div class="mr-admin-stat">
+          <div class="mr-admin-stat-label">Environment</div>
+          <div class="mr-admin-stat-value">Internal Control</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mr-admin-grid">
+    <section class="mr-card">
+      <div class="mr-card-head">
+        <h2 class="mr-card-title">Administrative Modules</h2>
+        <p class="mr-card-subtitle">Open and manage the internal system modules available in Django administration.</p>
+      </div>
+
+      <div class="mr-app-list">
+        {% for app in app_list %}
+          <div class="mr-app">
+            <h3 class="mr-app-name">{{ app.name }}</h3>
+            {% for model in app.models %}
+              <div class="mr-model">
+                <div class="mr-model-name">{{ model.name }}</div>
+                <div class="mr-actions">
+                  {% if model.admin_url %}
+                    <a class="mr-link alt" href="{{ model.admin_url }}">Open</a>
+                  {% endif %}
+                  {% if model.add_url %}
+                    <a class="mr-link" href="{{ model.add_url }}">Add</a>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <aside class="mr-side">
+      <section class="mr-card">
+        <div class="mr-card-head">
+          <h2 class="mr-card-title">Recent Actions</h2>
+          <p class="mr-card-subtitle">A quick view of the latest administrative activity in this workspace.</p>
+        </div>
+
+        <div class="mr-side-block">
+          {% if log_entries %}
+            <div class="mr-side-list">
+              {% for entry in log_entries %}
+                <div class="mr-side-item">
+                  <strong>{{ entry.object_repr }}</strong>
+                  <span>
+                    {% if entry.content_type %}
+                      {{ entry.content_type.name|capfirst }}
+                    {% else %}
+                      {% translate 'Unknown content' %}
+                    {% endif %}
+                    | {{ entry.get_action_flag_display }}
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="mr-empty">{% translate 'No recent actions are available yet.' %}</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="mr-card">
+        <div class="mr-card-head">
+          <h2 class="mr-card-title">Admin Guidance</h2>
+          <p class="mr-card-subtitle">Recommended areas to maintain for a clean and reliable office system.</p>
+        </div>
+        <div class="mr-side-block">
+          <div class="mr-side-list">
+            <div class="mr-side-item">
+              <strong>Access Control</strong>
+              <span>Review staff roles and permissions regularly for least-privilege access.</span>
+            </div>
+            <div class="mr-side-item">
+              <strong>Financial Records</strong>
+              <span>Use the finance modules to keep receipts, expenses, and payment records accurate.</span>
+            </div>
+            <div class="mr-side-item">
+              <strong>Operational Consistency</strong>
+              <span>Keep bookings, quotations, suppliers, and company settings synchronized.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}
