@@ -37,7 +37,6 @@ services:
   - type: web
     runtime: static
     name: office-management-frontend
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
