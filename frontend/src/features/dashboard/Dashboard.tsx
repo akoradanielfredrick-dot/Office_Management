@@ -11,9 +11,12 @@ import {
   BarChart3,
   ShoppingCart,
   ChevronRight,
+  ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import mrangaLogo from '../../assets/mranga-logo.png';
+import { backendAdminUrl } from '../../lib/api';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -125,6 +128,17 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <a
+                href={backendAdminUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-bold text-primary-800 shadow-sm transition-all duration-200 hover:border-primary-300 hover:bg-primary-100"
+              >
+                <ShieldCheck size={16} />
+                <span className="hidden sm:inline">Backend Admin</span>
+                <span className="sm:hidden">Admin</span>
+                <ExternalLink size={15} className="opacity-70" />
+              </a>
               <div className="hidden rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right shadow-sm sm:block">
                 <p className="text-[0.65rem] font-black uppercase tracking-[0.28em] text-slate-400">
                   Active Role
