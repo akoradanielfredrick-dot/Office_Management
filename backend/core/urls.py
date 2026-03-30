@@ -1,14 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from accounts.views import LoginView, LogoutView
 from clients.views import ClientViewSet
 from sales.views import QuotationViewSet
 from operations.views import BookingViewSet, SupplierViewSet
 from finance.views import PaymentViewSet, ReceiptViewSet, ExpenseViewSet, AnalyticsViewSet
 from common.views import DashboardViewSet
-from core.views import root, health
 
 admin.site.site_header = 'Mranga Tours & Safaris Administration'
 admin.site.site_title = 'Mranga Admin Portal'
@@ -28,12 +26,8 @@ router.register(r'finance/analytics', AnalyticsViewSet, basename='finance-analyt
 router.register(r'dashboard', DashboardViewSet, basename='dashboard')
 
 urlpatterns = [
-    path('', root, name='root'),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    path('api/health/', health, name='health'),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/auth/login/', LoginView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
     path('api/auth/', include('rest_framework.urls')),

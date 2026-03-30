@@ -7,4 +7,3 @@ drf-spectacular
 whitenoise
 psycopg2-binary
 reportlab
-gunicorn

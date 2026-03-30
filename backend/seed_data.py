@@ -33,8 +33,7 @@ def seed_data():
     admin_email = 'admin@company.com'
     admin_pass = 'AdminPass123!'
     
-    admin_user = User.objects.filter(email=admin_email).first()
-    if admin_user is None:
+    if not User.objects.filter(email=admin_email).exists():
         User.objects.create_superuser(
             email=admin_email,
             password=admin_pass,
@@ -43,14 +42,7 @@ def seed_data():
         )
         print(f"Created Super Admin: {admin_email} / {admin_pass}")
     else:
-        admin_user.full_name = 'System Administrator'
-        admin_user.role = role_objs['SUPER_ADMIN']
-        admin_user.is_active = True
-        admin_user.is_staff = True
-        admin_user.is_superuser = True
-        admin_user.set_password(admin_pass)
-        admin_user.save()
-        print(f"Updated Super Admin credentials for: {admin_email}")
+        print(f"Super Admin already exists: {admin_email}")
 
     print("\nSeeding complete!")
 

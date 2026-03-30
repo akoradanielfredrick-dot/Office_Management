@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { LogIn, Lock, Loader2, Mail } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import axios from 'axios';
 import mrangaLogo from '../../assets/mranga-logo.png';
-import { api } from '../../lib/api';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,7 +31,7 @@ export const LoginForm: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post('/auth/login/', {
+      const res = await axios.post('/api/auth/login/', {
         email: data.email,
         password: data.password,
       });

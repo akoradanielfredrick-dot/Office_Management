@@ -14,10 +14,10 @@ import {
   Activity,
   ShieldCheck,
 } from 'lucide-react';
+import axios from 'axios';
 import { useAuthStore } from '../../store/authStore';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { api } from '../../lib/api';
 
 interface DashboardStats {
   total_quotations: number;
@@ -46,7 +46,7 @@ export const DashboardHome: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await api.get('/dashboard/summary/');
+        const res = await axios.get('/api/dashboard/summary/');
         setStats(res.data.stats);
         setActivity(res.data.recent_activity);
       } catch (error) {
