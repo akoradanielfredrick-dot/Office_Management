@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../lib/api';
 
-const mrangaLogo = '/mranga-logo.png';
+const mrangaLogo = '/mranga-brand.jpeg';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

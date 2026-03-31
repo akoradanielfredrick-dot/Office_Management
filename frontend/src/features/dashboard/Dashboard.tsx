@@ -17,7 +17,7 @@ import {
 import { clsx } from 'clsx';
 import { api, backendAdminConfirmUrl } from '../../lib/api';
 
-const mrangaLogo = '/mranga-logo.png';
+const mrangaLogo = '/mranga-brand.jpeg';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -58,7 +58,7 @@ export const Dashboard: React.FC = () => {
           }} />
 
           <div className="relative z-10 flex items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-2.5 shadow-xl shadow-black/20 ring-1 ring-white/25">
+            <div className="flex h-14 w-24 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-xl shadow-black/20 ring-1 ring-white/25">
               <img
                 src={mrangaLogo}
                 alt="Mranga Tours & Safaris Ltd."

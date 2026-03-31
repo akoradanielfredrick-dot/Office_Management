@@ -94,8 +94,8 @@
     }
 
     .brand-mark {
-      width: 54px;
-      height: 54px;
+      width: 88px;
+      height: 58px;
       border-radius: 18px;
       background: linear-gradient(135deg, #fffef8, #f7edd2);
       display: grid;
@@ -107,8 +107,8 @@
     }
 
     .brand-mark img {
-      width: 72%;
-      height: 72%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
     }
@@ -251,8 +251,9 @@
     }
 
     .login-badge img {
-      width: 22px;
-      height: 22px;
+      width: 42px;
+      height: 28px;
+      object-fit: contain;
       display: block;
     }
 
@@ -384,7 +385,7 @@
       <div class="hero-content">
         <div class="brand-chip">
           <div class="brand-mark">
-            <img src="{% static 'mranga-icon.png' %}?v=4" alt="Mranga Tours and Safaris icon">
+            <img src="{% static 'mranga-brand.jpeg' %}?v=1" alt="Mranga Tours and Safaris logo">
           </div>
           <div>
             <div class="brand-label">Admin Portal</div>
@@ -420,7 +421,7 @@
       <div class="panel">
         <div class="panel-head">
           <div class="login-badge">
-            <img src="{% static 'mranga-icon.png' %}?v=4" alt="">
+            <img src="{% static 'mranga-brand.jpeg' %}?v=1" alt="">
             Secure Sign-In
           </div>
           <h2>Admin Login</h2>
@@ -480,7 +481,7 @@
           </div>
 
           <div class="portal-link">
-            Need the operational dashboard instead? <a href="http://127.0.0.1:5173/">Open the main portal</a>
+            Need the operational dashboard instead? <a href="{{ site_url|default:'/' }}">Open the main portal</a>
           </div>
         </form>
       </div>
