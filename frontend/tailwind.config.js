@@ -36,7 +36,7 @@ export default {
       },
       fontFamily: {
         sans: ['Manrope', 'sans-serif'],
-        display: ['Cormorant Garamond', 'serif'],
+        display: ['Manrope', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

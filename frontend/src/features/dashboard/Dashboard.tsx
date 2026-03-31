@@ -53,11 +53,11 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-shell min-h-screen text-slate-900 lg:flex">
       <aside className="hidden h-screen w-[19rem] shrink-0 lg:sticky lg:top-0 lg:flex lg:flex-col">
-        <div className="relative flex h-full flex-col overflow-hidden border-r border-primary-950/40 bg-[linear-gradient(180deg,#0b2610_0%,#123417_54%,#183a18_100%)] text-white shadow-[18px_0_50px_-40px_rgba(8,36,13,0.85)]">
+        <div className="relative flex h-full flex-col overflow-hidden border-r border-primary-950/30 bg-[linear-gradient(180deg,#0f2f14_0%,#14361a_100%)] text-white shadow-[18px_0_50px_-40px_rgba(8,36,13,0.65)]">
           <div className="relative z-10 border-b border-white/10 px-5 pb-6 pt-5">
-            <div className="rounded-[2rem] border border-white/10 bg-white/8 p-4 shadow-[0_24px_40px_-28px_rgba(0,0,0,0.9)] backdrop-blur-sm">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 shadow-[0_24px_40px_-28px_rgba(0,0,0,0.6)]">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-[1.35rem] bg-[#f6f0de] p-2 shadow-inner shadow-black/10 ring-1 ring-white/15">
+                <div className="flex h-14 w-[4.5rem] shrink-0 items-center justify-center rounded-[1.1rem] bg-[#f6f0de] p-2 shadow-inner shadow-black/10 ring-1 ring-white/15">
                   <img
                     src={mrangaLogo}
                     alt="Mranga Tours & Safaris Ltd."
@@ -69,23 +69,23 @@ export const Dashboard: React.FC = () => {
                   <p className="eyebrow text-primary-200/90">
                     Portal
                   </p>
-                  <h1 className="mt-1 text-[2rem] font-semibold leading-none text-white">
+                  <h1 className="mt-1 text-[1.55rem] font-semibold leading-tight text-white">
                     Mranga Tours &amp; Safaris
                   </h1>
-                  <p className="mt-1 text-sm font-medium text-primary-100/80">
-                    Operations and finance command center
+                  <p className="mt-1 text-sm font-medium text-primary-100/78">
+                    Operations dashboard
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-3 py-3">
+                <div className="rounded-[1.1rem] border border-white/10 bg-black/10 px-3 py-3">
                   <p className="eyebrow text-[0.58rem] text-primary-200/80">
                     Base
                   </p>
                   <p className="mt-1 text-sm font-semibold text-white">Kenya</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-3 py-3">
+                <div className="rounded-[1.1rem] border border-white/10 bg-black/10 px-3 py-3">
                   <p className="eyebrow text-[0.58rem] text-primary-200/80">
                     Access
                   </p>
@@ -108,9 +108,9 @@ export const Dashboard: React.FC = () => {
                   to={item.path}
                   className={({ isActive }) =>
                     clsx(
-                      'group flex items-center gap-3 rounded-[1.45rem] px-3 py-3.5 text-sm font-semibold transition-all duration-200',
+                      'group flex items-center gap-3 rounded-[1.2rem] px-3 py-3 text-sm font-semibold transition-all duration-200',
                       isActive
-                        ? 'bg-[linear-gradient(90deg,rgba(243,225,174,0.18),rgba(255,255,255,0.08))] text-white shadow-[0_18px_30px_-24px_rgba(0,0,0,0.9)] ring-1 ring-[#d9c48d]/35'
+                        ? 'bg-[linear-gradient(90deg,rgba(243,225,174,0.18),rgba(255,255,255,0.08))] text-white shadow-[0_18px_30px_-24px_rgba(0,0,0,0.55)] ring-1 ring-[#d9c48d]/30'
                         : 'text-primary-50/82 hover:bg-white/8 hover:text-white'
                     )
                   }
@@ -119,7 +119,7 @@ export const Dashboard: React.FC = () => {
                     <>
                       <div
                         className={clsx(
-                          'flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-200',
+                          'flex h-10 w-10 items-center justify-center rounded-[0.95rem] transition-all duration-200',
                           isActive
                             ? 'bg-[#ecd9a4] text-primary-950 shadow-lg shadow-black/10'
                             : 'bg-white/10 text-primary-100 group-hover:bg-white/14'
@@ -147,7 +147,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <div className="relative z-10 border-t border-white/10 p-4">
-            <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] p-4 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecd9a4] text-lg font-black text-primary-950 shadow-lg shadow-black/10">
                   {firstName.charAt(0)}
@@ -161,7 +161,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 px-3 py-3">
+              <div className="mt-4 rounded-[1.1rem] border border-white/10 bg-black/10 px-3 py-3">
                 <div className="flex items-center gap-2 text-[0.62rem] font-extrabold uppercase tracking-[0.34em] text-primary-200/80">
                   <Trees size={12} />
                   Field Note
@@ -174,7 +174,7 @@ export const Dashboard: React.FC = () => {
               <button
                 onClick={handleLogout}
                 disabled={isSigningOut}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-[#d9c48d]/40 bg-[#f3e1ae] px-4 py-3 text-sm font-black text-primary-950 transition-all duration-200 hover:bg-[#f0d894] disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-[1.1rem] border border-[#d9c48d]/40 bg-[#f3e1ae] px-4 py-3 text-sm font-black text-primary-950 transition-all duration-200 hover:bg-[#f0d894] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <LogOut size={18} />
                 {isSigningOut ? 'Signing Out...' : 'Sign Out'}
@@ -193,11 +193,11 @@ export const Dashboard: React.FC = () => {
                 <ChevronRight size={14} />
                 <span className="font-semibold text-slate-500">Mranga Executive Desk</span>
               </div>
-              <h2 className="mt-1 text-4xl font-semibold leading-none text-slate-950">
+              <h2 className="mt-1 text-[2rem] font-semibold leading-tight text-slate-950">
                 Welcome back, {firstName}
               </h2>
               <p className="mt-1 text-sm font-medium text-slate-500">
-                Safari operations, finance, and client activity in one polished command center.
+                Safari operations, finance, and client activity in one workspace.
               </p>
             </div>
 

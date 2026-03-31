@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -20,8 +20,8 @@
   body {
     @apply font-sans antialiased text-slate-900;
     background-image:
-      radial-gradient(circle at top left, rgba(236, 217, 164, 0.2), transparent 24rem),
-      linear-gradient(180deg, #f3f0e6 0%, #f8f7f2 20%, #f4f6f2 100%);
+      radial-gradient(circle at top left, rgba(236, 217, 164, 0.1), transparent 24rem),
+      linear-gradient(180deg, #f5f6f1 0%, #fafaf8 24%, #f3f5f1 100%);
   }
 
   h1, h2, h3, h4, h5, h6 {

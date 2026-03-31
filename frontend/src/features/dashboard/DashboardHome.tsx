@@ -158,64 +158,64 @@ export const DashboardHome: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-[92rem] space-y-8 pb-12">
-      <section className="grid gap-6 2xl:grid-cols-[1.7fr_0.95fr]">
+      <section className="grid gap-6 2xl:grid-cols-[1.55fr_0.95fr]">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="dashboard-panel overflow-hidden rounded-[2.5rem] border-[#d7d1c1] bg-[linear-gradient(135deg,#fffdf7_0%,#f6f3ea_56%,#f2f6ef_100%)] p-8"
+          className="dashboard-panel overflow-hidden rounded-[1.9rem] border-[#dde3d8] bg-white p-7"
         >
           <div className="flex h-full flex-col gap-8">
-            <div className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr] xl:items-start">
+            <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr] xl:items-start">
               <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.32em] text-primary-700 shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.32em] text-primary-700">
                   <SunMedium size={12} />
                   Executive Overview
                 </div>
 
-                <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.95] text-slate-950 md:text-6xl">
+                <h1 className="mt-5 max-w-3xl text-[2.6rem] font-semibold leading-[1.02] text-slate-950 md:text-[3.1rem]">
                   Welcome back, {firstName}
                 </h1>
-                <p className="mt-4 max-w-2xl text-[15px] font-medium leading-8 text-slate-600 md:text-base">
-                  Oversee bookings, quotations, cashflow, and team activity from one professional operations dashboard built for Mranga Tours &amp; Safaris.
+                <p className="mt-4 max-w-2xl text-[15px] font-medium leading-7 text-slate-600 md:text-base">
+                  Monitor bookings, quotations, cashflow, and daily activity from one clear operations dashboard for Mranga Tours &amp; Safaris.
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm">
+                  <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700">
                     {todayLabel}
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-[#ecd9a4] px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.24em] text-primary-950 shadow-sm">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[#ecd9a4] px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.24em] text-primary-950">
                     <ShieldCheck size={12} />
                     Operations Live
                   </div>
                 </div>
               </div>
 
-              <div className="grid gap-4">
-                <div className="rounded-[2rem] border border-primary-900/10 bg-[linear-gradient(135deg,#153d15_0%,#204723_100%)] p-5 text-white shadow-[0_24px_40px_-32px_rgba(21,61,21,0.45)]">
-                  <p className="eyebrow text-primary-200/90">Workspace Focus</p>
-                  <p className="mt-3 text-3xl font-semibold leading-none">Managerial Portal</p>
-                  <p className="mt-3 text-sm leading-6 text-primary-100/80">
-                    Daily control for safari sales, finance tracking, and booking oversight.
-                  </p>
-                </div>
+              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+                <p className="eyebrow text-slate-400">Workspace</p>
+                <p className="mt-3 text-[1.8rem] font-semibold leading-tight text-slate-950">Managerial Portal</p>
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                  Daily control for safari sales, finance tracking, booking oversight, and team coordination.
+                </p>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.8rem] border border-slate-200 bg-white/90 p-5 shadow-sm">
-                    <p className="eyebrow text-slate-400">Role</p>
-                    <p className="mt-3 text-3xl font-semibold leading-none text-slate-950">{roleLabel}</p>
-                    <p className="mt-2 text-sm text-slate-500">Authorized for daily coordination and reporting.</p>
+                <div className="mt-5 space-y-3">
+                  <div className="flex items-start justify-between gap-4 rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3">
+                    <div>
+                      <p className="eyebrow text-[10px] text-slate-400">Role</p>
+                      <p className="mt-2 text-xl font-semibold text-slate-950">{roleLabel}</p>
+                    </div>
+                    <span className="rounded-full bg-primary-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.22em] text-primary-700">
+                      Active
+                    </span>
                   </div>
 
-                  <div className="rounded-[1.8rem] border border-slate-200 bg-white/90 p-5 shadow-sm">
-                    <p className="eyebrow text-slate-400">Region</p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
-                        <MapPinned size={20} />
-                      </div>
-                      <div>
-                        <p className="text-3xl font-semibold leading-none text-slate-950">Kenya</p>
-                        <p className="text-sm text-slate-500">Safari planning desk</p>
-                      </div>
+                  <div className="flex items-start gap-3 rounded-[1.1rem] border border-slate-200 bg-white px-4 py-3">
+                    <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                      <MapPinned size={18} />
+                    </div>
+                    <div>
+                      <p className="eyebrow text-[10px] text-slate-400">Region</p>
+                      <p className="mt-2 text-xl font-semibold text-slate-950">Kenya</p>
+                      <p className="text-sm text-slate-500">Safari planning desk</p>
                     </div>
                   </div>
                 </div>
@@ -223,26 +223,26 @@ export const DashboardHome: React.FC = () => {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-5">
                 <p className="eyebrow text-slate-400">Priority</p>
-                <p className="mt-3 text-2xl font-semibold leading-none text-slate-950">Client Response</p>
+                <p className="mt-3 text-xl font-semibold leading-tight text-slate-950">Client Response</p>
                 <p className="mt-2 text-sm text-slate-500">Keep quotation follow-ups and confirmations moving.</p>
               </div>
 
-              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-5">
                 <p className="eyebrow text-slate-400">Finance</p>
-                <p className="mt-3 text-2xl font-semibold leading-none text-slate-950">Daily Visibility</p>
+                <p className="mt-3 text-xl font-semibold leading-tight text-slate-950">Daily Visibility</p>
                 <p className="mt-2 text-sm text-slate-500">Payments and expenses stay visible from first glance.</p>
               </div>
 
-              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-5">
                 <p className="eyebrow text-slate-400">Field Status</p>
                 <div className="mt-3 flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
                     <MapPinned size={20} />
                   </div>
                   <div>
-                    <p className="text-2xl font-semibold leading-none text-slate-950">Operational</p>
+                    <p className="text-xl font-semibold leading-tight text-slate-950">Operational</p>
                     <p className="text-sm text-slate-500">Systems and workflows are ready.</p>
                   </div>
                 </div>
@@ -255,16 +255,14 @@ export const DashboardHome: React.FC = () => {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08 }}
-          className="dashboard-panel relative overflow-hidden rounded-[2.5rem] border-[#d8cfbc] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,242,232,0.88))] p-7"
+          className="dashboard-panel overflow-hidden rounded-[1.9rem] border-[#dde3d8] bg-white p-7"
         >
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'22\' height=\'22\' viewBox=\'0 0 22 22\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23153d15\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'2\' cy=\'2\' r=\'1.2\'/%3E%3C/g%3E%3C/svg%3E")' }} />
-
-          <div className="relative z-10 flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <p className="eyebrow text-slate-400">
-                Camp Status
+                System Health
               </p>
-              <h2 className="mt-2 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950">
+              <h2 className="mt-2 text-[2.25rem] font-semibold leading-tight tracking-tight text-slate-950">
                 All core services are stable
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
@@ -277,8 +275,8 @@ export const DashboardHome: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative z-10 mt-6 space-y-4">
-            <div className="rounded-[1.6rem] border border-white/70 bg-white/80 p-4 shadow-sm">
+          <div className="mt-6 space-y-4">
+            <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-bold text-slate-700">Session Access</span>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
@@ -290,7 +288,7 @@ export const DashboardHome: React.FC = () => {
               </p>
             </div>
 
-            <div className="rounded-[1.6rem] border border-white/70 bg-white/80 p-4 shadow-sm">
+            <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-bold text-slate-700">Finance Visibility</span>
                 <span className="rounded-full bg-[#f4e6bf] px-3 py-1 text-xs font-extrabold uppercase tracking-[0.2em] text-[#6f500d]">
@@ -302,14 +300,14 @@ export const DashboardHome: React.FC = () => {
               </p>
             </div>
 
-            <div className="rounded-[1.6rem] border border-primary-100 bg-primary-50/70 p-4">
+            <div className="rounded-[1.2rem] border border-primary-100 bg-primary-50/60 p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-primary-700 shadow-sm">
                   <TentTree size={20} />
                 </div>
                 <div>
                   <p className="eyebrow text-[10px] text-primary-500">Field Focus</p>
-                  <p className="mt-1 text-2xl font-semibold leading-none text-slate-900">Daily office control is centralized.</p>
+                  <p className="mt-1 text-xl font-semibold leading-tight text-slate-900">Daily office control is centralized.</p>
                 </div>
               </div>
             </div>
@@ -325,7 +323,7 @@ export const DashboardHome: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08 }}
             className={clsx(
-              'dashboard-panel rounded-[2.1rem] border bg-gradient-to-br p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
+              'dashboard-panel rounded-[1.4rem] border bg-gradient-to-br p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
               kpi.panel,
               kpi.ring
             )}
@@ -341,7 +339,7 @@ export const DashboardHome: React.FC = () => {
 
             <div className="mt-8">
               <p className="eyebrow text-slate-400">{kpi.label}</p>
-              <h3 className="mt-3 text-5xl font-semibold leading-none text-slate-950">{kpi.value}</h3>
+              <h3 className="mt-3 text-[2.2rem] font-semibold leading-tight text-slate-950">{kpi.value}</h3>
               <p className="mt-3 text-sm font-medium leading-6 text-slate-500">{kpi.note}</p>
             </div>
           </motion.div>
@@ -353,7 +351,7 @@ export const DashboardHome: React.FC = () => {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="eyebrow text-slate-400">Operations Feed</p>
-              <h3 className="mt-2 text-4xl font-semibold leading-none text-slate-950">Recent Activity</h3>
+              <h3 className="mt-2 text-[2rem] font-semibold leading-tight text-slate-950">Recent Activity</h3>
             </div>
             <div className="hidden rounded-full border border-primary-100 bg-white px-4 py-2 text-sm font-bold text-primary-700 shadow-sm md:inline-flex md:items-center md:gap-2">
               Live Updates
@@ -361,7 +359,7 @@ export const DashboardHome: React.FC = () => {
             </div>
           </div>
 
-          <div className="dashboard-panel overflow-hidden rounded-[2.1rem] border-slate-200/90">
+          <div className="dashboard-panel overflow-hidden rounded-[1.4rem] border-slate-200/90 bg-white">
             {activity.length > 0 ? (
               <div className="divide-y divide-slate-100">
                 {activity.map((item, idx) => (
@@ -385,7 +383,7 @@ export const DashboardHome: React.FC = () => {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-3">
-                        <p className="truncate text-xl font-semibold leading-none text-slate-950">{item.title}</p>
+                        <p className="truncate text-lg font-semibold leading-tight text-slate-950">{item.title}</p>
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
                           {activityLabels[item.type]}
                         </span>
@@ -410,7 +408,7 @@ export const DashboardHome: React.FC = () => {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-300">
                   <Clock3 size={30} />
                 </div>
-                <h4 className="mt-5 text-3xl font-semibold leading-none text-slate-950">No recent activity yet</h4>
+                <h4 className="mt-5 text-2xl font-semibold leading-tight text-slate-950">No recent activity yet</h4>
                 <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
                   Start with a new quotation, booking, or payment entry and the operations feed will begin to populate automatically.
                 </p>
@@ -422,7 +420,7 @@ export const DashboardHome: React.FC = () => {
         <div className="space-y-5">
           <div>
             <p className="eyebrow text-slate-400">Action Center</p>
-            <h3 className="mt-2 text-4xl font-semibold leading-none text-slate-950">Quick Actions</h3>
+            <h3 className="mt-2 text-[2rem] font-semibold leading-tight text-slate-950">Quick Actions</h3>
           </div>
 
           <div className="space-y-4">
@@ -435,7 +433,7 @@ export const DashboardHome: React.FC = () => {
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => navigate(action.path)}
-                className="dashboard-panel group relative flex w-full items-center gap-4 overflow-hidden rounded-[2rem] border-slate-200 bg-white/95 px-5 py-5 text-left transition-all duration-300 hover:border-slate-300 hover:shadow-md"
+                className="dashboard-panel group relative flex w-full items-center gap-4 overflow-hidden rounded-[1.4rem] border-slate-200 bg-white px-5 py-5 text-left transition-all duration-300 hover:border-slate-300 hover:shadow-md"
               >
                 <div
                   className={clsx(
@@ -447,7 +445,7 @@ export const DashboardHome: React.FC = () => {
                 </div>
 
                 <div className="flex-1">
-                  <p className="text-2xl font-semibold leading-none text-slate-950">{action.label}</p>
+                  <p className="text-lg font-semibold leading-tight text-slate-950">{action.label}</p>
                   <p className="mt-1 text-sm font-medium leading-6 text-slate-500">{action.description}</p>
                 </div>
 
@@ -458,23 +456,15 @@ export const DashboardHome: React.FC = () => {
             ))}
           </div>
 
-          <div className="dashboard-panel relative overflow-hidden rounded-[2.1rem] border-[#d9cfb7] bg-[linear-gradient(135deg,#fffaf0_0%,#f6f0de_45%,#eef7ef_100%)] p-6">
-            <div
-              className="absolute inset-0 opacity-[0.07]"
-              style={{
-                backgroundImage:
-                  `url("data:image/svg+xml,%3Csvg width='26' height='26' viewBox='0 0 26 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23153d15' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='13' cy='13' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
-              }}
-            />
-
-            <div className="relative z-10">
+          <div className="dashboard-panel rounded-[1.4rem] border-[#d9cfb7] bg-[linear-gradient(135deg,#fffaf0_0%,#f6f0de_45%,#eef7ef_100%)] p-6">
+            <div>
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700">
                   <TentTree size={22} />
                 </div>
                 <div>
                   <p className="eyebrow text-primary-500">Operations Note</p>
-                  <h4 className="mt-1 text-3xl font-semibold leading-none text-slate-950">The desk is ready for today</h4>
+                  <h4 className="mt-1 text-2xl font-semibold leading-tight text-slate-950">The desk is ready for today</h4>
                 </div>
               </div>
               <p className="mt-4 text-sm font-medium leading-6 text-slate-600">
