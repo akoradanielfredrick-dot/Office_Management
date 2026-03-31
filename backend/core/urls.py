@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from accounts.views import LoginView, LogoutView
+from accounts.views import LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
 from sales.views import QuotationViewSet
 from operations.views import BookingViewSet, SupplierViewSet
@@ -26,6 +26,7 @@ router.register(r'finance/analytics', AnalyticsViewSet, basename='finance-analyt
 router.register(r'dashboard', DashboardViewSet, basename='dashboard')
 
 urlpatterns = [
+    path('admin/confirm-access/', admin_access_confirm, name='admin-access-confirm'),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/auth/login/', LoginView.as_view(), name='api-login'),

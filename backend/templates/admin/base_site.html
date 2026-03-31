@@ -1,9 +1,18 @@
 {% extends "admin/base.html" %}
+{% load static %}
 
 {% block title %}Mranga Admin Portal{% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
+<script>
+  document.documentElement.dataset.theme = "light";
+  try {
+    localStorage.setItem("theme", "light");
+  } catch (e) {
+    // Ignore storage issues and keep rendering in light mode.
+  }
+</script>
 <style>
   :root {
     --mr-bg: #f4f7f3;
@@ -46,60 +55,73 @@
 
   #header {
     background:
-      linear-gradient(135deg, rgba(15, 45, 15, 0.96), rgba(26, 74, 26, 0.94)),
-      linear-gradient(180deg, #153d15, #0f2d0f);
+      radial-gradient(circle at top right, rgba(212, 131, 26, 0.18), transparent 24%),
+      linear-gradient(135deg, rgba(11, 36, 17, 0.98), rgba(24, 74, 34, 0.95)),
+      linear-gradient(180deg, #102f14, #0d2611);
     color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 16px 38px -30px rgba(15, 36, 20, 0.65);
-    padding: 18px 28px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 20px 42px -30px rgba(15, 36, 20, 0.62);
+    padding: 20px 30px;
   }
 
   #header #branding {
     display: flex;
     align-items: center;
-    gap: 16px;
-    max-width: 720px;
+    gap: 18px;
+    max-width: 760px;
   }
 
   .mr-brand-mark {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
     background:
-      linear-gradient(180deg, rgba(255, 244, 217, 0.98), rgba(244, 231, 196, 0.98));
+      linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(244, 236, 218, 0.98));
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--mr-primary);
     font-size: 20px;
     font-weight: 900;
+    border: 1px solid rgba(255, 255, 255, 0.38);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.78),
-      0 16px 28px -22px rgba(7, 20, 8, 0.86);
+      0 18px 32px -22px rgba(7, 20, 8, 0.86);
     flex: 0 0 auto;
+    overflow: hidden;
+  }
+
+  .mr-brand-mark img {
+    width: 72%;
+    height: 72%;
+    object-fit: cover;
+    display: block;
+    border-radius: 14px;
   }
 
   .mr-brand-copy {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 7px;
+    min-width: 0;
   }
 
   .mr-brand-eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.32em;
+    font-size: 10px;
+    letter-spacing: 0.36em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 700;
+    color: rgba(255, 255, 255, 0.64);
+    font-weight: 800;
   }
 
   #site-name a {
     color: #fff;
-    font-size: 22px;
+    font-size: 27px;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     text-decoration: none;
-    line-height: 1.1;
+    line-height: 1.05;
+    text-wrap: balance;
   }
 
   #user-tools,
@@ -112,7 +134,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
     margin-top: 0;
   }
@@ -123,16 +145,35 @@
   }
 
   .mr-user-welcome {
-    color: rgba(255, 255, 255, 0.72);
-    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .mr-user-welcome strong {
+    white-space: nowrap;
+  }
+
+  .mr-user-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.58);
+    margin-right: 6px;
   }
 
   .mr-toolbar-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 0 14px;
+    min-height: 42px;
+    padding: 0 16px;
     border-radius: 999px;
     text-decoration: none;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -166,8 +207,8 @@
   }
 
   #logout-form button {
-    min-height: 40px;
-    padding: 0 14px;
+    min-height: 42px;
+    padding: 0 16px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(11, 25, 13, 0.22);
@@ -188,6 +229,23 @@
     display: none !important;
   }
 
+  html[data-theme="dark"] {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] body,
+  html[data-theme="dark"] #container,
+  html[data-theme="dark"] #content,
+  html[data-theme="dark"] #content-main,
+  html[data-theme="dark"] .module,
+  html[data-theme="dark"] .inline-group,
+  html[data-theme="dark"] .selector,
+  html[data-theme="dark"] .selector-available,
+  html[data-theme="dark"] .selector-chosen {
+    background: transparent;
+    color: var(--mr-text);
+  }
+
   #content {
     padding: 28px 32px 40px;
   }
@@ -201,11 +259,11 @@
     background: transparent;
     border: none;
     color: var(--mr-muted);
-    padding: 22px 32px 0;
-    font-size: 12px;
+    padding: 20px 32px 0;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-weight: 700;
+    letter-spacing: 0.22em;
+    font-weight: 800;
   }
 
   .breadcrumbs a {
@@ -323,6 +381,139 @@
   .change-form .module.aligned,
   .delete-confirmation .module.aligned {
     padding: 8px 0;
+  }
+
+  .inline-group {
+    margin-top: 24px;
+    border: 1px solid var(--mr-border);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: var(--mr-shadow);
+    background: #fff;
+  }
+
+  .inline-group .tabular.inline-related {
+    border: none;
+    background: #fff;
+  }
+
+  .inline-group h2 {
+    margin: 0;
+    padding: 22px 24px 18px;
+    background:
+      radial-gradient(circle at top right, rgba(212, 131, 26, 0.08), transparent 26%),
+      linear-gradient(180deg, #ffffff, #fbfcfb);
+    color: var(--mr-text);
+    border-bottom: 1px solid #edf1ee;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+
+  .inline-group .tabular fieldset.module {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .inline-group .tabular table {
+    width: 100%;
+    background: #fff;
+  }
+
+  .inline-group .tabular thead th {
+    background: #f7faf8;
+    color: #738097;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 14px 12px;
+    border-bottom: 1px solid #e9efeb;
+  }
+
+  .inline-group .tabular tbody tr {
+    background: #fff;
+  }
+
+  .inline-group .tabular tbody td,
+  .inline-group .tabular tbody th {
+    padding: 14px 12px 16px;
+    border-bottom: 1px solid #eef2ef;
+    background: #fff;
+    vertical-align: top;
+  }
+
+  .inline-group .tabular tr.has_original td {
+    padding-top: 18px;
+  }
+
+  .inline-group .tabular td.original,
+  .inline-group .tabular th.original {
+    width: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .inline-group .tabular td.original p {
+    display: none;
+  }
+
+  .inline-group .tabular td.delete,
+  .inline-group .tabular th.delete {
+    white-space: nowrap;
+    text-align: center;
+    width: 88px;
+  }
+
+  .inline-group .tabular td.delete input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--mr-primary);
+  }
+
+  .inline-group .tabular .delete label {
+    color: #7a8393;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0;
+  }
+
+  .inline-group .tabular input,
+  .inline-group .tabular select,
+  .inline-group .tabular textarea {
+    width: 100% !important;
+    min-width: 0;
+    background: #fbfcfb;
+  }
+
+  .inline-group .tabular input[type="date"] {
+    min-height: 46px;
+  }
+
+  .inline-group .tabular .add-row,
+  .inline-group .tabular .add-row td {
+    background: #fcfdfc;
+    border-bottom: none;
+  }
+
+  .inline-group .tabular .add-row a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    color: var(--mr-primary) !important;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .inline-group .tabular .add-row a:hover {
+    color: var(--mr-primary-dark) !important;
   }
 
   .change-form .form-row,
@@ -466,12 +657,17 @@
 
   #changelist .actions {
     padding: 14px 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfcfb);
+    border: 1px solid var(--mr-border);
+    border-radius: 24px;
+    box-shadow: var(--mr-shadow);
   }
 
   #changelist .actions label,
   #changelist .actions span,
   #changelist .actions select {
     vertical-align: middle;
+    color: var(--mr-text);
   }
 
   #changelist-search {
@@ -507,14 +703,17 @@
   #toolbar {
     margin-bottom: 0;
     padding: 10px 14px;
+    background: linear-gradient(180deg, #ffffff, #fbfcfb);
   }
 
   #changelist-form .results {
     overflow: hidden;
+    background: #fff;
   }
 
   #result_list {
     width: 100%;
+    background: #fff;
   }
 
   #result_list thead th {
@@ -534,9 +733,15 @@
     vertical-align: top;
     border-bottom: 1px solid #eef2ef;
     color: var(--mr-text);
+    background: #fff;
   }
 
   #result_list tbody tr:hover {
+    background: #fbfdfb;
+  }
+
+  #result_list tbody tr:hover td,
+  #result_list tbody tr:hover th {
     background: #fbfdfb;
   }
 
@@ -560,6 +765,7 @@
 
   #changelist .actions select {
     min-width: 220px;
+    background: #fff;
   }
 
   #changelist .actions button,
@@ -573,10 +779,12 @@
     padding: 14px 18px;
     color: var(--mr-muted);
     font-weight: 600;
+    background: #fff;
   }
 
   #changelist-filter {
     padding: 16px 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfcfb);
   }
 
   #changelist-filter h2 {
@@ -611,12 +819,43 @@
     padding: 8px 10px;
     border-radius: 12px;
     text-decoration: none;
+    color: var(--mr-muted);
   }
 
   #changelist-filter li.selected a {
     background: #edf6ee;
     color: var(--mr-primary-dark);
     font-weight: 700;
+  }
+
+  #changelist-search,
+  #changelist .actions,
+  #changelist-filter,
+  #changelist .paginator,
+  #changelist-form .results,
+  #toolbar,
+  #result_list tbody tr,
+  #result_list tbody td,
+  #result_list tbody th {
+    background-color: #fff !important;
+    color: var(--mr-text) !important;
+  }
+
+  #changelist-search input[type="submit"],
+  #changelist .actions input[type="submit"],
+  #changelist .actions button,
+  .change-list #content-main > ul.object-tools a {
+    background: linear-gradient(180deg, var(--mr-primary) 0%, var(--mr-primary-dark) 100%) !important;
+    color: #fff !important;
+  }
+
+  #changelist-search input[type="text"],
+  #changelist .actions select,
+  #changelist .actions input,
+  #changelist-filter select {
+    background: #fff !important;
+    color: var(--mr-text) !important;
+    border: 1px solid #d7e2dc !important;
   }
 
   @media (min-width: 1101px) {
@@ -664,6 +903,14 @@
     #user-tools {
       width: 100%;
     }
+    .mr-brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+    }
+    #site-name a {
+      font-size: 22px;
+    }
     #user-tools {
       justify-content: flex-start;
       margin-top: 16px;
@@ -677,11 +924,13 @@
 {% endblock %}
 
 {% block branding %}
-<div class="mr-brand-mark" aria-hidden="true">M</div>
+<div class="mr-brand-mark" aria-hidden="true">
+  <img src="{% static 'mranga-icon.png' %}?v=4" alt="Mranga Tours and Safaris icon">
+</div>
 <div class="mr-brand-copy">
-  <span class="mr-brand-eyebrow">Admin Workspace</span>
+  <span class="mr-brand-eyebrow">Administrative Console</span>
   <div id="site-name">
-    <a href="{% url 'admin:index' %}">Mranga Tours &amp; Safaris Administration</a>
+    <a href="{% url 'admin:index' %}">Mranga Tours &amp; Safaris Ltd.</a>
   </div>
 </div>
 {% endblock %}
@@ -689,15 +938,15 @@
 {% block usertools %}
 {% if has_permission %}
 <div id="user-tools">
-  <span class="mr-user-welcome">Welcome, <strong>{% firstof user.get_short_name user.get_username %}</strong></span>
-  <a href="http://127.0.0.1:5173/" class="mr-toolbar-link is-primary" target="_blank" rel="noopener">View site</a>
+  <span class="mr-user-welcome"><span class="mr-user-label">Signed in as</span><strong>{% firstof user.full_name user.get_short_name user.get_username %}</strong></span>
+  <a href="http://127.0.0.1:5173/" class="mr-toolbar-link is-primary" target="_blank" rel="noopener">Open Portal</a>
   {% if user.has_usable_password %}
-  <a href="{% url 'admin:password_change' %}" class="mr-toolbar-link">Change password</a>
+  <a href="{% url 'admin:password_change' %}" class="mr-toolbar-link">Update Password</a>
   {% endif %}
   {% include "admin/color_theme_toggle.html" %}
   <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
     {% csrf_token %}
-    <button type="submit">Log out</button>
+    <button type="submit">Sign Out</button>
   </form>
 </div>
 {% endif %}

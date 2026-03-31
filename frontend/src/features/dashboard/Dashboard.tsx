@@ -15,11 +15,13 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import mrangaLogo from '../../assets/mranga-logo.png';
-import { backendAdminUrl } from '../../lib/api';
+import { api, backendAdminConfirmUrl } from '../../lib/api';
+
+const mrangaLogo = '/mranga-logo.png';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -33,6 +35,18 @@ export const Dashboard: React.FC = () => {
 
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
   const roleLabel = user?.role?.replace('_', ' ') ?? 'STAFF';
+
+  const handleLogout = async () => {
+    setIsSigningOut(true);
+    try {
+      await api.post('/auth/logout/');
+    } catch {
+      // Clear local auth state even if the backend session is already gone.
+    } finally {
+      logout();
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f4f7f3_0%,#f8fafc_18%,#f8fafc_100%)] text-slate-900 lg:flex">
@@ -103,11 +117,12 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <button
-              onClick={logout}
+              onClick={handleLogout}
+              disabled={isSigningOut}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 py-3 text-sm font-bold text-rose-600 transition-all duration-200 hover:bg-rose-50"
             >
               <LogOut size={18} />
-              Sign Out
+              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </div>
@@ -129,7 +144,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <a
-                href={backendAdminUrl}
+                href={backendAdminConfirmUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-bold text-primary-800 shadow-sm transition-all duration-200 hover:border-primary-300 hover:bg-primary-100"

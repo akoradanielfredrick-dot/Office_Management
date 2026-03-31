@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { LogIn, Lock, Loader2, Mail } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
 import axios from 'axios';
-import mrangaLogo from '../../assets/mranga-logo.png';
+import { useAuthStore } from '../../store/authStore';
+import { api } from '../../lib/api';
+
+const mrangaLogo = '/mranga-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,7 +33,7 @@ export const LoginForm: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.post('/api/auth/login/', {
+      const res = await api.post('/auth/login/', {
         email: data.email,
         password: data.password,
       });
@@ -41,8 +43,9 @@ export const LoginForm: React.FC = () => {
         full_name: res.data.user.full_name,
         role: res.data.user.role,
       });
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Invalid email or password. Please try again.');
+    } catch (err) {
+      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : null;
+      setError(detail || 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }

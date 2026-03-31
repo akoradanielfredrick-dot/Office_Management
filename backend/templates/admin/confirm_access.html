@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Admin Access</title>
+  <style>
+    :root {
+      --mr-bg: #f4f7f3;
+      --mr-panel: #ffffff;
+      --mr-border: #dbe4df;
+      --mr-text: #162033;
+      --mr-muted: #6b7587;
+      --mr-primary: #1f5f2b;
+      --mr-primary-dark: #123c1a;
+      --mr-danger: #b42318;
+      --mr-shadow: 0 26px 60px -36px rgba(15, 36, 20, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--mr-text);
+      background:
+        radial-gradient(circle at top left, rgba(212, 131, 26, 0.12), transparent 22%),
+        linear-gradient(180deg, #eff5ec 0%, var(--mr-bg) 100%);
+    }
+
+    .card {
+      width: min(100%, 460px);
+      border: 1px solid var(--mr-border);
+      border-radius: 28px;
+      background: var(--mr-panel);
+      box-shadow: var(--mr-shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 28px 30px 20px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(15, 45, 15, 0.96), rgba(26, 74, 26, 0.94)),
+        linear-gradient(180deg, #153d15, #0f2d0f);
+    }
+
+    .hero small {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.08;
+    }
+
+    .hero p {
+      margin: 12px 0 0;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.6;
+    }
+
+    .body {
+      padding: 28px 30px 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--mr-text);
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--mr-border);
+      border-radius: 16px;
+      font-size: 15px;
+      color: var(--mr-text);
+      background: #fff;
+      outline: none;
+    }
+
+    input[type="password"]:focus {
+      border-color: rgba(31, 95, 43, 0.5);
+      box-shadow: 0 0 0 4px rgba(31, 95, 43, 0.12);
+    }
+
+    .hint {
+      margin: 10px 0 18px;
+      font-size: 13px;
+      color: var(--mr-muted);
+      line-height: 1.6;
+    }
+
+    .errorlist {
+      margin: 0 0 14px;
+      padding: 0;
+      list-style: none;
+      color: var(--mr-danger);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    button,
+    a.button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button {
+      border: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--mr-primary), var(--mr-primary-dark));
+      box-shadow: 0 16px 32px -24px rgba(15, 36, 20, 0.7);
+    }
+
+    a.button-link {
+      border: 1px solid var(--mr-border);
+      color: var(--mr-text);
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hero">
+      <small>Secure Step</small>
+      <h1>Confirm Admin Access</h1>
+      <p>Re-enter your password before opening the backend administration area.</p>
+    </div>
+    <div class="body">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          {{ form.password.errors }}
+        {% endif %}
+        <p class="hint">This extra confirmation protects the admin area even when your main portal session is already active.</p>
+        <div class="actions">
+          <button type="submit">Continue to Admin</button>
+          <a class="button-link" href="http://127.0.0.1:5173/">Back to Portal</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -14,9 +14,15 @@ backend/media/
 backend/server_out.txt
 backend/server_err.txt
 backend/check_output.txt
+backend/backend-server.log
+backend/backend-server.err.log
+backend-server.log
+backend-server.err.log
 
 frontend/node_modules/
 frontend/dist/
+frontend/frontend-server.log
+frontend/frontend-server.err.log
 
 .DS_Store
 Thumbs.db
