@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+const productionBackendOrigin = 'https://office-management-drab.vercel.app';
 
 const resolveBackendOrigin = (): string => {
   const configuredOrigin = import.meta.env.VITE_BACKEND_ORIGIN;
@@ -11,6 +12,10 @@ const resolveBackendOrigin = (): string => {
 
   if (typeof window === 'undefined') {
     return 'http://127.0.0.1:8000';
+  }
+
+  if (window.location.hostname.endsWith('.vercel.app')) {
+    return productionBackendOrigin;
   }
 
   return `${window.location.protocol}//${window.location.hostname}:8000`;
