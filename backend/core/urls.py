@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from types import MethodType
 from rest_framework.routers import DefaultRouter
+from accounts.forms import SuperAdminAdminAuthenticationForm
 from accounts.views import CsrfCookieView, LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
 from sales.views import QuotationViewSet
@@ -13,6 +15,18 @@ admin.site.site_header = 'Mranga Tours & Safaris Administration'
 admin.site.site_title = 'Mranga Admin Portal'
 admin.site.index_title = 'Office Management Administration'
 admin.site.site_url = '/'
+admin.site.login_form = SuperAdminAdminAuthenticationForm
+
+
+def _super_admin_has_permission(self, request):
+    if not request.user.is_authenticated or not request.user.is_active:
+        return False
+
+    role_name = (request.user.role.name if request.user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
+    return request.user.is_staff and role_name == "SUPER_ADMIN"
+
+
+admin.site.has_permission = MethodType(_super_admin_has_permission, admin.site)
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()

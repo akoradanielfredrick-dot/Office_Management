@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import User
@@ -22,3 +23,19 @@ class AdminAccessForm(forms.Form):
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
     )
+
+
+class SuperAdminAdminAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        "super_admin_only": "ONLY ACCESSIBLE BY SUPER ADMIN.",
+    }
+
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+        role_name = (user.role.name if user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
+        if role_name != "SUPER_ADMIN":
+            raise forms.ValidationError(
+                self.error_messages["super_admin_only"],
+                code="super_admin_only",
+            )

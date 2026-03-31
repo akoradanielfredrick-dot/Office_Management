@@ -68,7 +68,8 @@ def admin_access_confirm(request):
     if not request.user.is_authenticated:
         return redirect(f"{reverse('admin:login')}?next=/admin/confirm-access/?next=/admin/")
 
-    if not request.user.is_staff:
+    role_name = (request.user.role.name if request.user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
+    if not request.user.is_staff or role_name != "SUPER_ADMIN":
         return redirect("admin:login")
 
     next_url = request.GET.get("next") or request.POST.get("next") or "/admin/"
