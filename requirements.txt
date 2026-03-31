@@ -1,1 +1,9 @@
--r backend/requirements.txt
+django
+django-environ
+djangorestframework
+django-cors-headers
+django-filter
+drf-spectacular
+whitenoise
+psycopg2-binary
+reportlab
