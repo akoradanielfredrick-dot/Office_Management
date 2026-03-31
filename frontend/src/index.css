@@ -1,16 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply font-sans antialiased bg-slate-50 text-slate-900;
+    @apply font-sans antialiased text-slate-900;
+    background-image:
+      radial-gradient(circle at top left, rgba(236, 217, 164, 0.2), transparent 24rem),
+      linear-gradient(180deg, #f3f0e6 0%, #f8f7f2 20%, #f4f6f2 100%);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight text-slate-950;
+    @apply font-display tracking-tight text-slate-950;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+
+  p, span, button, input, textarea, select, label {
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+
+  ::selection {
+    @apply bg-primary-200 text-primary-950;
   }
 }
 
@@ -33,6 +57,20 @@
 
   .card {
     @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+  }
+
+  .dashboard-shell {
+    background-image:
+      radial-gradient(circle at top right, rgba(243, 225, 174, 0.14), transparent 24rem),
+      linear-gradient(180deg, #eef1e8 0%, #f8f7f2 18%, #f4f5ef 100%);
+  }
+
+  .dashboard-panel {
+    @apply border border-white/70 bg-white/80 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.34)] backdrop-blur-sm;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.34em];
   }
 
   /* Custom functional styles */
