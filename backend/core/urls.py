@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
-from accounts.views import LoginView, LogoutView, admin_access_confirm
+from accounts.views import CsrfCookieView, LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
 from sales.views import QuotationViewSet
 from operations.views import BookingViewSet, SupplierViewSet
@@ -31,6 +31,7 @@ urlpatterns = [
     path('admin/confirm-access/', admin_access_confirm, name='admin-access-confirm'),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/auth/csrf/', CsrfCookieView.as_view(), name='api-csrf'),
     path('api/auth/login/', LoginView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
     path('api/auth/', include('rest_framework.urls')),

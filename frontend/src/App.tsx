@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { ensureCsrfCookie } from './lib/api';
 import { LoginForm } from './features/auth/LoginForm';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { DashboardHome } from './features/dashboard/DashboardHome';
@@ -21,6 +22,12 @@ import { ClientList } from './features/clients/ClientList';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
+
+  React.useEffect(() => {
+    void ensureCsrfCookie().catch(() => {
+      // The app can still render if the backend is temporarily unavailable.
+    });
+  }, []);
 
   return (
     <Router>
