@@ -36,6 +36,28 @@ interface ActivityItem {
   amount: number | string;
 }
 
+const activityPresentation: Record<ActivityItem['type'], {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  iconWrap: string;
+  destination: (item: ActivityItem) => string;
+}> = {
+  QUOTATION: {
+    icon: Receipt,
+    iconWrap: 'bg-[#eef4ff] text-[#2964ff]',
+    destination: (item) => `/quotations/${item.id}`,
+  },
+  BOOKING: {
+    icon: Calendar,
+    iconWrap: 'bg-[#e9fbf2] text-[#17a86b]',
+    destination: (item) => `/bookings/${item.id}`,
+  },
+  PAYMENT: {
+    icon: Wallet,
+    iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
+    destination: () => '/finance/payments',
+  },
+};
+
 export const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -224,7 +246,7 @@ export const DashboardHome: React.FC = () => {
         </motion.div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.7fr_0.95fr]">
+      <section className="grid items-start gap-6 xl:grid-cols-[1.7fr_0.95fr]">
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
             {kpis.map((kpi, idx) => (
@@ -256,7 +278,10 @@ export const DashboardHome: React.FC = () => {
                 <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">OPERATIONS FEED</p>
                 <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Recent Activity</h3>
               </div>
-              <button className="inline-flex items-center gap-2 text-[1rem] font-medium text-[#6d8141]">
+              <button
+                onClick={() => navigate('/quotations')}
+                className="inline-flex items-center gap-2 text-[1rem] font-medium text-[#6d8141] transition-colors hover:text-[#52632f]"
+              >
                 View All
                 <ChevronRight size={18} />
               </button>
@@ -266,12 +291,14 @@ export const DashboardHome: React.FC = () => {
               {activity.length > 0 ? (
                 <div className="space-y-3">
                   {activity.map((item) => (
-                    <div
+                    <button
                       key={`${item.type}-${item.id}`}
-                      className="flex items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4"
+                      type="button"
+                      onClick={() => navigate(activityPresentation[item.type].destination(item))}
+                      className="flex w-full items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#d6dde8] hover:bg-slate-50"
                     >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef4ff] text-[#2964ff]">
-                        <Receipt size={20} />
+                      <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', activityPresentation[item.type].iconWrap)}>
+                        {React.createElement(activityPresentation[item.type].icon, { size: 20 })}
                       </div>
 
                       <div className="min-w-0 flex-1">
@@ -283,7 +310,7 @@ export const DashboardHome: React.FC = () => {
                         <p className="text-[1rem] font-semibold text-slate-950">{formatMoney('KES', item.amount)}</p>
                         <p className="text-[0.92rem] text-slate-500">{new Date(item.date).toLocaleDateString()}</p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (
