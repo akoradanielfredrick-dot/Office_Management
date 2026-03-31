@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
 from accounts.views import LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
@@ -11,7 +12,7 @@ from common.views import DashboardViewSet
 admin.site.site_header = 'Mranga Tours & Safaris Administration'
 admin.site.site_title = 'Mranga Admin Portal'
 admin.site.index_title = 'Office Management Administration'
-admin.site.site_url = 'http://127.0.0.1:5173/'
+admin.site.site_url = '/'
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
@@ -26,6 +27,7 @@ router.register(r'finance/analytics', AnalyticsViewSet, basename='finance-analyt
 router.register(r'dashboard', DashboardViewSet, basename='dashboard')
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/admin/', permanent=False)),
     path('admin/confirm-access/', admin_access_confirm, name='admin-access-confirm'),
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
