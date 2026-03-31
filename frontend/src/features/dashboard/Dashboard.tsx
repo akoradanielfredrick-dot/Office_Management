@@ -15,7 +15,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { api, backendAdminUrl } from '../../lib/api';
+import { api, backendAdminConfirmUrl } from '../../lib/api';
 
 const mrangaLogo = '/mranga-logo.png';
 
@@ -144,7 +144,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <a
-                href={backendAdminUrl}
+                href={backendAdminConfirmUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-bold text-primary-800 shadow-sm transition-all duration-200 hover:border-primary-300 hover:bg-primary-100"
