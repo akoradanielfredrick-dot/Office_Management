@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { motion } from 'framer-motion';
 import { ReportToolbar } from './ReportToolbar';
 
 interface Stats {
@@ -68,43 +69,41 @@ export const AnalyticsDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       <section className="grid gap-6 xl:grid-cols-[1.55fr_0.95fr]">
-        <div className="relative overflow-hidden rounded-[2rem] border border-primary-100 bg-[linear-gradient(135deg,#0f2d0f_0%,#153d15_45%,#214d2f_100%)] p-8 text-white shadow-[0_22px_60px_-30px_rgba(15,45,15,0.7)]">
-          <div
-            className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M19 0h2v40h-2zM0 19h40v2H0z'/%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          />
-
-          <div className="relative z-10 flex h-full flex-col justify-between gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[1.45rem] border border-[#c9def7] bg-[linear-gradient(135deg,#eef7ff_0%,#dceeff_52%,#cfe5fb_100%)] px-8 py-8 text-slate-950 shadow-[0_18px_36px_-24px_rgba(74,120,168,0.35)]"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.92),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_58%)]" />
+          <div className="flex h-full flex-col justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.3em] text-primary-100">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#b9d7f4] bg-white/75 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[#3f6b94] backdrop-blur-sm">
                 <Sparkles size={12} />
                 Financial Intelligence
               </div>
-              <h1 className="mt-5 text-4xl font-black tracking-tight">Executive Analytics</h1>
-              <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-primary-100">
+
+              <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-slate-950">Executive Analytics</h1>
+              <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-slate-700">
                 Review performance, cash position, risk exposure, and profitability across the office in one decision-ready workspace.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-primary-200">Revenue</p>
-                <p className="mt-2 text-xl font-black text-white">KES {revenue.toLocaleString()}</p>
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Revenue</p>
+                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {revenue.toLocaleString()}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-primary-200">Net Cashflow</p>
-                <p className="mt-2 text-xl font-black text-white">KES {netCashflow.toLocaleString()}</p>
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Net Cashflow</p>
+                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {netCashflow.toLocaleString()}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-primary-200">Collections Risk</p>
-                <p className="mt-2 text-xl font-black text-white">KES {outstanding.toLocaleString()}</p>
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Collections Risk</p>
+                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {outstanding.toLocaleString()}</p>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Analysis Paths</p>
