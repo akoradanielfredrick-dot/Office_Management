@@ -73,7 +73,7 @@ export const ClientList: React.FC = () => {
 
               <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-slate-950">Clients</h1>
               <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-slate-700">
-                Live client records from the backend are available here for quotation, booking, and account workflows.
+                Live client records are available here for quotation, booking, and account workflows.
               </p>
             </div>
 
