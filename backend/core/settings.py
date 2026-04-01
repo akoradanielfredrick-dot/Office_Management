@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'CMS - Tour & Travel API',
-    'DESCRIPTION': 'Internal Office Management System for Kenyan Tour & Travel Company',
+    'DESCRIPTION': 'Internal Portal for MRANGA TOURS & SAFARIS LTD.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }

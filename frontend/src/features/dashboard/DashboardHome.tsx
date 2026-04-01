@@ -36,6 +36,21 @@ interface ActivityItem {
   amount: number | string;
 }
 
+const normalizeRoleLabel = (role: unknown): string => {
+  if (typeof role === 'string' && role.trim()) {
+    return role.replace(/_/g, ' ');
+  }
+
+  if (role && typeof role === 'object' && 'name' in role) {
+    const roleName = (role as { name?: unknown }).name;
+    if (typeof roleName === 'string' && roleName.trim()) {
+      return roleName.replace(/_/g, ' ');
+    }
+  }
+
+  return 'STAFF';
+};
+
 const activityPresentation: Record<ActivityItem['type'], {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   iconWrap: string;
@@ -82,7 +97,7 @@ export const DashboardHome: React.FC = () => {
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
-  const roleLabel = user?.role?.replace(/_/g, ' ') ?? 'STAFF';
+  const roleLabel = normalizeRoleLabel(user?.role);
   const todayLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -291,14 +306,21 @@ export const DashboardHome: React.FC = () => {
               {activity.length > 0 ? (
                 <div className="space-y-3">
                   {activity.map((item) => (
+                    (() => {
+                      const presentation = activityPresentation[item.type];
+                      if (!presentation) {
+                        return null;
+                      }
+
+                      return (
                     <button
                       key={`${item.type}-${item.id}`}
                       type="button"
-                      onClick={() => navigate(activityPresentation[item.type].destination(item))}
+                      onClick={() => navigate(presentation.destination(item))}
                       className="flex w-full items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#d6dde8] hover:bg-slate-50"
                     >
-                      <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', activityPresentation[item.type].iconWrap)}>
-                        {React.createElement(activityPresentation[item.type].icon, { size: 20 })}
+                      <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
+                        {React.createElement(presentation.icon, { size: 20 })}
                       </div>
 
                       <div className="min-w-0 flex-1">
@@ -311,6 +333,8 @@ export const DashboardHome: React.FC = () => {
                         <p className="text-[0.92rem] text-slate-500">{new Date(item.date).toLocaleDateString()}</p>
                       </div>
                     </button>
+                      );
+                    })()
                   ))}
                 </div>
               ) : (

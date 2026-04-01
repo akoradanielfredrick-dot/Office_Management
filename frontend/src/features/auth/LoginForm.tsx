@@ -83,14 +83,14 @@ export const LoginForm: React.FC = () => {
                   MRANGA TOURS AND SAFARIS LTD
                 </h1>
                 <p className="max-w-md text-sm font-medium leading-6 text-primary-100">
-                  Office management system for bookings, quotations, finance, reporting, and client operations.
+                  Internal portal for bookings, quotations, finance, reporting, and client operations.
                 </p>
               </div>
 
               <div className="mt-5 flex flex-wrap justify-center gap-3 text-xs font-bold uppercase tracking-[0.22em] text-primary-100">
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Kenya</span>
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Est. 2024</span>
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Office Management System v1.0</span>
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Mranga Operations Portal v1.0</span>
               </div>
             </div>
           </div>

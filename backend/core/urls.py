@@ -13,7 +13,7 @@ from common.views import DashboardViewSet
 
 admin.site.site_header = 'Mranga Tours & Safaris Administration'
 admin.site.site_title = 'Mranga Admin Portal'
-admin.site.index_title = 'Office Management Administration'
+admin.site.index_title = 'System Administration'
 admin.site.site_url = '/'
 admin.site.login_form = SuperAdminAdminAuthenticationForm
 

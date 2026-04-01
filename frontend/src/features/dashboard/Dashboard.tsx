@@ -20,6 +20,21 @@ import { api, backendAdminConfirmUrl } from '../../lib/api';
 
 const mrangaLogo = '/mranga-brand.jpeg';
 
+const normalizeRoleLabel = (role: unknown): string => {
+  if (typeof role === 'string' && role.trim()) {
+    return role.replace(/_/g, ' ');
+  }
+
+  if (role && typeof role === 'object' && 'name' in role) {
+    const roleName = (role as { name?: unknown }).name;
+    if (typeof roleName === 'string' && roleName.trim()) {
+      return roleName.replace(/_/g, ' ');
+    }
+  }
+
+  return 'STAFF';
+};
+
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [isSigningOut, setIsSigningOut] = React.useState(false);
@@ -35,7 +50,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
-  const roleLabel = user?.role?.replace(/_/g, ' ') ?? 'STAFF';
+  const roleLabel = normalizeRoleLabel(user?.role);
 
   const handleLogout = async () => {
     setIsSigningOut(true);
