@@ -65,8 +65,8 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb] text-slate-900 lg:flex">
-      <aside className="hidden h-screen w-[16.1rem] shrink-0 border-r border-[#d8dee7] bg-white lg:sticky lg:top-0 lg:flex lg:flex-col">
+    <div className="min-h-screen bg-[#f7f8fb] text-slate-900 lg:flex lg:h-screen lg:overflow-hidden">
+      <aside className="hidden h-screen w-[16.1rem] shrink-0 border-r border-[#d8dee7] bg-white lg:flex lg:flex-col lg:overflow-hidden">
         <div className="flex min-h-[11.9rem] items-center justify-center border-b border-[#d8dee7] px-6 py-6">
           <img
             src={mrangaLogo}
@@ -75,64 +75,66 @@ export const Dashboard: React.FC = () => {
           />
         </div>
 
-        <nav className="flex-1 px-4 py-5">
-          <div className="space-y-1.5">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  clsx(
-                    'group flex items-center gap-3 rounded-2xl px-4 py-3 text-[1rem] font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-[#fbf6df] text-[#4a5f2f]'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <div
-                      className={clsx(
-                        'flex h-9 w-9 items-center justify-center rounded-xl',
-                        isActive ? 'text-[#6a8240]' : 'text-slate-500'
-                      )}
-                    >
-                      <item.icon size={20} strokeWidth={1.8} />
-                    </div>
-                    <span className="flex-1">{item.label}</span>
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-
-        <div className="border-t border-[#d8dee7] p-4">
-          <div className="rounded-[1.55rem] border border-[#d8dee7] bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.3)]">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#627c3a] text-sm font-bold text-white">
-                {firstName.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[1.02rem] font-semibold text-slate-900">{user?.full_name}</p>
-                <p className="mt-0.5 text-sm uppercase tracking-[0.08em] text-slate-500">{roleLabel}</p>
-              </div>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <nav className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+            <div className="space-y-1.5">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    clsx(
+                      'group flex items-center gap-3 rounded-2xl px-4 py-3 text-[1rem] font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-[#fbf6df] text-[#4a5f2f]'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div
+                        className={clsx(
+                          'flex h-9 w-9 items-center justify-center rounded-xl',
+                          isActive ? 'text-[#6a8240]' : 'text-slate-500'
+                        )}
+                      >
+                        <item.icon size={20} strokeWidth={1.8} />
+                      </div>
+                      <span className="flex-1">{item.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
             </div>
+          </nav>
 
-            <button
-              onClick={handleLogout}
-              disabled={isSigningOut}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-base font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-70"
-            >
-              <LogOut size={18} />
-              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-            </button>
+          <div className="border-t border-[#d8dee7] p-4">
+            <div className="rounded-[1.55rem] border border-[#d8dee7] bg-white p-4 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.3)]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#627c3a] text-sm font-bold text-white">
+                  {firstName.charAt(0)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[1.02rem] font-semibold text-slate-900">{user?.full_name}</p>
+                  <p className="mt-0.5 text-sm uppercase tracking-[0.08em] text-slate-500">{roleLabel}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                disabled={isSigningOut}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-base font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-70"
+              >
+                <LogOut size={18} />
+                {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+              </button>
+            </div>
           </div>
         </div>
       </aside>
 
-      <main className="flex min-h-screen flex-1 flex-col">
+      <main className="flex min-h-screen flex-1 flex-col lg:h-screen lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-40 border-b border-[#d8dee7] bg-white">
           <div className="flex min-h-[5.7rem] items-center justify-between gap-4 px-8">
             <div>
