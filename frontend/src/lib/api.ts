@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+const DEFAULT_BACKEND_ORIGIN = 'https://office-management-drab.vercel.app';
 
 const resolveBackendOrigin = (): string => {
   const configuredOrigin = import.meta.env.VITE_BACKEND_ORIGIN;
@@ -9,7 +10,7 @@ const resolveBackendOrigin = (): string => {
     return trimTrailingSlash(configuredOrigin);
   }
 
-  return typeof window === 'undefined' ? '' : window.location.origin;
+  return DEFAULT_BACKEND_ORIGIN;
 };
 
 const resolveApiBaseUrl = (): string => {

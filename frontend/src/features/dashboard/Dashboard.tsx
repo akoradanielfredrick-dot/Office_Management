@@ -16,7 +16,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { api, backendAdminConfirmUrl } from '../../lib/api';
+import { api, backendAdminUrl } from '../../lib/api';
 
 const mrangaLogo = '/mranga-brand.jpeg';
 
@@ -157,7 +157,7 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <a
-                href={backendAdminConfirmUrl}
+                href={backendAdminUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-[0.95rem] border border-[#cfd6e0] bg-white px-5 py-3 text-[1rem] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
