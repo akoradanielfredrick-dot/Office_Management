@@ -5,7 +5,7 @@ import {
   Calendar,
   Wallet,
   ShoppingCart,
-  ArrowRight,
+  ChevronRight,
   Plus,
   Clock3,
   TrendingUp,
