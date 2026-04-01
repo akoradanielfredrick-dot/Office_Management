@@ -60,13 +60,13 @@ export const ClientList: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[1.45rem] border border-[#c9def7] bg-[linear-gradient(135deg,#eef7ff_0%,#dceeff_52%,#cfe5fb_100%)] px-8 py-8 text-slate-950 shadow-[0_18px_36px_-24px_rgba(74,120,168,0.35)]"
+          className="relative overflow-hidden rounded-[1.45rem] border border-[#f0ddb0] bg-[linear-gradient(135deg,#fff9ea_0%,#fff1c7_52%,#f7e2a6_100%)] px-8 py-8 text-slate-950 shadow-[0_18px_36px_-24px_rgba(171,132,42,0.28)]"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.92),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_58%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.95),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.26),transparent_58%)]" />
 
           <div className="relative z-10 flex h-full flex-col justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#b9d7f4] bg-white/75 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[#3f6b94] backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#ecd48d] bg-white/72 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[#9c7421] backdrop-blur-sm">
                 <Sparkles size={12} />
                 Client Workspace
               </div>
@@ -78,15 +78,15 @@ export const ClientList: React.FC = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(171,132,42,0.28)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Status</p>
                 <p className="mt-2 text-[1.25rem] font-semibold text-slate-950">Live Directory</p>
               </div>
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(171,132,42,0.28)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Linked Data</p>
                 <p className="mt-2 text-[1.25rem] font-semibold text-slate-950">Quotations & Bookings</p>
               </div>
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
+              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(171,132,42,0.28)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Client Records</p>
                 <p className="mt-2 text-[1.25rem] font-semibold text-slate-950">{clients.length}</p>
               </div>
