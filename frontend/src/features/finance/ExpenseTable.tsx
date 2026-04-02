@@ -16,6 +16,7 @@ import { api, toNumber } from '../../lib/api';
 
 interface Expense {
   id: string;
+  booking?: string | null;
   internal_reference: string;
   expense_date: string;
   category: string;
@@ -185,8 +186,9 @@ export const ExpenseTable: React.FC = () => {
                   <td className="px-6 py-5">
                     <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100">
                       <button
-                        onClick={() => e.booking_ref && navigate('/bookings')}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
+                        onClick={() => e.booking && navigate(`/bookings/${e.booking}`)}
+                        disabled={!e.booking}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <ExternalLink size={15} />
                         Open

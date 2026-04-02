@@ -16,6 +16,7 @@ import { api, toNumber } from '../../lib/api';
 
 interface Payment {
   id: string;
+  booking: string;
   internal_reference: string;
   booking_ref: string;
   amount: number | string;
@@ -224,6 +225,13 @@ export const PaymentTable: React.FC = () => {
 
                   <td className="px-6 py-5">
                     <div className="flex items-center justify-end gap-2 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100">
+                      <button
+                        onClick={() => navigate(`/bookings/${p.booking}`)}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
+                      >
+                        <ArrowUpRight size={15} />
+                        Booking
+                      </button>
                       <button
                         onClick={() => p.receipt?.id && window.open(`/api/finance/receipts/${p.receipt.id}/download/`, '_blank')}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"

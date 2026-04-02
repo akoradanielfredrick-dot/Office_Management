@@ -54,6 +54,7 @@ class DashboardViewSet(viewsets.ViewSet):
             activity.append({
                 'type': 'PAYMENT',
                 'id': p.id,
+                'booking_id': p.booking.id if p.booking else None,
                 'title': f"Payment {p.internal_reference}",
                 'subtitle': p.booking.client.full_name if p.booking else "Unknown",
                 'date': p.created_at,

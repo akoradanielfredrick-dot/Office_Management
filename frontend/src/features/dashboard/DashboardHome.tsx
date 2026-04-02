@@ -27,6 +27,7 @@ interface DashboardStats {
 interface ActivityItem {
   type: 'BOOKING' | 'PAYMENT';
   id: string;
+  booking_id?: string | null;
   title: string;
   subtitle: string;
   date: string;
@@ -62,7 +63,7 @@ const activityPresentation: Record<ActivityItem['type'], {
   PAYMENT: {
     icon: Wallet,
     iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
-    destination: () => '/finance/payments',
+    destination: (item) => item.booking_id ? `/bookings/${item.booking_id}` : '/finance/payments',
   },
 };
 
