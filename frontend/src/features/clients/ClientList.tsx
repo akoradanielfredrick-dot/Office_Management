@@ -1,5 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+  ArrowRight,
+  CirclePlus,
   Users,
   Phone,
   Mail,
@@ -19,6 +22,7 @@ interface ClientRecord {
 }
 
 export const ClientList: React.FC = () => {
+  const navigate = useNavigate();
   const [clients, setClients] = React.useState<ClientRecord[]>([]);
 
   React.useEffect(() => {
@@ -73,7 +77,7 @@ export const ClientList: React.FC = () => {
 
               <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-slate-950">Clients</h1>
               <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-slate-700">
-                Live client records are available here for quotation, booking, and account workflows.
+                Live client records are available here for booking, payment, expense, and account workflows.
               </p>
             </div>
 
@@ -122,8 +126,18 @@ export const ClientList: React.FC = () => {
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Live Client Directory</p>
             <h3 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Client Records</h3>
           </div>
-          <div className="rounded-full bg-primary-50 px-4 py-2 text-sm font-black text-primary-700">
-            {clients.length} clients
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-primary-50 px-4 py-2 text-sm font-black text-primary-700">
+              {clients.length} clients
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/clients/new')}
+              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-primary-700"
+            >
+              <CirclePlus size={16} />
+              Add Client
+            </button>
           </div>
         </div>
 
@@ -160,8 +174,16 @@ export const ClientList: React.FC = () => {
               </div>
               <p className="mt-5 text-lg font-black text-slate-900">No client records found yet</p>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                Add clients from the backend admin and they will appear here automatically for bookings and account workflows.
+                Start by creating a client here, then use that client directly in booking and finance workflows.
               </p>
+              <button
+                type="button"
+                onClick={() => navigate('/clients/new')}
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-primary-700"
+              >
+                Add First Client
+                <ArrowRight size={16} />
+              </button>
             </div>
           )}
         </div>

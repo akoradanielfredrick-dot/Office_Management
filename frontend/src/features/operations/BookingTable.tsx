@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  CirclePlus,
   Search,
   Filter,
   Eye,
@@ -87,10 +88,20 @@ export const BookingTable: React.FC = () => {
           </div>
         </div>
 
-        <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
-          <Filter size={17} />
-          Filters
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
+            <Filter size={17} />
+            Filters
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/bookings/new')}
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-700"
+          >
+            <CirclePlus size={17} />
+            New Booking
+          </button>
+        </div>
       </section>
 
       <section className="grid gap-5 md:grid-cols-3">

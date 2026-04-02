@@ -16,6 +16,8 @@ import { ProfitabilityReport } from './features/analytics/ProfitabilityReport';
 import { SupplierSpend } from './features/analytics/SupplierSpend';
 import { OutstandingBalances } from './features/analytics/OutstandingBalances';
 import { ClientList } from './features/clients/ClientList';
+import { ClientForm } from './features/clients/ClientForm';
+import { BookingForm } from './features/operations/BookingForm';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -42,6 +44,7 @@ const App: React.FC = () => {
         >
           <Route index element={<DashboardHome />} />
           <Route path="bookings" element={<BookingTable />} />
+          <Route path="bookings/new" element={<BookingForm />} />
           <Route path="bookings/:id" element={<BookingDetails />} />
           <Route path="finance/payments" element={<PaymentTable />} />
           <Route path="finance/payments/new" element={<PaymentForm />} />
@@ -52,6 +55,7 @@ const App: React.FC = () => {
           <Route path="analytics/suppliers" element={<SupplierSpend />} />
           <Route path="analytics/outstanding" element={<OutstandingBalances />} />
           <Route path="clients" element={<ClientList />} />
+          <Route path="clients/new" element={<ClientForm />} />
         </Route>
         
         {/* Fallback */}
