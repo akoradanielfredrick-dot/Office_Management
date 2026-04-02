@@ -379,34 +379,34 @@ export const BookingForm: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.8)]">
-            <div className="border-b border-white/10 px-6 py-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Live Summary</p>
-              <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-white">
+          <section className="overflow-hidden rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
+            <div className="border-b border-[#c8dfc0] px-6 py-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Live Summary</p>
+              <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[#234126]">
                 <CreditCard size={22} />
                 Booking Totals
               </h2>
             </div>
 
             <div className="space-y-4 px-6 py-6">
-              <div className="rounded-[1.4rem] border border-white/10 bg-white/5 px-4 py-4">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">Selected Package</p>
-                <p className="mt-2 text-lg font-black text-white">{selectedPackage?.name || 'No package selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-slate-300">{selectedPackage?.package_type_display || 'Package type will appear here'}</p>
+              <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Package</p>
+                <p className="mt-2 text-lg font-black text-[#234126]">{selectedPackage?.name || 'No package selected yet'}</p>
+                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedPackage?.package_type_display || 'Package type will appear here'}</p>
               </div>
 
               <div className="grid gap-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Subtotal</span>
-                  <span className="font-black text-white">{formatMoney(currency, subtotal)}</span>
+                  <span className="text-[#5e7d5d]">Subtotal</span>
+                  <span className="font-black text-[#234126]">{formatMoney(currency, subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Discount</span>
-                  <span className="font-black text-white">{formatMoney(currency, discount)}</span>
+                  <span className="text-[#5e7d5d]">Discount</span>
+                  <span className="font-black text-[#234126]">{formatMoney(currency, discount)}</span>
                 </div>
-                <div className="flex items-center justify-between border-t border-white/10 pt-3 text-sm">
-                  <span className="text-slate-300">Total Cost</span>
-                  <span className="text-xl font-black text-white">{formatMoney(currency, totalCost)}</span>
+                <div className="flex items-center justify-between border-t border-[#c8dfc0] pt-3 text-sm">
+                  <span className="text-[#3c593d]">Total Cost</span>
+                  <span className="text-xl font-black text-[#234126]">{formatMoney(currency, totalCost)}</span>
                 </div>
               </div>
             </div>
