@@ -5,12 +5,11 @@ import {
   Wallet,
   ShoppingCart,
   ChevronRight,
-  Plus,
   Clock3,
   TrendingUp,
   ShieldCheck,
   CreditCard,
-  Receipt,
+  Users,
   Activity,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
