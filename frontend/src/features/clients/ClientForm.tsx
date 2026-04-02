@@ -149,10 +149,10 @@ export const ClientForm: React.FC = () => {
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-[2rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.8)]">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">What Happens Next</p>
-            <h2 className="mt-2 text-2xl font-black text-white">Ready for Operations</h2>
-            <div className="mt-5 space-y-4 text-sm font-medium leading-6 text-slate-300">
+          <section className="rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] p-6 text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">What Happens Next</p>
+            <h2 className="mt-2 text-2xl font-black text-[#234126]">Ready for Operations</h2>
+            <div className="mt-5 space-y-4 text-sm font-medium leading-6 text-[#4f6a50]">
               <p>Once saved, this client becomes selectable from the booking screen immediately.</p>
               <p>Payments and expenses linked to the client’s booking will continue to reflect through the backend API.</p>
             </div>
