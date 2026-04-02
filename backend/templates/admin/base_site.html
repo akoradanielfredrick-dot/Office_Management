@@ -73,10 +73,10 @@
     max-width: 760px;
   }
 
-  .mr-brand-mark {
-    width: 92px;
+.mr-brand-mark {
+    width: 112px;
     height: 72px;
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: 22px;
     background:
       linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(244, 236, 218, 0.98));
@@ -91,8 +91,9 @@
     overflow: hidden;
   }
 
-  .mr-brand-mark img {
-    width: 100%;
+.mr-brand-mark img {
+    width: auto;
+    max-width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
@@ -924,7 +925,7 @@
 
 {% block branding %}
 <div class="mr-brand-mark" aria-hidden="true">
-  <img src="{% static 'mranga-brand.jpeg' %}?v=1" alt="Mranga Tours and Safaris logo">
+  <img src="/mranga-brand.jpeg?v=3" alt="Mranga Tours and Safaris logo">
 </div>
 <div class="mr-brand-copy">
   <span class="mr-brand-eyebrow">Administrative Console</span>
