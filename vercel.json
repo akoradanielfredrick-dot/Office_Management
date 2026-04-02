@@ -32,6 +32,14 @@
       "dest": "api/index.py"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(mranga-icon\\.png|mranga-logo\\.png|mranga-brand\\.jpeg|admin-icon\\.svg|README\\.txt)",
+      "dest": "/$1"
+    },
+    {
       "handle": "filesystem"
     },
     {
