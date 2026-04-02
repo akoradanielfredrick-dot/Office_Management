@@ -126,6 +126,10 @@ export const BookingDetails: React.FC = () => {
     const right = pageWidth - 48;
     const contentWidth = right - left;
     let y = 54;
+    const companyName = 'MRANGA TOURS & SAFARI LTD.';
+    const companyAddress = 'Arman Complex, opposite Diani Sea Lodge, Diani, Kenya';
+    const companyPhones = '+254 116 837982 / +41 79 400 28 81';
+    const companyEmail = 'info@mrangatoursandsafaris.com';
 
     const ensureSpace = (needed = 24) => {
       if (y + needed <= pageHeight - 48) {
@@ -175,20 +179,34 @@ export const BookingDetails: React.FC = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text('BOOKING DOCUMENT', left, y);
+    doc.text('OFFICIAL BOOKING', left, y);
     y += 18;
-    doc.setFontSize(24);
+    doc.setFontSize(22);
     doc.setTextColor(31, 67, 38);
-    doc.text(booking.reference_no, left, y);
-    y += 20;
+    doc.text(companyName, left, y);
+    y += 18;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setTextColor(71, 85, 105);
-    doc.text(`${booking.client_name} | ${packageName}`, left, y);
+    doc.text(companyAddress, left, y);
+    y += 15;
+    doc.text(companyPhones, left, y);
+    y += 15;
+    doc.text(companyEmail, left, y);
     y += 24;
     doc.setDrawColor(109, 129, 65);
     doc.setLineWidth(1.5);
     doc.line(left, y, right, y);
+    y += 22;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(31, 67, 38);
+    doc.text(booking.reference_no, left, y);
+    y += 18;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`${booking.client_name} | ${packageName}`, left, y);
     y += 22;
 
     drawLabelValue('Client', booking.client_name);
