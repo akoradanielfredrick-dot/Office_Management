@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import permissions, viewsets
 from .models import Booking, Excursion, Package, Supplier
 from .serializers import BookingSerializer, ExcursionSerializer, PackageSerializer, SupplierSerializer
 from common.models import ActivityLog
@@ -10,6 +10,11 @@ class PackageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOperationsUser]
     filterset_fields = ['id', 'package_type']
     search_fields = ['name', 'itinerary']
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [IsOperationsUser()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -46,6 +51,11 @@ class ExcursionViewSet(viewsets.ModelViewSet):
     filterset_fields = ['id', 'location']
     search_fields = ['name', 'location', 'itinerary']
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [IsOperationsUser()]
+
     def perform_create(self, serializer):
         instance = serializer.save()
         ActivityLog.objects.create(
@@ -81,6 +91,11 @@ class BookingViewSet(viewsets.ModelViewSet):
     filterset_fields = ['id', 'client', 'status']
     search_fields = ['reference_no', 'client__full_name', 'destination_package', 'package_name']
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'create', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated()]
+        return [IsOperationsUser()]
+
     def perform_create(self, serializer):
         instance = serializer.save()
         ActivityLog.objects.create(
@@ -106,6 +121,11 @@ class SupplierViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOperationsUser]
     filterset_fields = ['id', 'category']
     search_fields = ['name', 'category', 'contact_person', 'email', 'phone', 'address']
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+        return [IsOperationsUser()]
 
     def perform_create(self, serializer):
         instance = serializer.save()

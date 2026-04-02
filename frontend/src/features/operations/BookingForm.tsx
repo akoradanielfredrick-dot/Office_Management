@@ -130,14 +130,32 @@ export const BookingForm: React.FC = () => {
 
   React.useEffect(() => {
     const fetchLookups = async () => {
-      const [clientsResponse, packagesResponse, excursionsResponse] = await Promise.all([
+      const [clientsResponse, packagesResponse, excursionsResponse] = await Promise.allSettled([
         api.get('/clients/'),
         api.get('/operations/packages/'),
         api.get('/operations/excursions/'),
       ]);
-      setClients(clientsResponse.data);
-      setPackages(packagesResponse.data);
-      setExcursions(excursionsResponse.data);
+
+      if (clientsResponse.status === 'fulfilled') {
+        setClients(clientsResponse.value.data);
+      } else {
+        console.error('Failed to load clients for booking:', clientsResponse.reason);
+        setClients([]);
+      }
+
+      if (packagesResponse.status === 'fulfilled') {
+        setPackages(packagesResponse.value.data);
+      } else {
+        console.error('Failed to load packages for booking:', packagesResponse.reason);
+        setPackages([]);
+      }
+
+      if (excursionsResponse.status === 'fulfilled') {
+        setExcursions(excursionsResponse.value.data);
+      } else {
+        console.error('Failed to load excursions for booking:', excursionsResponse.reason);
+        setExcursions([]);
+      }
     };
 
     fetchLookups().catch((error) => {
