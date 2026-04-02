@@ -138,7 +138,7 @@ export const BookingForm: React.FC = () => {
     setSubmitError('');
 
     try {
-      await api.post('/operations/bookings/', {
+      const response = await api.post('/operations/bookings/', {
         client: data.client,
         package: data.package || null,
         travel_date: data.travel_date,
@@ -161,7 +161,7 @@ export const BookingForm: React.FC = () => {
         total_cost: totalCost,
       });
 
-      navigate('/bookings');
+      navigate(`/bookings/${response.data.id}`);
     } catch (error) {
       console.error('Failed to create booking:', error);
       setSubmitError('Unable to create the booking right now. Please confirm the client, package, and pricing details.');
