@@ -130,6 +130,11 @@ export const BookingDetails: React.FC = () => {
     const companyAddress = 'Arman Complex, opposite Diani Sea Lodge, Diani, Kenya';
     const companyPhones = '+254 116 837982 / +41 79 400 28 81';
     const companyEmail = 'info@mrangatoursandsafaris.com';
+    const generatedFrom = 'Office Management Portal';
+    const generatedOn = new Date().toLocaleString();
+    const columnGap = 10;
+    const columnCount = 4;
+    const columnWidth = (contentWidth - columnGap * (columnCount - 1)) / columnCount;
 
     const ensureSpace = (needed = 24) => {
       if (y + needed <= pageHeight - 48) {
@@ -139,41 +144,74 @@ export const BookingDetails: React.FC = () => {
       y = 54;
     };
 
-    const drawLabelValue = (label: string, value: string) => {
-      ensureSpace(34);
+    const drawFieldBox = (x: number, top: number, width: number, label: string, value: string, minHeight = 72) => {
+      const displayValue = value || 'Not provided';
+      const labelLines = doc.splitTextToSize(label.toUpperCase(), width - 20);
+      const valueLines = doc.splitTextToSize(displayValue, width - 20);
+      const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
+      const boxHeight = Math.max(minHeight, contentHeight);
+
+      doc.setDrawColor(203, 213, 225);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, top, width, boxHeight, 10, 10, 'FD');
+
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
+      doc.setFontSize(8.5);
       doc.setTextColor(100, 116, 139);
-      doc.text(label.toUpperCase(), left, y);
-      y += 14;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
+      doc.text(labelLines, x + 10, top + 16);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11.5);
       doc.setTextColor(15, 23, 42);
-      const lines = doc.splitTextToSize(value, contentWidth);
-      doc.text(lines, left, y);
-      y += lines.length * 16 + 8;
+      doc.text(valueLines, x + 10, top + 38);
+
+      return boxHeight;
     };
 
-    const drawSection = (title: string, content: string) => {
-      ensureSpace(42);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(15);
-      doc.setTextColor(31, 67, 38);
-      doc.text(title, left, y);
-      y += 18;
-      doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(left, y, contentWidth, 2, 2, 2, 'S');
-      y += 14;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(30, 41, 59);
-      const lines = doc.splitTextToSize(content, contentWidth - 8);
-      lines.forEach((line: string) => {
-        ensureSpace(16);
-        doc.text(line, left + 4, y);
-        y += 15;
+    const drawGridRow = (fields: Array<{ label: string; value: string }>, minHeight = 72) => {
+      const estimatedHeights = fields.map((field) => {
+        const labelLines = doc.splitTextToSize(field.label.toUpperCase(), columnWidth - 20);
+        const valueLines = doc.splitTextToSize(field.value || 'Not provided', columnWidth - 20);
+        const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
+        return Math.max(minHeight, contentHeight);
       });
-      y += 10;
+
+      const rowHeight = Math.max(...estimatedHeights);
+      ensureSpace(rowHeight + 4);
+
+      fields.forEach((field, index) => {
+        const x = left + index * (columnWidth + columnGap);
+        drawFieldBox(x, y, columnWidth, field.label, field.value, rowHeight);
+      });
+
+      y += rowHeight + 12;
+    };
+
+    const drawFullWidthSection = (label: string, value: string, minHeight = 110) => {
+      ensureSpace(minHeight + 4);
+      const actualHeight = drawFieldBox(left, y, contentWidth, label, value, minHeight);
+      y += actualHeight + 12;
+    };
+
+    const drawTwoColumnRow = (fields: Array<{ label: string; value: string }>, minHeight = 72) => {
+      const twoColumnGap = 12;
+      const twoColumnWidth = (contentWidth - twoColumnGap) / 2;
+      const estimatedHeights = fields.map((field) => {
+        const labelLines = doc.splitTextToSize(field.label.toUpperCase(), twoColumnWidth - 20);
+        const valueLines = doc.splitTextToSize(field.value || 'Not provided', twoColumnWidth - 20);
+        const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
+        return Math.max(minHeight, contentHeight);
+      });
+
+      const rowHeight = Math.max(...estimatedHeights);
+      ensureSpace(rowHeight + 4);
+
+      fields.forEach((field, index) => {
+        const x = left + index * (twoColumnWidth + twoColumnGap);
+        drawFieldBox(x, y, twoColumnWidth, field.label, field.value, rowHeight);
+      });
+
+      y += rowHeight + 12;
     };
 
     doc.setFont('helvetica', 'bold');
@@ -197,45 +235,59 @@ export const BookingDetails: React.FC = () => {
     doc.setDrawColor(109, 129, 65);
     doc.setLineWidth(1.5);
     doc.line(left, y, right, y);
-    y += 22;
+    y += 20;
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
+    doc.setFontSize(17);
     doc.setTextColor(31, 67, 38);
-    doc.text(booking.reference_no, left, y);
-    y += 18;
+    doc.text('Structured Booking Summary', left, y);
+    y += 16;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
+    doc.setFontSize(10.5);
     doc.setTextColor(71, 85, 105);
-    doc.text(`${booking.client_name} | ${packageName}`, left, y);
-    y += 22;
+    doc.text('Grouped booking details laid out for professional printing and easy client review.', left, y);
+    y += 18;
 
-    drawLabelValue('Client', booking.client_name);
-    drawLabelValue('Client Email', booking.client_email || 'No email provided');
-    drawLabelValue('Client Phone', booking.client_phone || 'No phone provided');
-    drawLabelValue('Package', packageName);
-    drawLabelValue('Package Type', booking.package_type_display || 'Not specified');
-    drawLabelValue('Travel Date', travelDate);
-    drawLabelValue('End Date', endDate);
-    drawLabelValue('Duration', `${booking.number_of_days} day(s)`);
-    drawLabelValue('Status', booking.status);
-    drawLabelValue('Travellers', `${booking.num_adults} adult(s), ${booking.num_children} child(ren)`);
-    drawLabelValue('Price Per Adult', `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}`);
-    drawLabelValue('Price Per Child', `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}`);
-    drawLabelValue('Extra Charges', `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}`);
-    drawLabelValue('Subtotal', `${booking.currency} ${toNumber(booking.subtotal).toLocaleString()}`);
-    drawLabelValue('Discount', `${booking.currency} ${toNumber(booking.discount).toLocaleString()}`);
-    drawLabelValue('Total Cost', `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}`);
+    drawGridRow([
+      { label: 'Booking Number', value: booking.reference_no },
+      { label: 'Client Name', value: booking.client_name },
+      { label: 'Client Email', value: booking.client_email || 'No email provided' },
+      { label: 'Client Phone', value: booking.client_phone || 'No phone provided' },
+    ]);
 
-    drawSection('Itinerary', itinerary);
-    drawSection('Booking Validity', bookingValidity);
-    drawSection('Deposit Terms', depositTerms);
-    drawSection('Payment Channels', paymentChannels);
+    drawGridRow([
+      { label: 'Package', value: packageName },
+      { label: 'Package Type', value: booking.package_type_display || 'Not specified' },
+      { label: 'Travel Date', value: travelDate },
+      { label: 'End Date', value: endDate },
+    ]);
 
-    ensureSpace(24);
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text(`Generated from the Office Management portal on ${new Date().toLocaleString()}.`, left, y);
+    drawGridRow([
+      { label: 'Duration', value: `${booking.number_of_days} day(s)` },
+      { label: 'Status', value: booking.status },
+      { label: 'Travellers', value: `${booking.num_adults} adult(s), ${booking.num_children} child(ren)` },
+      { label: 'Price per Adult', value: `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}` },
+    ]);
+
+    drawGridRow([
+      { label: 'Price per Child', value: `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}` },
+      { label: 'Extra Charges', value: `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}` },
+      { label: 'Subtotal', value: `${booking.currency} ${toNumber(booking.subtotal).toLocaleString()}` },
+      { label: 'Discount', value: `${booking.currency} ${toNumber(booking.discount).toLocaleString()}` },
+    ]);
+
+    drawGridRow([
+      { label: 'Total Cost', value: `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}` },
+      { label: 'Booking Validity', value: bookingValidity },
+      { label: 'Deposit Terms', value: depositTerms },
+      { label: 'Payment Channels', value: paymentChannels },
+    ], 84);
+
+    drawFullWidthSection('Itinerary', itinerary, 140);
+    drawTwoColumnRow([
+      { label: 'Generated From', value: generatedFrom },
+      { label: 'Generated On', value: generatedOn },
+    ], 76);
 
     doc.save(`${booking.reference_no.toLowerCase()}-booking.pdf`);
   };
