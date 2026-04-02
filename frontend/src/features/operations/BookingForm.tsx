@@ -32,7 +32,7 @@ const getDiscountedChildRate = (adultPrice: number, travelType: string | undefin
   }
 
   if (travelType === 'AIR_SAFARI') {
-    return adultPrice * 0.75;
+    return adultPrice * 0.25;
   }
 
   return adultPrice;
@@ -457,7 +457,7 @@ export const BookingForm: React.FC = () => {
                   className={inputClassName}
                 />
                 <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
-                  Enter one age per child. Ages 2-11 get 50% off road safaris and 25% off air safaris only when staying with 2 adults.
+                  Enter one age per child. Ages 2-11 are charged at 50% of the adult rate on road safaris and 25% of the adult rate on air safaris only when staying with 2 adults.
                 </p>
                 {!childAgeCountMatches ? (
                   <p className="mt-2 text-xs font-semibold text-amber-600">
