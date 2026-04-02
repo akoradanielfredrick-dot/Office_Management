@@ -83,7 +83,7 @@ export const LoginForm: React.FC = () => {
                   MRANGA TOURS AND SAFARIS LTD
                 </h1>
                 <p className="max-w-md text-sm font-medium leading-6 text-primary-100">
-                  Internal portal for bookings, quotations, finance, reporting, and client operations.
+                  Internal portal for bookings, finance, reporting, and client operations.
                 </p>
               </div>
 

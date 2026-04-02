@@ -78,7 +78,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.filter(is_deleted=False).order_by('-created_at')
     serializer_class = BookingSerializer
     permission_classes = [IsOperationsUser]
-    filterset_fields = ['id', 'quotation', 'client', 'status']
+    filterset_fields = ['id', 'client', 'status']
     search_fields = ['reference_no', 'client__full_name', 'destination_package', 'package_name']
 
     def perform_create(self, serializer):

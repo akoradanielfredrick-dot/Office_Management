@@ -44,7 +44,7 @@ class BookingAdmin(admin.ModelAdmin):
     actions = ['soft_delete']
     fieldsets = (
         ('Booking header', {
-            'fields': ('quotation', 'client', 'package', 'reference_no', 'status')
+            'fields': ('client', 'package', 'reference_no', 'status')
         }),
         ('Trip details', {
             'fields': (

@@ -16,15 +16,6 @@ class IsFinanceUser(permissions.BasePermission):
             return False
         return request.user.role.name in ['SUPER_ADMIN', 'DIRECTOR', 'ACCOUNTS']
 
-class IsSalesUser(permissions.BasePermission):
-    """
-    Access to quotations and client data.
-    """
-    def has_permission(self, request, view):
-        if not request.user.role:
-            return False
-        return request.user.role.name in ['SUPER_ADMIN', 'DIRECTOR', 'SALES']
-
 class IsOperationsUser(permissions.BasePermission):
     """
     Access to bookings, itineraries, and suppliers.

@@ -14,7 +14,6 @@ def seed_data():
         {'name': 'DIRECTOR', 'description': 'Full operational and financial access.'},
         {'name': 'OPERATIONS', 'description': 'Manage bookings, itineraries, and suppliers.'},
         {'name': 'ACCOUNTS', 'description': 'Manage payments, receipts, expenses, and financial reports.'},
-        {'name': 'SALES', 'description': 'Manage leads, quotations, and clients.'},
     ]
 
     role_objs = {}

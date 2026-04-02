@@ -40,14 +40,3 @@ export interface Booking {
   payment_channels?: string;
   created_at: string;
 }
-
-export interface Quotation {
-  id: string;
-  reference_no: string;
-  client: Client;
-  status: 'DRAFT' | 'SENT' | 'EXPIRED' | 'CONVERTED';
-  total_amount: number;
-  currency: string;
-  valid_until?: string;
-  created_at: string;
-}

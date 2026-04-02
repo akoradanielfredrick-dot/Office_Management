@@ -5,9 +5,6 @@ import { ensureCsrfCookie } from './lib/api';
 import { LoginForm } from './features/auth/LoginForm';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { DashboardHome } from './features/dashboard/DashboardHome';
-import { QuotationTable } from './features/sales/QuotationTable';
-import { QuotationForm } from './features/sales/QuotationForm';
-import { QuotationDetails } from './features/sales/QuotationDetails';
 import { BookingTable } from './features/operations/BookingTable';
 import { BookingDetails } from './features/operations/BookingDetails';
 import { PaymentTable } from './features/finance/PaymentTable';
@@ -44,9 +41,6 @@ const App: React.FC = () => {
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
         >
           <Route index element={<DashboardHome />} />
-          <Route path="quotations" element={<QuotationTable />} />
-          <Route path="quotations/new" element={<QuotationForm />} />
-          <Route path="quotations/:id" element={<QuotationDetails />} />
           <Route path="bookings" element={<BookingTable />} />
           <Route path="bookings/:id" element={<BookingDetails />} />
           <Route path="finance/payments" element={<PaymentTable />} />

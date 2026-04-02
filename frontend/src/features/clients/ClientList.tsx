@@ -84,7 +84,7 @@ export const ClientList: React.FC = () => {
               </div>
               <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(171,132,42,0.28)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Linked Data</p>
-                <p className="mt-2 text-[1.25rem] font-semibold text-slate-950">Quotations & Bookings</p>
+                <p className="mt-2 text-[1.25rem] font-semibold text-slate-950">Bookings & Accounts</p>
               </div>
               <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(171,132,42,0.28)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Client Records</p>
@@ -160,7 +160,7 @@ export const ClientList: React.FC = () => {
               </div>
               <p className="mt-5 text-lg font-black text-slate-900">No client records found yet</p>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                Add clients from the backend admin and they will appear here automatically for quotations and bookings.
+                Add clients from the backend admin and they will appear here automatically for bookings and account workflows.
               </p>
             </div>
           )}

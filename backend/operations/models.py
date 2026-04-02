@@ -2,7 +2,6 @@ import uuid
 from datetime import timedelta
 from django.db import models
 from clients.models import Client
-from sales.models import Quotation
 
 class Package(models.Model):
     PACKAGE_TYPE_CHOICES = [
@@ -70,7 +69,6 @@ class Booking(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    quotation = models.ForeignKey(Quotation, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     client = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='bookings')
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     reference_no = models.CharField(max_length=50, unique=True, blank=True)

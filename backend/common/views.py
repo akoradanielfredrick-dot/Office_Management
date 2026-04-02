@@ -1,7 +1,7 @@
 from django.db.models import Sum, F, Count
 from django.utils import timezone
 from rest_framework import viewsets, response, decorators
-from sales.models import Quotation
+from clients.models import Client
 from operations.models import Booking
 from finance.models import Payment, Expense
 import decimal
@@ -16,7 +16,7 @@ class DashboardViewSet(viewsets.ViewSet):
     @decorators.action(detail=False, methods=['get'])
     def summary(self, request):
         # 1. KPI Counts
-        total_quotations = Quotation.objects.filter(is_deleted=False).count()
+        total_clients = Client.objects.filter(is_deleted=False).count()
         active_bookings = Booking.objects.filter(is_deleted=False, status='CONFIRMED').count()
         pending_payments = Payment.objects.filter(is_deleted=False).count() # Simplified, could filter by status if it existed
         
@@ -32,21 +32,10 @@ class DashboardViewSet(viewsets.ViewSet):
 
         # 3. Recent Activity (Latest 5 items combined)
         # We'll fetch 5 of each and take the most recent 5 total
-        recent_quotes = Quotation.objects.filter(is_deleted=False).order_by('-created_at')[:5]
         recent_bookings = Booking.objects.filter(is_deleted=False).order_by('-created_at')[:5]
         recent_payments = Payment.objects.filter(is_deleted=False).order_by('-created_at')[:5]
         
         activity = []
-        for q in recent_quotes:
-            activity.append({
-                'type': 'QUOTATION',
-                'id': q.id,
-                'title': f"Quotation {q.reference_no}",
-                'subtitle': q.client.full_name,
-                'date': q.created_at,
-                'status': q.status,
-                'amount': q.total_amount
-            })
         for b in recent_bookings:
             activity.append({
                 'type': 'BOOKING',
@@ -74,7 +63,7 @@ class DashboardViewSet(viewsets.ViewSet):
 
         return response.Response({
             'stats': {
-                'total_quotations': total_quotations,
+                'total_clients': total_clients,
                 'active_bookings': active_bookings,
                 'pending_payments': pending_payments,
                 'expenses_this_month': expenses_this_month

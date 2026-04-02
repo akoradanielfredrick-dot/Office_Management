@@ -5,7 +5,6 @@ import {
   LogOut,
   LayoutDashboard,
   Users,
-  Calculator,
   Calendar,
   Wallet,
   BarChart3,
@@ -41,7 +40,6 @@ export const Dashboard: React.FC = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { label: 'Quotations', path: '/quotations', icon: Calculator },
     { label: 'Bookings', path: '/bookings', icon: Calendar },
     { label: 'Payments', path: '/finance/payments', icon: Wallet },
     { label: 'Expenses', path: '/finance/expenses', icon: ShoppingCart },

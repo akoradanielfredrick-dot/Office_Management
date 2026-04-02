@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calculator,
   Calendar,
   Wallet,
   ShoppingCart,
@@ -20,14 +19,14 @@ import { useAuthStore } from '../../store/authStore';
 import { api, formatMoney } from '../../lib/api';
 
 interface DashboardStats {
-  total_quotations: number;
+  total_clients: number;
   active_bookings: number;
   pending_payments: number;
   expenses_this_month: string | number;
 }
 
 interface ActivityItem {
-  type: 'QUOTATION' | 'BOOKING' | 'PAYMENT';
+  type: 'BOOKING' | 'PAYMENT';
   id: string;
   title: string;
   subtitle: string;
@@ -56,11 +55,6 @@ const activityPresentation: Record<ActivityItem['type'], {
   iconWrap: string;
   destination: (item: ActivityItem) => string;
 }> = {
-  QUOTATION: {
-    icon: Receipt,
-    iconWrap: 'bg-[#eef4ff] text-[#2964ff]',
-    destination: (item) => `/quotations/${item.id}`,
-  },
   BOOKING: {
     icon: Calendar,
     iconWrap: 'bg-[#e9fbf2] text-[#17a86b]',
@@ -106,9 +100,9 @@ export const DashboardHome: React.FC = () => {
 
   const kpis = [
     {
-      label: 'Quotations',
-      value: stats?.total_quotations ?? 0,
-      icon: Receipt,
+      label: 'Clients',
+      value: stats?.total_clients ?? 0,
+      icon: Users,
       iconWrap: 'bg-[#eef4ff] text-[#2964ff]',
     },
     {
@@ -132,14 +126,6 @@ export const DashboardHome: React.FC = () => {
   ];
 
   const quickActions = [
-    {
-      label: 'New Quotation',
-      description: 'Open module and continue workflow',
-      icon: Plus,
-      path: '/quotations/new',
-      tone: 'bg-[#6d8141]',
-      iconBg: 'bg-white/15',
-    },
     {
       label: 'View Bookings',
       description: 'Open module and continue workflow',
@@ -294,7 +280,7 @@ export const DashboardHome: React.FC = () => {
                 <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Recent Activity</h3>
               </div>
               <button
-                onClick={() => navigate('/quotations')}
+                onClick={() => navigate('/bookings')}
                 className="inline-flex items-center gap-2 text-[1rem] font-medium text-[#6d8141] transition-colors hover:text-[#52632f]"
               >
                 View All
@@ -386,7 +372,7 @@ export const DashboardHome: React.FC = () => {
             </div>
             <h4 className="mt-3 text-[1.75rem] font-semibold text-slate-950">Daily visibility is set</h4>
             <p className="mt-4 text-[1rem] leading-8 text-slate-600">
-              This dashboard is ready for daily office monitoring, with finance, bookings, and sales actions kept one click away.
+              This dashboard is ready for daily office monitoring, with finance, bookings, and client actions kept one click away.
             </p>
           </div>
         </div>
