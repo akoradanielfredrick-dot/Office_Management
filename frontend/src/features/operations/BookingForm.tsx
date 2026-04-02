@@ -17,6 +17,7 @@ import {
 import { api, formatMoney, toNumber } from '../../lib/api';
 
 const bookingSchema = z.object({
+  booking_kind: z.enum(['PACKAGE', 'EXCURSION']),
   client: z.string().uuid('Please select a client'),
   package: z.string().uuid('Please select a package').or(z.literal('')),
   excursion: z.string().uuid('Please select an excursion').optional().or(z.literal('')),
@@ -77,6 +78,7 @@ export const BookingForm: React.FC = () => {
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
+      booking_kind: 'PACKAGE',
       client: '',
       package: '',
       excursion: '',
@@ -121,6 +123,7 @@ export const BookingForm: React.FC = () => {
 
   const selectedPackageId = watch('package');
   const selectedExcursionId = watch('excursion');
+  const bookingKind = watch('booking_kind');
   const selectedPackage = packages.find((item) => item.id === selectedPackageId);
   const selectedExcursion = excursions.find((item) => item.id === selectedExcursionId);
   const numAdults = watch('num_adults');
@@ -163,6 +166,16 @@ export const BookingForm: React.FC = () => {
       );
     }
   }, [selectedExcursion, setValue, watch]);
+
+  React.useEffect(() => {
+    if (bookingKind === 'PACKAGE') {
+      setValue('excursion', '');
+      return;
+    }
+
+    setValue('package', '');
+    setValue('price_per_adult', 0);
+  }, [bookingKind, setValue]);
 
   const subtotal =
     toNumber(numAdults) * toNumber(pricePerAdult) +
@@ -238,11 +251,24 @@ export const BookingForm: React.FC = () => {
               </div>
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Setup</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Client & Excursion</h2>
+                <h2 className="mt-1 text-2xl font-black text-slate-900">
+                  {bookingKind === 'PACKAGE' ? 'Client & Package' : 'Client & Excursion'}
+                </h2>
               </div>
             </div>
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className={labelClassName}>Booking Type</label>
+                <div className="relative">
+                  <select {...register('booking_kind')} className={`${inputClassName} appearance-none pr-12`}>
+                    <option value="PACKAGE">Client & Package</option>
+                    <option value="EXCURSION">Client & Excursion</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                </div>
+              </div>
+
               <div>
                 <label className={labelClassName}>Client</label>
                 <div className="relative">
@@ -259,38 +285,40 @@ export const BookingForm: React.FC = () => {
                 {errors.client && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.client.message}</p>}
               </div>
 
-              <div>
-                <label className={labelClassName}>Package</label>
-                <div className="relative">
-                  <select {...register('package')} className={`${inputClassName} appearance-none pr-12`}>
-                    <option value="">-- Choose Package --</option>
-                    {packages.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} {item.package_type_display ? `(${item.package_type_display})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              {bookingKind === 'PACKAGE' ? (
+                <div>
+                  <label className={labelClassName}>Package</label>
+                  <div className="relative">
+                    <select {...register('package')} className={`${inputClassName} appearance-none pr-12`}>
+                      <option value="">-- Choose Package --</option>
+                      {packages.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} {item.package_type_display ? `(${item.package_type_display})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
                 </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className={labelClassName}>Excursion</label>
-                <div className="relative">
-                  <select {...register('excursion')} className={`${inputClassName} appearance-none pr-12`}>
-                    <option value="">-- Choose Excursion --</option>
-                    {excursions.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} ({item.location})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              ) : (
+                <div className="md:col-span-2">
+                  <label className={labelClassName}>Excursion</label>
+                  <div className="relative">
+                    <select {...register('excursion')} className={`${inputClassName} appearance-none pr-12`}>
+                      <option value="">-- Choose Excursion --</option>
+                      {excursions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} ({item.location})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
+                  <p className="mt-2 text-xs font-medium text-slate-500">
+                    Excursions work like an add-on to the booking and can feed into pricing and itinerary details.
+                  </p>
                 </div>
-                <p className="mt-2 text-xs font-medium text-slate-500">
-                  Excursions work like an add-on to the booking and can feed into pricing and itinerary details.
-                </p>
-              </div>
+              )}
 
               <div>
                 <label className={labelClassName}>Travel Date</label>
@@ -448,11 +476,18 @@ export const BookingForm: React.FC = () => {
 
             <div className="space-y-4 px-6 py-6">
               <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Package</p>
-                <p className="mt-2 text-lg font-black text-[#234126]">{selectedPackage?.name || 'No package selected yet'}</p>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">
+                  {bookingKind === 'PACKAGE' ? 'Selected Package' : 'Selected Excursion'}
+                </p>
+                <p className="mt-2 text-lg font-black text-[#234126]">
+                  {bookingKind === 'PACKAGE'
+                    ? (selectedPackage?.name || 'No package selected yet')
+                    : (selectedExcursion?.name || 'No excursion selected yet')}
+                </p>
                 <p className="mt-1 text-sm font-medium text-[#4f6a50]">
-                  {selectedPackage?.package_type_display || 'Package type will appear here'}
-                  {selectedExcursion ? ` | Excursion: ${selectedExcursion.name}` : ''}
+                  {bookingKind === 'PACKAGE'
+                    ? (selectedPackage?.package_type_display || 'Package type will appear here')
+                    : (selectedExcursion?.location || 'Excursion location will appear here')}
                 </p>
               </div>
 
