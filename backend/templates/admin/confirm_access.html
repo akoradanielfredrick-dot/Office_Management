@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +34,7 @@
     }
 
     .card {
-      width: min(100%, 460px);
+      width: min(100%, 480px);
       border: 1px solid var(--mr-border);
       border-radius: 28px;
       background: var(--mr-panel);
@@ -42,11 +43,59 @@
     }
 
     .hero {
-      padding: 28px 30px 20px;
+      padding: 24px 30px 20px;
       color: #fff;
       background:
+        radial-gradient(circle at top right, rgba(216, 154, 43, 0.2), transparent 28%),
         linear-gradient(135deg, rgba(15, 45, 15, 0.96), rgba(26, 74, 26, 0.94)),
         linear-gradient(180deg, #153d15, #0f2d0f);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-mark {
+      width: 72px;
+      height: 46px;
+      padding: 4px 6px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(244, 236, 218, 0.98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78);
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-copy span,
+    .brand-copy strong {
+      display: block;
+    }
+
+    .brand-copy span {
+      margin-bottom: 4px;
+      color: rgba(255,255,255,0.68);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    .brand-copy strong {
+      font-size: 18px;
+      line-height: 1.15;
     }
 
     .hero small {
@@ -153,6 +202,15 @@
 <body>
   <div class="card">
     <div class="hero">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="{% static 'mranga-brand.jpeg' %}?v=2" alt="Mranga Tours and Safaris logo">
+        </div>
+        <div class="brand-copy">
+          <span>Admin Portal</span>
+          <strong>Mranga Tours &amp; Safaris Ltd.</strong>
+        </div>
+      </div>
       <small>Secure Step</small>
       <h1>Confirm Admin Access</h1>
       <p>Re-enter your password before opening the backend administration area.</p>

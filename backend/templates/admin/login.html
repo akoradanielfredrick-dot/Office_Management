@@ -7,70 +7,74 @@
   <title>Admin Login | Mranga Tours &amp; Safaris</title>
   <style>
     :root {
-      --bg: #f4f7f3;
+      --bg: #eef3eb;
       --panel: #ffffff;
-      --panel-soft: #eef5ee;
-      --text: #162033;
-      --muted: #6a7487;
-      --line: #dbe4df;
-      --primary: #1f5f2b;
+      --panel-soft: #f6faf6;
+      --text: #192235;
+      --muted: #69758a;
+      --line: #d9e3dd;
+      --primary: #215f30;
       --primary-dark: #123c1a;
-      --accent: #d4831a;
+      --accent: #d89a2b;
       --danger: #c43d4f;
-      --shadow: 0 24px 70px -32px rgba(15, 36, 20, 0.35);
+      --danger-bg: #fff2f4;
+      --danger-line: #f3ccd3;
+      --shadow: 0 32px 85px -38px rgba(15, 36, 20, 0.34);
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(212, 131, 26, 0.12), transparent 28%),
-        linear-gradient(180deg, #f2f6f0 0%, var(--bg) 100%);
-      color: var(--text);
       min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(216, 154, 43, 0.12), transparent 23%),
+        radial-gradient(circle at bottom right, rgba(33, 95, 48, 0.1), transparent 26%),
+        linear-gradient(180deg, #f4f7f1 0%, var(--bg) 100%);
     }
 
     .page {
       min-height: 100vh;
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: minmax(0, 1.15fr) minmax(400px, 0.85fr);
     }
 
     .hero {
-      background:
-        radial-gradient(circle at top right, rgba(212, 131, 26, 0.18), transparent 25%),
-        linear-gradient(135deg, rgba(11, 36, 17, 0.98), rgba(24, 74, 34, 0.95)),
-        linear-gradient(180deg, #102f14, #0d2611);
-      color: #fff;
-      padding: 56px;
+      position: relative;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      position: relative;
-      overflow: hidden;
+      padding: 56px 58px 42px;
+      color: #fff;
+      background:
+        radial-gradient(circle at top right, rgba(216, 154, 43, 0.2), transparent 22%),
+        linear-gradient(135deg, rgba(12, 39, 18, 0.98), rgba(29, 83, 40, 0.95)),
+        linear-gradient(180deg, #102f14, #0c2611);
     }
 
     .hero::before {
       content: "";
       position: absolute;
       inset: 0;
-      opacity: 0.07;
+      opacity: 0.08;
       background-image:
-        linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px);
-      background-size: 44px 44px;
+        linear-gradient(rgba(255,255,255,0.88) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.88) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
 
     .hero::after {
       content: "";
       position: absolute;
-      right: -90px;
-      bottom: -110px;
-      width: 420px;
-      height: 420px;
+      right: -70px;
+      bottom: -90px;
+      width: 360px;
+      height: 360px;
       border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 203, 110, 0.16), transparent 66%);
+      background: radial-gradient(circle, rgba(255, 214, 143, 0.17), transparent 68%);
       pointer-events: none;
     }
 
@@ -84,37 +88,30 @@
       display: inline-flex;
       align-items: center;
       gap: 18px;
-      padding: 14px 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 26px;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px);
       width: fit-content;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
       max-width: 100%;
-    }
-
-    .brand-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
+      padding: 16px 18px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 28px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
     }
 
     .brand-mark {
-      width: 134px;
-      height: 86px;
-      padding: 8px 10px;
+      width: 140px;
+      height: 88px;
+      padding: 8px 12px;
       border-radius: 24px;
-      background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 237, 215, 0.98));
+      overflow: hidden;
+      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(246, 237, 215, 0.98));
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.82),
         0 16px 28px -22px rgba(7, 20, 8, 0.86);
-      flex: 0 0 auto;
     }
 
     .brand-mark img {
@@ -124,16 +121,23 @@
       display: block;
     }
 
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
     .brand-label {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.3em;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.72);
       font-weight: 800;
     }
 
     .brand-name {
-      font-size: 24px;
+      font-size: 23px;
       font-weight: 800;
       line-height: 1.08;
       letter-spacing: -0.03em;
@@ -141,27 +145,74 @@
     }
 
     .hero h1 {
-      margin: 34px 0 14px;
+      max-width: 760px;
+      margin: 38px 0 16px;
       font-size: clamp(42px, 4vw, 60px);
       line-height: 1.02;
       letter-spacing: -0.04em;
-      max-width: 720px;
     }
 
-    .hero p {
-      max-width: 600px;
+    .hero > .hero-content > p {
+      max-width: 620px;
+      margin: 0;
+      color: rgba(255,255,255,0.82);
       font-size: 16px;
       line-height: 1.85;
-      color: rgba(255,255,255,0.8);
-      margin: 0;
+    }
+
+    .hero-points {
+      display: grid;
+      gap: 14px;
+      max-width: 620px;
+      margin-top: 28px;
+    }
+
+    .hero-point {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 15px 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-point-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .hero-point strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-point span {
+      display: block;
+      color: rgba(255,255,255,0.78);
+      font-size: 14px;
+      line-height: 1.65;
     }
 
     .hero-stats {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
-      margin-top: 36px;
-      max-width: 720px;
+      max-width: 760px;
+      margin-top: 32px;
     }
 
     .hero-stat {
@@ -173,12 +224,12 @@
     }
 
     .hero-stat-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.24em;
-      color: rgba(255,255,255,0.65);
       margin-bottom: 8px;
+      color: rgba(255,255,255,0.65);
+      font-size: 10px;
       font-weight: 800;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
     }
 
     .hero-stat-value {
@@ -187,26 +238,42 @@
     }
 
     .hero-footer {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.22em;
       color: rgba(255,255,255,0.62);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
     }
 
     .panel-wrap {
       display: grid;
       place-items: center;
-      padding: 36px;
+      padding: 36px 34px;
     }
 
     .panel {
-      width: min(100%, 470px);
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 32px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
       position: relative;
+      overflow: hidden;
+      width: min(100%, 500px);
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at top right, rgba(216, 154, 43, 0.08), transparent 20%),
+        linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0));
+    }
+
+    .panel-head,
+    form {
+      position: relative;
+      z-index: 1;
     }
 
     .panel-head {
@@ -215,16 +282,6 @@
       background:
         radial-gradient(circle at top right, rgba(212, 131, 26, 0.08), transparent 28%),
         linear-gradient(180deg, #ffffff, #fcfdfc);
-    }
-
-    .eyebrow {
-      display: inline-block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.28em;
-      color: var(--accent);
-      font-weight: 800;
-      margin-bottom: 12px;
     }
 
     .panel-head h2 {
@@ -241,18 +298,14 @@
       line-height: 1.7;
     }
 
-    form {
-      padding: 28px 34px 34px;
-    }
-
     .login-badge {
       display: inline-flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 18px;
       padding: 8px 14px;
-      border-radius: 999px;
       border: 1px solid #e7ede9;
+      border-radius: 999px;
       background: #f8fbf8;
       color: var(--primary);
       font-size: 12px;
@@ -268,22 +321,42 @@
       display: block;
     }
 
+    .auth-note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid #e6eee8;
+      border-radius: 18px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .auth-note strong {
+      color: var(--text);
+    }
+
+    form {
+      padding: 28px 34px 34px;
+    }
+
     .errors,
     .messagelist {
-      list-style: none;
       margin: 0 0 18px;
       padding: 0;
+      list-style: none;
     }
 
     .errors li,
     .messagelist li {
       padding: 14px 16px;
+      border: 1px solid var(--danger-line);
       border-radius: 16px;
-      background: #fff2f4;
-      border: 1px solid #f5c7d0;
+      background: var(--danger-bg);
       color: var(--danger);
       font-size: 14px;
       font-weight: 600;
+      line-height: 1.6;
     }
 
     .field-box {
@@ -293,23 +366,23 @@
     label {
       display: block;
       margin-bottom: 8px;
+      color: #7a8393;
       font-size: 11px;
       font-weight: 800;
-      text-transform: uppercase;
       letter-spacing: 0.22em;
-      color: #7a8393;
+      text-transform: uppercase;
     }
 
     input[type="text"],
     input[type="password"],
     input[type="email"] {
       width: 100%;
+      padding: 15px 16px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      padding: 14px 16px;
-      font-size: 15px;
-      color: var(--text);
       background: #fbfcfb;
+      color: var(--text);
+      font-size: 15px;
       outline: none;
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
@@ -320,21 +393,25 @@
       background: #fff;
     }
 
+    input::placeholder {
+      color: #8e98a7;
+    }
+
     .submit-row {
       margin-top: 22px;
     }
 
     .submit-row input[type="submit"] {
       width: 100%;
+      padding: 15px 18px;
       border: none;
       border-radius: 18px;
-      padding: 15px 18px;
-      font-size: 15px;
-      font-weight: 800;
-      color: #fff;
-      cursor: pointer;
       background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
       box-shadow: 0 18px 34px -20px rgba(18, 60, 26, 0.85);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
     }
 
@@ -346,28 +423,23 @@
 
     .help-text {
       margin-top: 16px;
-      text-align: center;
       color: var(--muted);
+      text-align: center;
       font-size: 13px;
       line-height: 1.7;
     }
 
     .portal-link {
       margin-top: 16px;
+      color: var(--muted);
       text-align: center;
       font-size: 13px;
-      color: var(--muted);
     }
 
-    .portal-link a {
-      color: var(--primary);
-      font-weight: 800;
-      text-decoration: none;
-    }
-
+    .portal-link a,
     .help-text a {
       color: var(--primary);
-      font-weight: 700;
+      font-weight: 800;
       text-decoration: none;
     }
 
@@ -377,15 +449,26 @@
 
     @media (max-width: 1080px) {
       .page { grid-template-columns: 1fr; }
-      .hero { min-height: 420px; padding: 40px 28px; }
-      .panel-wrap { padding: 24px; margin-top: -36px; }
+      .hero { padding: 40px 28px; }
       .hero-stats { grid-template-columns: 1fr; max-width: 100%; }
+      .panel-wrap { padding: 24px; margin-top: -32px; }
     }
 
     @media (max-width: 640px) {
-      .panel-head, form { padding-left: 22px; padding-right: 22px; }
+      .panel-head,
+      form { padding-left: 22px; padding-right: 22px; }
       .panel-head h2 { font-size: 28px; }
       .hero h1 { font-size: 34px; }
+      .hero-point {
+        grid-template-columns: 38px minmax(0, 1fr);
+        padding: 14px 14px;
+      }
+      .hero-point-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        font-size: 16px;
+      }
       .brand-chip {
         width: 100%;
         gap: 14px;
@@ -407,7 +490,7 @@
       <div class="hero-content">
         <div class="brand-chip">
           <div class="brand-mark">
-            <img src="data:image/jpeg;base64,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" alt="Mranga Tours and Safaris logo">
+            <img src="{% static 'mranga-brand.jpeg' %}?v=2" alt="Mranga Tours and Safaris logo">
           </div>
           <div class="brand-copy">
             <div class="brand-label">Admin Portal</div>
@@ -417,8 +500,25 @@
 
         <h1>Administration Access for Internal Operations</h1>
         <p>
-          Sign in to manage bookings, finance, quotations, users, and internal controls from a secure administrative workspace.
+          Sign in to manage bookings, finance, quotations, users, suppliers, and internal controls from a secure administrative workspace.
         </p>
+
+        <div class="hero-points">
+          <div class="hero-point">
+            <div class="hero-point-mark">1</div>
+            <div>
+              <strong>Protected backend access</strong>
+              <span>Only authenticated super admins can enter the administration area and sensitive system control screens.</span>
+            </div>
+          </div>
+          <div class="hero-point">
+            <div class="hero-point-mark">2</div>
+            <div>
+              <strong>One place for internal operations</strong>
+              <span>Review bookings, revenue, expenses, staff activity, and operational records from a single control point.</span>
+            </div>
+          </div>
+        </div>
 
         <div class="hero-stats">
           <div class="hero-stat">
@@ -443,11 +543,12 @@
       <div class="panel">
         <div class="panel-head">
           <div class="login-badge">
-            <img src="data:image/jpeg;base64,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" alt="">
+            <img src="{% static 'mranga-brand.jpeg' %}?v=2" alt="">
             Secure Sign-In
           </div>
           <h2>Admin Login</h2>
           <p>Use your staff credentials to continue to the administration console.</p>
+          <div class="auth-note"><strong>Restricted entry:</strong> this backend accepts super admin credentials only.</div>
         </div>
 
         <form action="{{ app_path }}" method="post" id="login-form">

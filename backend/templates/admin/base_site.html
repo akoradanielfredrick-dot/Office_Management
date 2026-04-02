@@ -15,22 +15,24 @@
 </script>
 <style>
   :root {
-    --mr-bg: #f4f7f3;
+    --mr-bg: #f3f8f1;
     --mr-panel: #ffffff;
-    --mr-soft: #f7faf8;
-    --mr-border: #dbe4df;
+    --mr-soft: #f7fbf5;
+    --mr-border: #d7e4d7;
     --mr-text: #162033;
     --mr-muted: #6b7587;
-    --mr-primary: #1f5f2b;
-    --mr-primary-dark: #123c1a;
-    --mr-accent: #d4831a;
-    --mr-shadow: 0 20px 55px -32px rgba(15, 36, 20, 0.28);
+    --mr-primary: #5aa469;
+    --mr-primary-dark: #3c8a4d;
+    --mr-primary-soft: #e7f5e8;
+    --mr-accent: #f2b544;
+    --mr-shadow: 0 20px 55px -32px rgba(56, 112, 64, 0.22);
   }
 
   body {
     background:
-      radial-gradient(circle at top left, rgba(212, 131, 26, 0.09), transparent 24%),
-      linear-gradient(180deg, #f2f6f0 0%, var(--mr-bg) 100%);
+      radial-gradient(circle at top left, rgba(242, 181, 68, 0.08), transparent 24%),
+      radial-gradient(circle at top right, rgba(90, 164, 105, 0.08), transparent 22%),
+      linear-gradient(180deg, #f7fbf4 0%, var(--mr-bg) 100%);
     color: var(--mr-text);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   }
@@ -55,12 +57,12 @@
 
   #header {
     background:
-      radial-gradient(circle at top right, rgba(212, 131, 26, 0.18), transparent 24%),
-      linear-gradient(135deg, rgba(11, 36, 17, 0.98), rgba(24, 74, 34, 0.95)),
-      linear-gradient(180deg, #102f14, #0d2611);
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 20px 42px -30px rgba(15, 36, 20, 0.62);
+      radial-gradient(circle at top right, rgba(242, 181, 68, 0.2), transparent 24%),
+      linear-gradient(135deg, rgba(236, 248, 233, 0.98), rgba(212, 238, 208, 0.95)),
+      linear-gradient(180deg, #f4fbf0, #def0dc);
+    color: var(--mr-text);
+    border-bottom: 1px solid rgba(80, 132, 86, 0.14);
+    box-shadow: 0 18px 42px -30px rgba(69, 124, 76, 0.32);
     padding: 20px 30px;
   }
 
@@ -107,12 +109,12 @@
     font-size: 10px;
     letter-spacing: 0.32em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.64);
+    color: rgba(55, 95, 60, 0.72);
     font-weight: 800;
   }
 
   #site-name a {
-    color: #fff;
+    color: #21492b;
     font-size: 26px;
     font-weight: 800;
     letter-spacing: -0.025em;
@@ -123,7 +125,7 @@
 
   #user-tools,
   #user-tools a {
-    color: rgba(255, 255, 255, 0.92);
+    color: #31523a;
     font-weight: 600;
   }
 
@@ -137,7 +139,7 @@
   }
 
   #user-tools strong {
-    color: #fff;
+    color: #21492b;
     font-weight: 800;
   }
 
@@ -147,9 +149,9 @@
     min-height: 42px;
     padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(83, 139, 90, 0.14);
+    background: rgba(255, 255, 255, 0.64);
+    color: #50725a;
   }
 
   .mr-user-welcome strong {
@@ -161,7 +163,7 @@
     font-weight: 800;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.58);
+    color: #6d8772;
     margin-right: 6px;
   }
 
@@ -173,8 +175,8 @@
     padding: 0 16px;
     border-radius: 999px;
     text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(90, 164, 105, 0.18);
+    background: rgba(255, 255, 255, 0.62);
     transition:
       background-color 0.16s ease,
       border-color 0.16s ease,
@@ -182,20 +184,20 @@
   }
 
   .mr-toolbar-link:hover {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(90, 164, 105, 0.28);
     transform: translateY(-1px);
   }
 
   .mr-toolbar-link.is-primary {
-    background: linear-gradient(180deg, rgba(250, 202, 115, 0.95), rgba(212, 131, 26, 0.92));
+    background: linear-gradient(180deg, #8bd29a, #5aa469);
     border-color: transparent;
-    color: #1d210e !important;
-    box-shadow: 0 16px 30px -24px rgba(212, 131, 26, 0.78);
+    color: #12331a !important;
+    box-shadow: 0 16px 30px -24px rgba(74, 139, 84, 0.52);
   }
 
   .mr-toolbar-link.is-primary:hover {
-    background: linear-gradient(180deg, rgba(255, 211, 136, 1), rgba(220, 139, 32, 0.95));
+    background: linear-gradient(180deg, #98dca5, #63ad72);
   }
 
   #logout-form {
@@ -207,9 +209,9 @@
     min-height: 42px;
     padding: 0 16px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(11, 25, 13, 0.22);
-    color: #fff;
+    border: 1px solid rgba(90, 164, 105, 0.18);
+    background: rgba(255, 255, 255, 0.62);
+    color: #21492b;
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -218,7 +220,7 @@
   }
 
   #logout-form button:hover {
-    background: rgba(11, 25, 13, 0.36);
+    background: rgba(255, 255, 255, 0.9);
     transform: translateY(-1px);
   }
 

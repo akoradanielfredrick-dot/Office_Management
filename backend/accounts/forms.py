@@ -31,6 +31,24 @@ class SuperAdminAdminAuthenticationForm(AuthenticationForm):
         "super_admin_only": "ONLY ACCESSIBLE BY SUPER ADMIN.",
     }
 
+    def __init__(self, request=None, *args, **kwargs):
+        super().__init__(request, *args, **kwargs)
+        self.fields["username"].label = "Staff Email"
+        self.fields["username"].widget.attrs.update(
+            {
+                "autocomplete": "username",
+                "autocapitalize": "none",
+                "placeholder": "name@mrangatours.com",
+                "inputmode": "email",
+            }
+        )
+        self.fields["password"].widget.attrs.update(
+            {
+                "autocomplete": "current-password",
+                "placeholder": "Enter your password",
+            }
+        )
+
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
         role_name = (user.role.name if user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
