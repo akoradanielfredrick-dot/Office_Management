@@ -21,6 +21,8 @@ interface Payment {
   amount: number | string;
   currency: string;
   exchange_rate: number | string;
+  payment_type: string;
+  payment_type_display?: string;
   method: string;
   payment_date: string;
   recorder_name: string;
@@ -167,6 +169,7 @@ export const PaymentTable: React.FC = () => {
             <thead className="bg-white">
               <tr className="border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
                 <th className="px-6 py-4">Reference</th>
+                <th className="px-6 py-4">Type</th>
                 <th className="px-6 py-4">Method</th>
                 <th className="px-6 py-4">Amount</th>
                 <th className="px-6 py-4">Date</th>
@@ -182,6 +185,12 @@ export const PaymentTable: React.FC = () => {
                       <p className="font-black text-slate-900">{p.internal_reference}</p>
                       <p className="mt-1 text-xs font-medium text-slate-400">{p.booking_ref}</p>
                     </div>
+                  </td>
+
+                  <td className="px-6 py-5">
+                    <span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-primary-700 ring-1 ring-primary-100">
+                      {p.payment_type_display || p.payment_type}
+                    </span>
                   </td>
 
                   <td className="px-6 py-5">

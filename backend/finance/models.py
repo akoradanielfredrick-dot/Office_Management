@@ -4,6 +4,12 @@ from django.conf import settings
 from operations.models import Booking, Supplier
 
 class Payment(models.Model):
+    PAYMENT_TYPE_CHOICES = [
+        ('DEPOSIT', 'Deposit'),
+        ('BALANCE', 'Balance Payment'),
+        ('FULL', 'Full Payment'),
+    ]
+
     METHOD_CHOICES = [
         ('MPESA', 'MPesa'),
         ('BANK', 'Bank Transfer'),
@@ -20,6 +26,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     currency = models.CharField(max_length=3, default='KES')
     exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='DEPOSIT')
     
     method = models.CharField(max_length=50, choices=METHOD_CHOICES)
     payment_date = models.DateTimeField()

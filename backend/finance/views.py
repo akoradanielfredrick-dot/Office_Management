@@ -28,7 +28,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
             # 2. Automatically generate a Receipt
             Receipt.objects.create(
                 payment=payment,
-                narration=f"Payment for Booking {payment.booking.reference_no}"
+                narration=f"{payment.get_payment_type_display()} for Booking {payment.booking.reference_no}"
             )
             
             # 3. Update Booking Balance (Cached)

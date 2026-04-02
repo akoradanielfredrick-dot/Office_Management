@@ -21,6 +21,7 @@ const paymentSchema = z.object({
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
   currency: z.string().min(3),
   exchange_rate: z.number().min(0.0001),
+  payment_type: z.string().min(1, 'Payment type is required'),
   method: z.string().min(1, 'Payment method is required'),
   payment_date: z.string().min(1, 'Date is required'),
   txn_reference: z.string(),
@@ -43,6 +44,7 @@ export const PaymentForm: React.FC = () => {
       amount: 0,
       currency: 'KES',
       exchange_rate: 1,
+      payment_type: 'DEPOSIT',
       payment_date: new Date().toISOString().split('T')[0],
       method: 'MPESA',
       txn_reference: '',
@@ -52,6 +54,7 @@ export const PaymentForm: React.FC = () => {
 
   const selectedBookingId = watch('booking');
   const selectedBooking = bookings.find((b) => b.id === selectedBookingId);
+  const selectedPaymentType = watch('payment_type');
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -83,6 +86,8 @@ export const PaymentForm: React.FC = () => {
   };
 
   const balance = selectedBooking ? toNumber(selectedBooking.total_cost) - toNumber(selectedBooking.paid_amount) : 0;
+  const minimumDeposit = selectedBooking ? toNumber(selectedBooking.total_cost) * 0.5 : 0;
+  const depositHintCurrency = selectedBooking?.currency || 'KES';
   const inputClassName = 'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
   const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
@@ -200,6 +205,23 @@ export const PaymentForm: React.FC = () => {
 
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
+                  <label className={labelClassName}>Payment Type</label>
+                  <div className="relative">
+                    <select {...register('payment_type')} className={`${inputClassName} appearance-none pr-12`}>
+                      <option value="DEPOSIT">Deposit</option>
+                      <option value="BALANCE">Balance Payment</option>
+                      <option value="FULL">Full Payment</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
+                  {selectedPaymentType === 'DEPOSIT' && selectedBooking ? (
+                    <p className="mt-2 text-xs font-semibold text-amber-600">
+                      Deposit must be at least 50% of the booking total: {depositHintCurrency} {minimumDeposit.toLocaleString()}.
+                    </p>
+                  ) : null}
+                </div>
+
+                <div>
                   <label className={labelClassName}>Payment Method</label>
                   <div className="relative">
                     <select {...register('method')} className={`${inputClassName} appearance-none pr-12`}>
@@ -270,6 +292,15 @@ export const PaymentForm: React.FC = () => {
                         +{selectedBooking.currency} {toNumber(selectedBooking.paid_amount).toLocaleString()}
                       </p>
                     </div>
+
+                    {selectedPaymentType === 'DEPOSIT' ? (
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Minimum Deposit</p>
+                        <p className="mt-2 text-2xl font-black text-amber-300">
+                          {selectedBooking.currency} {minimumDeposit.toLocaleString()}
+                        </p>
+                      </div>
+                    ) : null}
 
                     <div className="border-t border-white/10 pt-5">
                       <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Balance Due</p>

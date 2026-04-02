@@ -3,8 +3,8 @@ from .models import Payment, Receipt, Expense
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('internal_reference', 'booking', 'amount', 'currency', 'method', 'txn_reference', 'payment_date', 'is_deleted')
-    list_filter = ('method', 'currency', 'is_deleted')
+    list_display = ('internal_reference', 'booking', 'payment_type', 'amount', 'currency', 'method', 'txn_reference', 'payment_date', 'is_deleted')
+    list_filter = ('payment_type', 'method', 'currency', 'is_deleted')
     search_fields = ('internal_reference', 'booking__reference_no', 'txn_reference')
     actions = ['soft_delete']
 
