@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   ExternalLink,
   UserRound,
+  Menu,
+  X,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { api, backendAdminUrl } from '../../lib/api';
@@ -37,6 +39,7 @@ const normalizeRoleLabel = (role: unknown): string => {
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [isSigningOut, setIsSigningOut] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -62,8 +65,86 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <div className="min-h-screen bg-[#f7f8fb] text-slate-900 lg:flex lg:h-screen lg:overflow-hidden">
+      <div className="sticky top-0 z-50 border-b border-[#d8dee7] bg-white px-4 py-3 lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#d8dee7] bg-[#f7f8fb]">
+              <img
+                src={mrangaLogo}
+                alt="Mranga Tours & Safaris Ltd."
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black uppercase tracking-[0.2em] text-slate-400">Managerial Portal</p>
+              <p className="truncate text-base font-bold text-slate-900">{firstName}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d8dee7] bg-white text-slate-600 shadow-sm"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+
+        {isMobileMenuOpen ? (
+          <div className="mt-4 space-y-4 rounded-[1.6rem] border border-[#d8dee7] bg-white p-4 shadow-[0_16px_34px_-24px_rgba(15,23,42,0.28)]">
+            <div className="rounded-[1.2rem] bg-[#f8fafc] px-4 py-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Signed In As</p>
+              <p className="mt-2 text-base font-bold text-slate-900">{user?.full_name}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{roleLabel}</p>
+            </div>
+
+            <nav className="grid gap-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    clsx(
+                      'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition-all',
+                      isActive ? 'bg-[#fbf6df] text-[#4a5f2f]' : 'bg-slate-50 text-slate-700'
+                    )
+                  }
+                >
+                  <item.icon size={18} />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <a
+                href={backendAdminUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#cfd6e0] bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
+              >
+                <ShieldCheck size={16} className="text-[#6a8240]" />
+                <span>Admin</span>
+              </a>
+
+              <button
+                onClick={handleLogout}
+                disabled={isSigningOut}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 disabled:opacity-70"
+              >
+                <LogOut size={16} />
+                {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
       <aside className="hidden h-screen w-[16.1rem] shrink-0 border-r border-[#d8dee7] bg-white lg:flex lg:flex-col lg:overflow-hidden">
         <div className="flex min-h-[11.9rem] items-center justify-center border-b border-[#d8dee7] px-6 py-6">
           <img
@@ -132,8 +213,8 @@ export const Dashboard: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex min-h-screen flex-1 flex-col lg:h-screen lg:min-h-0 lg:overflow-y-auto">
-        <header className="sticky top-0 z-40 border-b border-[#d8dee7] bg-white">
+      <main className="flex min-h-screen flex-1 flex-col pb-24 lg:h-screen lg:min-h-0 lg:overflow-y-auto lg:pb-0">
+        <header className="sticky top-0 z-40 hidden border-b border-[#d8dee7] bg-white lg:block">
           <div className="flex min-h-[5.7rem] items-center justify-between gap-4 px-8">
             <div>
               <div className="flex items-center gap-2 text-[0.95rem] font-medium text-slate-500">
@@ -172,10 +253,31 @@ export const Dashboard: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 px-8 py-8">
+        <div className="flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           <Outlet />
         </div>
       </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#d8dee7] bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
+        <div className="grid grid-cols-6 gap-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                clsx(
+                  'flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-black transition-all',
+                  isActive ? 'bg-[#fbf6df] text-[#4a5f2f]' : 'text-slate-500'
+                )
+              }
+            >
+              <item.icon size={18} />
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 };
