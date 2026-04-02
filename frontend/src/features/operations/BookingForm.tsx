@@ -19,6 +19,7 @@ import { api, formatMoney, toNumber } from '../../lib/api';
 const bookingSchema = z.object({
   client: z.string().uuid('Please select a client'),
   package: z.string().uuid('Please select a package').or(z.literal('')),
+  excursion: z.string().uuid('Please select an excursion').optional().or(z.literal('')),
   travel_date: z.string().min(1, 'Travel date is required'),
   number_of_days: z.number().min(1, 'Number of days must be at least 1'),
   num_adults: z.number().min(0),
@@ -52,10 +53,19 @@ interface PackageOption {
   itinerary?: string;
 }
 
+interface ExcursionOption {
+  id: string;
+  name: string;
+  location: string;
+  price: string | number;
+  itinerary?: string;
+}
+
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();
   const [clients, setClients] = React.useState<ClientOption[]>([]);
   const [packages, setPackages] = React.useState<PackageOption[]>([]);
+  const [excursions, setExcursions] = React.useState<ExcursionOption[]>([]);
   const [submitError, setSubmitError] = React.useState('');
 
   const {
@@ -69,6 +79,7 @@ export const BookingForm: React.FC = () => {
     defaultValues: {
       client: '',
       package: '',
+      excursion: '',
       travel_date: new Date().toISOString().split('T')[0],
       number_of_days: 1,
       num_adults: 2,
@@ -90,23 +101,28 @@ export const BookingForm: React.FC = () => {
 
   React.useEffect(() => {
     const fetchLookups = async () => {
-      const [clientsResponse, packagesResponse] = await Promise.all([
+      const [clientsResponse, packagesResponse, excursionsResponse] = await Promise.all([
         api.get('/clients/'),
         api.get('/operations/packages/'),
+        api.get('/operations/excursions/'),
       ]);
       setClients(clientsResponse.data);
       setPackages(packagesResponse.data);
+      setExcursions(excursionsResponse.data);
     };
 
     fetchLookups().catch((error) => {
       console.error('Failed to load booking lookups:', error);
       setClients([]);
       setPackages([]);
+      setExcursions([]);
     });
   }, []);
 
   const selectedPackageId = watch('package');
+  const selectedExcursionId = watch('excursion');
   const selectedPackage = packages.find((item) => item.id === selectedPackageId);
+  const selectedExcursion = excursions.find((item) => item.id === selectedExcursionId);
   const numAdults = watch('num_adults');
   const pricePerAdult = watch('price_per_adult');
   const numChildren = watch('num_children');
@@ -123,6 +139,30 @@ export const BookingForm: React.FC = () => {
     setValue('price_per_adult', toNumber(selectedPackage.price));
     setValue('itinerary', selectedPackage.itinerary || '');
   }, [selectedPackage, setValue]);
+
+  React.useEffect(() => {
+    if (!selectedExcursion) {
+      return;
+    }
+
+    setValue('extra_charges', toNumber(selectedExcursion.price));
+
+    const currentItinerary = watch('itinerary');
+    const excursionSummary = `${selectedExcursion.name} - ${selectedExcursion.location}`;
+    const excursionItinerary = selectedExcursion.itinerary?.trim();
+
+    if (!currentItinerary?.trim()) {
+      setValue('itinerary', excursionItinerary || excursionSummary);
+      return;
+    }
+
+    if (!currentItinerary.includes(excursionSummary)) {
+      setValue(
+        'itinerary',
+        `${currentItinerary.trim()}\n\nExcursion: ${excursionSummary}${excursionItinerary ? `\n${excursionItinerary}` : ''}`
+      );
+    }
+  }, [selectedExcursion, setValue, watch]);
 
   const subtotal =
     toNumber(numAdults) * toNumber(pricePerAdult) +
@@ -198,7 +238,7 @@ export const BookingForm: React.FC = () => {
               </div>
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Setup</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Client & Package</h2>
+                <h2 className="mt-1 text-2xl font-black text-slate-900">Client & Excursion</h2>
               </div>
             </div>
 
@@ -232,6 +272,24 @@ export const BookingForm: React.FC = () => {
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className={labelClassName}>Excursion</label>
+                <div className="relative">
+                  <select {...register('excursion')} className={`${inputClassName} appearance-none pr-12`}>
+                    <option value="">-- Choose Excursion --</option>
+                    {excursions.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} ({item.location})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                </div>
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Excursions work like an add-on to the booking and can feed into pricing and itinerary details.
+                </p>
               </div>
 
               <div>
@@ -392,7 +450,10 @@ export const BookingForm: React.FC = () => {
               <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Package</p>
                 <p className="mt-2 text-lg font-black text-[#234126]">{selectedPackage?.name || 'No package selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedPackage?.package_type_display || 'Package type will appear here'}</p>
+                <p className="mt-1 text-sm font-medium text-[#4f6a50]">
+                  {selectedPackage?.package_type_display || 'Package type will appear here'}
+                  {selectedExcursion ? ` | Excursion: ${selectedExcursion.name}` : ''}
+                </p>
               </div>
 
               <div className="grid gap-3">

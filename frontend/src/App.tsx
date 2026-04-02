@@ -18,7 +18,6 @@ import { OutstandingBalances } from './features/analytics/OutstandingBalances';
 import { ClientList } from './features/clients/ClientList';
 import { ClientForm } from './features/clients/ClientForm';
 import { BookingForm } from './features/operations/BookingForm';
-import { ExcursionList } from './features/operations/ExcursionList';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -45,7 +44,6 @@ const App: React.FC = () => {
         >
           <Route index element={<DashboardHome />} />
           <Route path="bookings" element={<BookingTable />} />
-          <Route path="excursions" element={<ExcursionList />} />
           <Route path="bookings/new" element={<BookingForm />} />
           <Route path="bookings/:id" element={<BookingDetails />} />
           <Route path="finance/payments" element={<PaymentTable />} />
