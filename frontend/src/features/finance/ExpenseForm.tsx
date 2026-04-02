@@ -249,23 +249,23 @@ export const ExpenseForm: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.8)]">
-              <div className="border-b border-white/10 px-6 py-5">
-                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Finance Check</p>
-                <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-white">
+            <section className="overflow-hidden rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
+              <div className="border-b border-[#c8dfc0] px-6 py-5">
+                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Finance Check</p>
+                <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[#234126]">
                   <Wallet size={22} />
                   Financial Check
                 </h2>
               </div>
 
               <div className="space-y-5 px-6 py-6">
-                <div className="border-b border-white/10 pb-5">
-                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Payment Type</p>
-                  <p className="mt-2 text-2xl font-black text-white">Outgoing Cashflow</p>
+                <div className="border-b border-[#c8dfc0] pb-5">
+                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Payment Type</p>
+                  <p className="mt-2 text-2xl font-black text-[#234126]">Outgoing Cashflow</p>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+                  <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">
                     Exchange Rate Used
                   </label>
                   <div className="flex items-center gap-3">
@@ -273,9 +273,9 @@ export const ExpenseForm: React.FC = () => {
                       type="number"
                       step="0.0001"
                       {...register('exchange_rate', { valueAsNumber: true })}
-                      className="w-full border-none bg-transparent p-0 text-3xl font-black text-white outline-none"
+                      className="w-full border-none bg-transparent p-0 text-3xl font-black text-[#234126] outline-none"
                     />
-                    <ArrowRightLeft size={18} className="text-primary-400" />
+                    <ArrowRightLeft size={18} className="text-[#6b8f65]" />
                   </div>
                 </div>
               </div>
