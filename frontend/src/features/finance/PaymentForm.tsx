@@ -253,10 +253,10 @@ export const PaymentForm: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.8)]">
-              <div className="border-b border-white/10 px-6 py-5">
-                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Live Balance View</p>
-                <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-white">
+            <section className="overflow-hidden rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
+              <div className="border-b border-[#c8dfc0] px-6 py-5">
+                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Live Balance View</p>
+                <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[#234126]">
                   <Wallet size={22} />
                   Outstanding Summary
                 </h2>
@@ -266,51 +266,51 @@ export const PaymentForm: React.FC = () => {
                 {selectedBooking ? (
                   <div className="space-y-5">
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Package</p>
-                      <p className="mt-2 text-lg font-black text-white">
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Package</p>
+                      <p className="mt-2 text-lg font-black text-[#234126]">
                         {selectedBooking.package_name || selectedBooking.destination_package || 'Booking package'}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Travel Date</p>
-                      <p className="mt-2 text-lg font-black text-white">
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Travel Date</p>
+                      <p className="mt-2 text-lg font-black text-[#234126]">
                         {selectedBooking.travel_date || selectedBooking.start_date || 'TBD'}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Total</p>
-                      <p className="mt-2 text-2xl font-black text-white">
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Booking Total</p>
+                      <p className="mt-2 text-2xl font-black text-[#234126]">
                         {selectedBooking.currency} {toNumber(selectedBooking.total_cost).toLocaleString()}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Already Paid</p>
-                      <p className="mt-2 text-2xl font-black text-emerald-400">
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Already Paid</p>
+                      <p className="mt-2 text-2xl font-black text-[#2f7a40]">
                         +{selectedBooking.currency} {toNumber(selectedBooking.paid_amount).toLocaleString()}
                       </p>
                     </div>
 
                     {selectedPaymentType === 'DEPOSIT' ? (
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Minimum Deposit</p>
-                        <p className="mt-2 text-2xl font-black text-amber-300">
+                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Minimum Deposit</p>
+                        <p className="mt-2 text-2xl font-black text-[#c27b10]">
                           {selectedBooking.currency} {minimumDeposit.toLocaleString()}
                         </p>
                       </div>
                     ) : null}
 
-                    <div className="border-t border-white/10 pt-5">
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Balance Due</p>
-                      <p className="mt-2 text-3xl font-black text-rose-400">
+                    <div className="border-t border-[#c8dfc0] pt-5">
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Balance Due</p>
+                      <p className="mt-2 text-3xl font-black text-[#9d3f4b]">
                         {selectedBooking.currency} {balance.toLocaleString()}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="py-10 text-center text-sm font-medium italic text-slate-500">
+                  <div className="py-10 text-center text-sm font-medium italic text-[#5e7d5d]">
                     Select a booking to review its outstanding balance and payment position.
                   </div>
                 )}
