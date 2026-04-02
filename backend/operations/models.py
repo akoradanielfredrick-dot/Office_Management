@@ -27,9 +27,12 @@ class Package(models.Model):
         return self.name
 
 class Excursion(models.Model):
+    EXCURSION_TYPE_CHOICES = Package.PACKAGE_TYPE_CHOICES
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
     location = models.CharField(max_length=255)
+    excursion_type = models.CharField(max_length=20, choices=EXCURSION_TYPE_CHOICES, default='ROAD_SAFARI')
     price = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     itinerary = models.TextField(blank=True)
     is_deleted = models.BooleanField(default=False)

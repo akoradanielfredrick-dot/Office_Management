@@ -15,8 +15,8 @@ class PackageAdmin(admin.ModelAdmin):
 
 @admin.register(Excursion)
 class ExcursionAdmin(admin.ModelAdmin):
-    list_display = ("name", "location", "price", "is_deleted", "updated_at")
-    list_filter = ("location", "is_deleted", "created_at", "updated_at")
+    list_display = ("name", "location", "excursion_type", "price", "is_deleted", "updated_at")
+    list_filter = ("excursion_type", "location", "is_deleted", "created_at", "updated_at")
     search_fields = ("name", "location", "itinerary")
     ordering = ("name",)
     actions = ["soft_delete"]

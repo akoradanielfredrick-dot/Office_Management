@@ -9,9 +9,14 @@ class PackageSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'package_type', 'package_type_display', 'price', 'itinerary', 'created_at', 'updated_at']
 
 class ExcursionSerializer(serializers.ModelSerializer):
+    excursion_type_display = serializers.CharField(source='get_excursion_type_display', read_only=True)
+
     class Meta:
         model = Excursion
-        fields = ['id', 'name', 'location', 'price', 'itinerary', 'created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'location', 'excursion_type', 'excursion_type_display',
+            'price', 'itinerary', 'created_at', 'updated_at'
+        ]
 
 class BookingTravellerSerializer(serializers.ModelSerializer):
     class Meta:

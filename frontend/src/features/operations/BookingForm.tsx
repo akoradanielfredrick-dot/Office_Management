@@ -16,6 +16,28 @@ import {
 } from 'lucide-react';
 import { api, formatMoney, toNumber } from '../../lib/api';
 
+const parseChildAges = (value: string | undefined): number[] =>
+  (value || '')
+    .split(',')
+    .map((part) => Number(part.trim()))
+    .filter((age) => Number.isFinite(age) && age >= 0);
+
+const getDiscountedChildRate = (adultPrice: number, travelType: string | undefined, age: number, adults: number): number => {
+  if (adults !== 2 || age < 2 || age > 11) {
+    return adultPrice;
+  }
+
+  if (travelType === 'ROAD_SAFARI') {
+    return adultPrice * 0.5;
+  }
+
+  if (travelType === 'AIR_SAFARI') {
+    return adultPrice * 0.75;
+  }
+
+  return adultPrice;
+};
+
 const bookingSchema = z.object({
   booking_kind: z.enum(['PACKAGE', 'EXCURSION']),
   client: z.string().uuid('Please select a client'),
@@ -27,6 +49,7 @@ const bookingSchema = z.object({
   price_per_adult: z.number().min(0),
   num_children: z.number().min(0),
   price_per_child: z.number().min(0),
+  child_ages: z.string().optional(),
   extra_charges: z.number().min(0),
   discount: z.number().min(0),
   itinerary: z.string().optional(),
@@ -49,6 +72,7 @@ interface ClientOption {
 interface PackageOption {
   id: string;
   name: string;
+  package_type?: string;
   package_type_display?: string;
   price: string | number;
   itinerary?: string;
@@ -58,6 +82,8 @@ interface ExcursionOption {
   id: string;
   name: string;
   location: string;
+  excursion_type?: string;
+  excursion_type_display?: string;
   price: string | number;
   itinerary?: string;
 }
@@ -88,6 +114,7 @@ export const BookingForm: React.FC = () => {
       price_per_adult: 0,
       num_children: 0,
       price_per_child: 0,
+      child_ages: '',
       extra_charges: 0,
       discount: 0,
       itinerary: '',
@@ -130,52 +157,85 @@ export const BookingForm: React.FC = () => {
   const pricePerAdult = watch('price_per_adult');
   const numChildren = watch('num_children');
   const pricePerChild = watch('price_per_child');
+  const childAgesInput = watch('child_ages');
   const extraCharges = watch('extra_charges');
   const discount = watch('discount');
   const currency = watch('currency');
+  const selectedTravelType = bookingKind === 'PACKAGE' ? selectedPackage?.package_type : selectedExcursion?.excursion_type;
+  const selectedTravelTypeDisplay =
+    bookingKind === 'PACKAGE' ? selectedPackage?.package_type_display : selectedExcursion?.excursion_type_display;
+  const selectedTravelLabel =
+    bookingKind === 'PACKAGE'
+      ? selectedPackage?.name || 'No package selected yet'
+      : selectedExcursion?.name || 'No excursion selected yet';
+  const selectedTravelMeta =
+    bookingKind === 'PACKAGE'
+      ? selectedTravelTypeDisplay || 'Package type will appear here'
+      : selectedTravelTypeDisplay
+        ? `${selectedTravelTypeDisplay}${selectedExcursion?.location ? ` • ${selectedExcursion.location}` : ''}`
+        : 'Excursion type will appear here';
+
+  const childAges = React.useMemo(() => parseChildAges(childAgesInput), [childAgesInput]);
+  const childAgeCountMatches = numChildren === 0 || childAges.length === numChildren;
+  const eligibleChildCount = React.useMemo(
+    () => childAges.filter((age) => numAdults === 2 && age >= 2 && age <= 11).length,
+    [childAges, numAdults]
+  );
 
   React.useEffect(() => {
-    if (!selectedPackage) {
+    if (!selectedPackage || bookingKind !== 'PACKAGE') {
       return;
     }
 
     setValue('price_per_adult', toNumber(selectedPackage.price));
     setValue('itinerary', selectedPackage.itinerary || '');
-  }, [selectedPackage, setValue]);
+  }, [bookingKind, selectedPackage, setValue]);
 
   React.useEffect(() => {
-    if (!selectedExcursion) {
+    if (!selectedExcursion || bookingKind !== 'EXCURSION') {
       return;
     }
 
-    setValue('extra_charges', toNumber(selectedExcursion.price));
-
-    const currentItinerary = watch('itinerary');
-    const excursionSummary = `${selectedExcursion.name} - ${selectedExcursion.location}`;
-    const excursionItinerary = selectedExcursion.itinerary?.trim();
-
-    if (!currentItinerary?.trim()) {
-      setValue('itinerary', excursionItinerary || excursionSummary);
-      return;
-    }
-
-    if (!currentItinerary.includes(excursionSummary)) {
-      setValue(
-        'itinerary',
-        `${currentItinerary.trim()}\n\nExcursion: ${excursionSummary}${excursionItinerary ? `\n${excursionItinerary}` : ''}`
-      );
-    }
-  }, [selectedExcursion, setValue, watch]);
+    setValue('price_per_adult', toNumber(selectedExcursion.price));
+    setValue('itinerary', selectedExcursion.itinerary?.trim() || `${selectedExcursion.name} - ${selectedExcursion.location}`);
+  }, [bookingKind, selectedExcursion, setValue]);
 
   React.useEffect(() => {
     if (bookingKind === 'PACKAGE') {
       setValue('excursion', '');
+      setValue('extra_charges', 0);
+      if (!selectedPackage) {
+        setValue('price_per_adult', 0);
+      }
       return;
     }
 
     setValue('package', '');
-    setValue('price_per_adult', 0);
-  }, [bookingKind, setValue]);
+    if (!selectedExcursion) {
+      setValue('price_per_adult', 0);
+    }
+  }, [bookingKind, selectedExcursion, selectedPackage, setValue]);
+
+  React.useEffect(() => {
+    if (numChildren <= 0) {
+      setValue('price_per_child', 0);
+      return;
+    }
+
+    const adultRate = toNumber(pricePerAdult);
+    if (adultRate <= 0) {
+      setValue('price_per_child', 0);
+      return;
+    }
+
+    const computedChildRates = Array.from({ length: numChildren }, (_, index) =>
+      getDiscountedChildRate(adultRate, selectedTravelType, childAges[index] ?? -1, numAdults)
+    );
+    const totalChildCost = computedChildRates.reduce((sum, value) => sum + value, 0);
+    const averageChildRate = totalChildCost / numChildren;
+
+    setValue('price_per_child', Number(averageChildRate.toFixed(2)));
+  }, [childAges, numAdults, numChildren, pricePerAdult, selectedTravelType, setValue]);
 
   const subtotal =
     toNumber(numAdults) * toNumber(pricePerAdult) +
@@ -185,6 +245,7 @@ export const BookingForm: React.FC = () => {
 
   const inputClassName =
     'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
+  const readonlyInputClassName = `${inputClassName} bg-slate-50 text-slate-500`;
   const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
   const onSubmit = async (data: BookingFormValues) => {
@@ -194,6 +255,11 @@ export const BookingForm: React.FC = () => {
       const response = await api.post('/operations/bookings/', {
         client: data.client,
         package: data.package || null,
+        package_type: selectedTravelType || '',
+        destination_package:
+          bookingKind === 'PACKAGE'
+            ? selectedPackage?.name || ''
+            : selectedExcursion ? `${selectedExcursion.name} - ${selectedExcursion.location}` : '',
         travel_date: data.travel_date,
         number_of_days: toNumber(data.number_of_days),
         num_adults: toNumber(data.num_adults),
@@ -217,7 +283,7 @@ export const BookingForm: React.FC = () => {
       navigate(`/bookings/${response.data.id}`);
     } catch (error) {
       console.error('Failed to create booking:', error);
-      setSubmitError('Unable to create the booking right now. Please confirm the client, package, and pricing details.');
+      setSubmitError('Unable to create the booking right now. Please confirm the client, package, excursion, and pricing details.');
     }
   };
 
@@ -229,7 +295,7 @@ export const BookingForm: React.FC = () => {
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900">Create Booking</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-              Create bookings from the frontend, attach the client and package, and have the record saved directly into the backend operations workflow.
+              Create bookings from the frontend, attach the client and selected travel product, and have the record saved directly into the backend operations workflow.
             </p>
           </div>
         </div>
@@ -286,38 +352,59 @@ export const BookingForm: React.FC = () => {
               </div>
 
               {bookingKind === 'PACKAGE' ? (
-                <div>
-                  <label className={labelClassName}>Package</label>
-                  <div className="relative">
-                    <select {...register('package')} className={`${inputClassName} appearance-none pr-12`}>
-                      <option value="">-- Choose Package --</option>
-                      {packages.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name} {item.package_type_display ? `(${item.package_type_display})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <>
+                  <div>
+                    <label className={labelClassName}>Package</label>
+                    <div className="relative">
+                      <select {...register('package')} className={`${inputClassName} appearance-none pr-12`}>
+                        <option value="">-- Choose Package --</option>
+                        {packages.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name} {item.package_type_display ? `(${item.package_type_display})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    </div>
                   </div>
-                </div>
+
+                  <div>
+                    <label className={labelClassName}>Package Type</label>
+                    <input
+                      value={selectedPackage?.package_type_display || ''}
+                      readOnly
+                      placeholder="Road Safari or Air Safari"
+                      className={readonlyInputClassName}
+                    />
+                  </div>
+                </>
               ) : (
-                <div className="md:col-span-2">
-                  <label className={labelClassName}>Excursion</label>
-                  <div className="relative">
-                    <select {...register('excursion')} className={`${inputClassName} appearance-none pr-12`}>
-                      <option value="">-- Choose Excursion --</option>
-                      {excursions.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name} ({item.location})
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <>
+                  <div>
+                    <label className={labelClassName}>Excursion</label>
+                    <div className="relative">
+                      <select {...register('excursion')} className={`${inputClassName} appearance-none pr-12`}>
+                        <option value="">-- Choose Excursion --</option>
+                        {excursions.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name} ({item.location})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    </div>
                   </div>
-                  <p className="mt-2 text-xs font-medium text-slate-500">
-                    Excursions work like an add-on to the booking and can feed into pricing and itinerary details.
-                  </p>
-                </div>
+
+                  <div>
+                    <label className={labelClassName}>Excursion Type</label>
+                    <input
+                      value={selectedExcursion?.excursion_type_display || ''}
+                      readOnly
+                      placeholder="Road Safari or Air Safari"
+                      className={readonlyInputClassName}
+                    />
+                  </div>
+                </>
               )}
 
               <div>
@@ -362,8 +449,35 @@ export const BookingForm: React.FC = () => {
                 <input type="number" min="0" {...register('num_children', { valueAsNumber: true })} className={inputClassName} />
               </div>
               <div>
+                <label className={labelClassName}>Child Ages</label>
+                <input
+                  type="text"
+                  {...register('child_ages')}
+                  placeholder="e.g. 4, 7, 10"
+                  className={inputClassName}
+                />
+                <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
+                  Enter one age per child. Ages 2-11 get 50% off road safaris and 25% off air safaris only when staying with 2 adults.
+                </p>
+                {!childAgeCountMatches ? (
+                  <p className="mt-2 text-xs font-semibold text-amber-600">
+                    Enter all child ages to apply the correct child rate. Missing ages are charged at the full adult rate.
+                  </p>
+                ) : null}
+              </div>
+              <div>
                 <label className={labelClassName}>Price Per Child</label>
-                <input type="number" min="0" step="0.01" {...register('price_per_child', { valueAsNumber: true })} className={inputClassName} />
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  {...register('price_per_child', { valueAsNumber: true })}
+                  readOnly
+                  className={readonlyInputClassName}
+                />
+                <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
+                  Auto-calculated from the selected {bookingKind === 'PACKAGE' ? 'package' : 'excursion'} type and the child ages entered above.
+                </p>
               </div>
               <div>
                 <label className={labelClassName}>Extra Charges</label>
@@ -479,19 +593,17 @@ export const BookingForm: React.FC = () => {
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">
                   {bookingKind === 'PACKAGE' ? 'Selected Package' : 'Selected Excursion'}
                 </p>
-                <p className="mt-2 text-lg font-black text-[#234126]">
-                  {bookingKind === 'PACKAGE'
-                    ? (selectedPackage?.name || 'No package selected yet')
-                    : (selectedExcursion?.name || 'No excursion selected yet')}
-                </p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">
-                  {bookingKind === 'PACKAGE'
-                    ? (selectedPackage?.package_type_display || 'Package type will appear here')
-                    : (selectedExcursion?.location || 'Excursion location will appear here')}
-                </p>
+                <p className="mt-2 text-lg font-black text-[#234126]">{selectedTravelLabel}</p>
+                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedTravelMeta}</p>
               </div>
 
               <div className="grid gap-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[#5e7d5d]">Eligible Children</span>
+                  <span className="font-black text-[#234126]">
+                    {eligibleChildCount} of {numChildren}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-[#5e7d5d]">Subtotal</span>
                   <span className="font-black text-[#234126]">{formatMoney(currency, subtotal)}</span>
