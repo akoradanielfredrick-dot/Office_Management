@@ -1,4 +1,4 @@
-from django.db.models import Sum, F, Count
+from django.db.models import Sum, F, Count, Q
 from django.utils import timezone
 from rest_framework import viewsets, response, decorators
 from clients.models import Client
@@ -18,7 +18,11 @@ class DashboardViewSet(viewsets.ViewSet):
         # 1. KPI Counts
         total_clients = Client.objects.filter(is_deleted=False).count()
         active_bookings = Booking.objects.filter(is_deleted=False, status='CONFIRMED').count()
-        pending_payments = Payment.objects.filter(is_deleted=False).count() # Simplified, could filter by status if it existed
+        pending_payments = Booking.objects.filter(
+            is_deleted=False
+        ).filter(
+            total_cost__gt=F('paid_amount')
+        ).count()
         
         # 2. Monthly Expenses
         now = timezone.now()

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ReportToolbar } from './ReportToolbar';
+import { api } from '../../lib/api';
 
 interface DebtData {
   id: string;
@@ -23,17 +24,11 @@ export const OutstandingBalances: React.FC = () => {
   useEffect(() => {
     const fetchDebt = async () => {
       try {
-        await fetch('/api/finance/analytics/dashboard_summary/');
-        setDebtData([
-          { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', total_cost: 150000, paid_amount: 50000, balance: 100000, last_payment: '2026-03-29', days_overdue: 15 },
-          { id: '3', ref: 'BKG-2026-0012', client: 'Acme Corp', total_cost: 850000, paid_amount: 120000, balance: 730000, last_payment: '2026-03-10', days_overdue: 45 },
-          { id: '4', ref: 'BKG-2026-0015', client: 'Misty Mountains', total_cost: 320000, paid_amount: 0, balance: 320000, last_payment: 'N/A', days_overdue: 62 },
-        ]);
+        const response = await api.get('/finance/analytics/outstanding/');
+        setDebtData(response.data);
       } catch (err) {
         console.error('Debt fetch failed', err);
-        setDebtData([
-          { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', total_cost: 150000, paid_amount: 50000, balance: 100000, last_payment: '2026-03-29', days_overdue: 15 },
-        ]);
+        setDebtData([]);
       } finally {
         setLoading(false);
       }
@@ -124,7 +119,7 @@ export const OutstandingBalances: React.FC = () => {
                   </td>
                   <td className="px-6 py-5 text-right">
                     <button
-                      onClick={() => navigate(`/finance/payments/new?booking=${d.id}`)}
+                      onClick={() => navigate(`/finance/payments/new?bookingId=${d.id}`)}
                       className="inline-flex items-center gap-2 rounded-xl bg-primary-700 px-4 py-2 text-sm font-bold text-white shadow-md shadow-primary-900/20 transition-colors hover:bg-primary-800"
                     >
                       Record Recovery

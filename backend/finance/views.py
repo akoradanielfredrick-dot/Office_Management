@@ -8,6 +8,7 @@ from django.db.models import Sum, Count, F, Q, DecimalField, Max
 from django.db.models.functions import Coalesce
 from common.models import ActivityLog
 import decimal
+from django.utils import timezone
 
 from django.http import FileResponse
 from accounts.permissions import IsFinanceUser
@@ -191,3 +192,27 @@ class AnalyticsViewSet(viewsets.ViewSet):
             }
             for row in spend
         ])
+
+    @decorators.action(detail=False, methods=['get'])
+    def outstanding(self, request):
+        today = timezone.localdate()
+        bookings = Booking.objects.filter(is_deleted=False).filter(total_cost__gt=F('paid_amount')).order_by('-created_at')
+
+        results = []
+        for booking in bookings:
+            due_date = booking.travel_date or booking.start_date or booking.created_at.date()
+            days_overdue = max((today - due_date).days, 0) if due_date else 0
+            last_payment = booking.payments.filter(is_deleted=False).order_by('-payment_date').first()
+
+            results.append({
+                'id': booking.id,
+                'ref': booking.reference_no,
+                'client': booking.client.full_name,
+                'total_cost': booking.total_cost,
+                'paid_amount': booking.paid_amount,
+                'balance': booking.total_cost - booking.paid_amount,
+                'last_payment': last_payment.payment_date.date() if last_payment else None,
+                'days_overdue': days_overdue,
+            })
+
+        return response.Response(results)

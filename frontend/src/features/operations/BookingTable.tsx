@@ -60,6 +60,12 @@ export const BookingTable: React.FC = () => {
     ].some((value) => value?.toLowerCase().includes(needle));
   });
 
+  const bookingValueByCurrency = filteredBookings.reduce<Record<string, number>>((summary, booking) => {
+    const currency = booking.currency || 'KES';
+    summary[currency] = (summary[currency] || 0) + toNumber(booking.total_cost);
+    return summary;
+  }, {});
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -126,9 +132,17 @@ export const BookingTable: React.FC = () => {
             <Wallet size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Booking Value</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">
-            KES {filteredBookings.reduce((sum, b) => sum + toNumber(b.total_cost), 0).toLocaleString()}
-          </p>
+          <div className="mt-3 space-y-2">
+            {Object.keys(bookingValueByCurrency).length > 0 ? Object.entries(bookingValueByCurrency).map(([currency, total]) => (
+              <div key={currency} className="flex items-center justify-between text-sm font-black text-slate-900">
+                <span>{currency}</span>
+                <span>{total.toLocaleString()}</span>
+              </div>
+            )) : (
+              <p className="text-3xl font-black text-slate-900">0</p>
+            )}
+          </div>
+          <p className="mt-3 text-xs font-medium text-slate-500">Totals are grouped by booking currency to avoid mixed-currency miscalculation.</p>
         </div>
       </section>
 
