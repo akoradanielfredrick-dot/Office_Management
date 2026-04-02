@@ -21,9 +21,9 @@ def generate_receipt_pdf(receipt):
     p.drawCentredString(width / 2, height - 1 * inch, "OFFICIAL RECEIPT")
     
     p.setFont("Helvetica", 10)
-    p.drawCentredString(width / 2, height - 1.25 * inch, "KENYAN TOUR & TRAVEL CO. LTD")
-    p.drawCentredString(width / 2, height - 1.4 * inch, "Nairobi Business District, Kenya | +254 700 000 000")
-    p.drawCentredString(width / 2, height - 1.55 * inch, "Email: accounts@travelco.ke | PIN: P051XXXXXXX")
+    p.drawCentredString(width / 2, height - 1.25 * inch, "MRANGA TOURS & SAFARI LTD.")
+    p.drawCentredString(width / 2, height - 1.4 * inch, "Arman Complex, opposite Diani Sea Lodge, Diani, Kenya | +254 116 837982/+41 79 400 28 81")
+    p.drawCentredString(width / 2, height - 1.55 * inch, "Email: info@mrangatoursandsafaris.com")
     
     # --- Receipt Info ---
     p.setStrokeColor(colors.lightgrey)

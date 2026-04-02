@@ -15,6 +15,7 @@ import {
   ReceiptText,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { jsPDF } from 'jspdf';
 import { api, toNumber } from '../../lib/api';
 
 interface BookingPayment {
@@ -118,119 +119,107 @@ export const BookingDetails: React.FC = () => {
     const travelDate = booking.travel_date || booking.start_date || 'TBD';
     const endDate = booking.end_date || 'TBD';
     const packageName = booking.package_name || booking.destination_package || 'Custom Booking';
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const left = 48;
+    const right = pageWidth - 48;
+    const contentWidth = right - left;
+    let y = 54;
 
-    const escapeHtml = (value: string) =>
-      value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    const ensureSpace = (needed = 24) => {
+      if (y + needed <= pageHeight - 48) {
+        return;
+      }
+      doc.addPage();
+      y = 54;
+    };
 
-    const multiLine = (value: string) => escapeHtml(value).replace(/\n/g, '<br />');
+    const drawLabelValue = (label: string, value: string) => {
+      ensureSpace(34);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label.toUpperCase(), left, y);
+      y += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      const lines = doc.splitTextToSize(value, contentWidth);
+      doc.text(lines, left, y);
+      y += lines.length * 16 + 8;
+    };
 
-    const documentHtml = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>${escapeHtml(booking.reference_no)} Booking</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 32px; color: #0f172a; }
-      h1, h2, h3, p { margin: 0; }
-      .header { border-bottom: 3px solid #6d8141; padding-bottom: 18px; margin-bottom: 24px; }
-      .eyebrow { font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: #64748b; }
-      .title { font-size: 32px; margin-top: 10px; color: #1f4326; }
-      .subtitle { margin-top: 8px; color: #475569; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 24px; }
-      .card { border: 1px solid #cbd5e1; border-radius: 14px; padding: 18px; }
-      .label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #64748b; margin-bottom: 8px; }
-      .value { font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.6; }
-      .section { margin-top: 24px; }
-      .section h2 { font-size: 18px; margin-bottom: 10px; color: #1e293b; }
-      .box { border: 1px solid #cbd5e1; border-radius: 14px; padding: 18px; line-height: 1.7; }
-      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; }
-      th { background: #f8fafc; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: #475569; }
-      .footer { margin-top: 28px; font-size: 12px; color: #64748b; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <p class="eyebrow">Booking Document</p>
-      <h1 class="title">${escapeHtml(booking.reference_no)}</h1>
-      <p class="subtitle">${escapeHtml(booking.client_name)} | ${escapeHtml(packageName)}</p>
-    </div>
+    const drawSection = (title: string, content: string) => {
+      ensureSpace(42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(31, 67, 38);
+      doc.text(title, left, y);
+      y += 18;
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(left, y, contentWidth, 2, 2, 2, 'S');
+      y += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(30, 41, 59);
+      const lines = doc.splitTextToSize(content, contentWidth - 8);
+      lines.forEach((line: string) => {
+        ensureSpace(16);
+        doc.text(line, left + 4, y);
+        y += 15;
+      });
+      y += 10;
+    };
 
-    <div class="grid">
-      <div class="card">
-        <p class="label">Client</p>
-        <p class="value">${escapeHtml(booking.client_name)}</p>
-        <p class="value">${escapeHtml(booking.client_email || 'No email provided')}</p>
-        <p class="value">${escapeHtml(booking.client_phone || 'No phone provided')}</p>
-      </div>
-      <div class="card">
-        <p class="label">Trip Details</p>
-        <p class="value">Travel Date: ${escapeHtml(travelDate)}</p>
-        <p class="value">Return / End Date: ${escapeHtml(endDate)}</p>
-        <p class="value">Duration: ${booking.number_of_days} day(s)</p>
-        <p class="value">Status: ${escapeHtml(booking.status)}</p>
-      </div>
-    </div>
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text('BOOKING DOCUMENT', left, y);
+    y += 18;
+    doc.setFontSize(24);
+    doc.setTextColor(31, 67, 38);
+    doc.text(booking.reference_no, left, y);
+    y += 20;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`${booking.client_name} | ${packageName}`, left, y);
+    y += 24;
+    doc.setDrawColor(109, 129, 65);
+    doc.setLineWidth(1.5);
+    doc.line(left, y, right, y);
+    y += 22;
 
-    <div class="section">
-      <h2>Travellers & Pricing</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Adults</td><td>${booking.num_adults}</td></tr>
-          <tr><td>Price Per Adult</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.price_per_adult).toLocaleString()}</td></tr>
-          <tr><td>Children</td><td>${booking.num_children}</td></tr>
-          <tr><td>Price Per Child</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.price_per_child).toLocaleString()}</td></tr>
-          <tr><td>Extra Charges</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.extra_charges).toLocaleString()}</td></tr>
-          <tr><td>Subtotal</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.subtotal).toLocaleString()}</td></tr>
-          <tr><td>Discount</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.discount).toLocaleString()}</td></tr>
-          <tr><td>Total Cost</td><td>${escapeHtml(booking.currency)} ${toNumber(booking.total_cost).toLocaleString()}</td></tr>
-        </tbody>
-      </table>
-    </div>
+    drawLabelValue('Client', booking.client_name);
+    drawLabelValue('Client Email', booking.client_email || 'No email provided');
+    drawLabelValue('Client Phone', booking.client_phone || 'No phone provided');
+    drawLabelValue('Package', packageName);
+    drawLabelValue('Package Type', booking.package_type_display || 'Not specified');
+    drawLabelValue('Travel Date', travelDate);
+    drawLabelValue('End Date', endDate);
+    drawLabelValue('Duration', `${booking.number_of_days} day(s)`);
+    drawLabelValue('Status', booking.status);
+    drawLabelValue('Travellers', `${booking.num_adults} adult(s), ${booking.num_children} child(ren)`);
+    drawLabelValue('Price Per Adult', `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}`);
+    drawLabelValue('Price Per Child', `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}`);
+    drawLabelValue('Extra Charges', `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}`);
+    drawLabelValue('Subtotal', `${booking.currency} ${toNumber(booking.subtotal).toLocaleString()}`);
+    drawLabelValue('Discount', `${booking.currency} ${toNumber(booking.discount).toLocaleString()}`);
+    drawLabelValue('Total Cost', `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}`);
 
-    <div class="section">
-      <h2>Itinerary</h2>
-      <div class="box">${multiLine(itinerary)}</div>
-    </div>
+    drawSection('Itinerary', itinerary);
+    drawSection('Booking Validity', bookingValidity);
+    drawSection('Deposit Terms', depositTerms);
+    drawSection('Payment Channels', paymentChannels);
 
-    <div class="section">
-      <h2>Terms & Conditions</h2>
-      <div class="box">
-        <strong>Booking Validity</strong><br />
-        ${multiLine(bookingValidity)}
-        <br /><br />
-        <strong>Deposit Terms</strong><br />
-        ${multiLine(depositTerms)}
-        <br /><br />
-        <strong>Payment Channels</strong><br />
-        ${multiLine(paymentChannels)}
-      </div>
-    </div>
+    ensureSpace(24);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Generated from the Office Management portal on ${new Date().toLocaleString()}.`, left, y);
 
-    <p class="footer">Generated from the Office Management portal on ${new Date().toLocaleString()}.</p>
-  </body>
-</html>`;
-
-    const blob = new Blob([documentHtml], { type: 'text/html;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${booking.reference_no.toLowerCase()}-booking.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    doc.save(`${booking.reference_no.toLowerCase()}-booking.pdf`);
   };
 
   return (
