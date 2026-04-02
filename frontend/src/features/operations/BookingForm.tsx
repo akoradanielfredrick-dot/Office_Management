@@ -22,6 +22,18 @@ const parseChildAges = (value: string | undefined): number[] =>
     .map((part) => Number(part.trim()))
     .filter((age) => Number.isFinite(age) && age >= 0);
 
+const normalizeChildAges = (ages: number[], childCount: number): number[] => {
+  if (childCount <= 0 || ages.length === 0) {
+    return [];
+  }
+
+  if (ages.length === 1) {
+    return Array.from({ length: childCount }, () => ages[0]);
+  }
+
+  return ages.slice(0, childCount);
+};
+
 const getDiscountedChildRate = (adultPrice: number, travelType: string | undefined, age: number, adults: number): number => {
   if (adults !== 2 || age < 2 || age > 11) {
     return adultPrice;
@@ -194,10 +206,11 @@ export const BookingForm: React.FC = () => {
         : 'Excursion type will appear here';
 
   const childAges = React.useMemo(() => parseChildAges(childAgesInput), [childAgesInput]);
-  const childAgeCountMatches = numChildren === 0 || childAges.length === numChildren;
+  const effectiveChildAges = React.useMemo(() => normalizeChildAges(childAges, numChildren), [childAges, numChildren]);
+  const childAgeCountMatches = numChildren === 0 || childAges.length === 1 || childAges.length === numChildren;
   const eligibleChildCount = React.useMemo(
-    () => childAges.filter((age) => numAdults === 2 && age >= 2 && age <= 11).length,
-    [childAges, numAdults]
+    () => effectiveChildAges.filter((age) => numAdults === 2 && age >= 2 && age <= 11).length,
+    [effectiveChildAges, numAdults]
   );
 
   React.useEffect(() => {
@@ -247,13 +260,13 @@ export const BookingForm: React.FC = () => {
     }
 
     const computedChildRates = Array.from({ length: numChildren }, (_, index) =>
-      getDiscountedChildRate(adultRate, selectedTravelType, childAges[index] ?? -1, numAdults)
+      getDiscountedChildRate(adultRate, selectedTravelType, effectiveChildAges[index] ?? -1, numAdults)
     );
     const totalChildCost = computedChildRates.reduce((sum, value) => sum + value, 0);
     const averageChildRate = totalChildCost / numChildren;
 
     setValue('price_per_child', Number(averageChildRate.toFixed(2)));
-  }, [childAges, numAdults, numChildren, pricePerAdult, selectedTravelType, setValue]);
+  }, [effectiveChildAges, numAdults, numChildren, pricePerAdult, selectedTravelType, setValue]);
 
   const subtotal =
     toNumber(numAdults) * toNumber(pricePerAdult) +
@@ -475,11 +488,11 @@ export const BookingForm: React.FC = () => {
                   className={inputClassName}
                 />
                 <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
-                  Enter one age per child. Ages 2-11 are charged at 50% of the adult rate on road safaris and 25% of the adult rate on air safaris only when staying with 2 adults.
+                  Enter one age to apply it to all children, or enter one age per child. Ages 2-11 are charged at 50% of the adult rate on road safaris and 25% of the adult rate on air safaris only when staying with 2 adults.
                 </p>
                 {!childAgeCountMatches ? (
                   <p className="mt-2 text-xs font-semibold text-amber-600">
-                    Enter all child ages to apply the correct child rate. Missing ages are charged at the full adult rate.
+                    Enter one shared age or one age per child to apply the correct child rate. Missing ages are charged at the full adult rate.
                   </p>
                 ) : null}
               </div>
