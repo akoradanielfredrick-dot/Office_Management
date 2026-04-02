@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   CirclePlus,
@@ -23,7 +23,9 @@ interface ClientRecord {
 
 export const ClientList: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = React.useState<ClientRecord[]>([]);
+  const focusedClientId = searchParams.get('clientId');
 
   React.useEffect(() => {
     const fetchClients = async () => {
@@ -57,6 +59,19 @@ export const ClientList: React.FC = () => {
       tone: 'bg-amber-100 text-amber-700',
     },
   ];
+
+  const orderedClients = React.useMemo(() => {
+    if (!focusedClientId) {
+      return clients;
+    }
+
+    const focusedClient = clients.find((client) => client.id === focusedClientId);
+    if (!focusedClient) {
+      return clients;
+    }
+
+    return [focusedClient, ...clients.filter((client) => client.id !== focusedClientId)];
+  }, [clients, focusedClientId]);
 
   return (
     <div className="space-y-8">
@@ -121,6 +136,24 @@ export const ClientList: React.FC = () => {
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        {focusedClientId ? (
+          <div className="mb-6 flex flex-col gap-3 rounded-[1.4rem] border border-sky-200 bg-sky-50 px-5 py-4 text-sky-900 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-sky-600">Linked From Booking</p>
+              <p className="mt-1 text-sm font-semibold">
+                The booking client has been brought to the top so you can review the exact record quickly.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSearchParams({})}
+              className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-black text-sky-700 transition-colors hover:bg-sky-100"
+            >
+              Clear Focus
+            </button>
+          </div>
+        ) : null}
+
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Live Client Directory</p>
@@ -142,11 +175,23 @@ export const ClientList: React.FC = () => {
         </div>
 
         <div className="mt-8 grid gap-4">
-          {clients.length > 0 ? clients.map((client) => (
-            <div key={client.id} className="grid gap-4 rounded-[1.6rem] border border-slate-200 bg-slate-50 p-5 md:grid-cols-[1.2fr_0.9fr_0.9fr]">
+          {orderedClients.length > 0 ? orderedClients.map((client) => (
+            <div
+              key={client.id}
+              className={`grid gap-4 rounded-[1.6rem] border p-5 md:grid-cols-[1.2fr_0.9fr_0.9fr] ${
+                client.id === focusedClientId
+                  ? 'border-sky-200 bg-sky-50 shadow-[0_18px_34px_-28px_rgba(2,132,199,0.45)]'
+                  : 'border-slate-200 bg-slate-50'
+              }`}
+            >
               <div>
                 <p className="text-lg font-black text-slate-900">{client.full_name}</p>
                 <p className="mt-1 text-sm font-medium text-slate-500">{client.address || 'No address provided'}</p>
+                {client.id === focusedClientId ? (
+                  <p className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-sky-700 ring-1 ring-sky-200">
+                    Booking Client
+                  </p>
+                ) : null}
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm">

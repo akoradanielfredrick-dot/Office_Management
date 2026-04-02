@@ -38,6 +38,7 @@ interface BookingExpense {
 
 interface BookingDetailRecord {
   id: string;
+  client: string;
   reference_no: string;
   status: string;
   client_name: string;
@@ -331,6 +332,13 @@ export const BookingDetails: React.FC = () => {
           >
             <Download size={18} />
             Download Booking
+          </button>
+          <button
+            onClick={() => navigate(`/clients?clientId=${booking.client}`)}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+          >
+            <Users size={18} />
+            View Client
           </button>
           <button
             onClick={() => navigate(`/finance/payments/new?bookingId=${booking.id}`)}

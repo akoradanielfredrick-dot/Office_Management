@@ -15,6 +15,7 @@ import { api, toNumber } from '../../lib/api';
 
 interface Booking {
   id: string;
+  client: string;
   reference_no: string;
   client_name: string;
   package_name?: string;
@@ -237,9 +238,12 @@ export const BookingTable: React.FC = () => {
                         <Eye size={16} />
                         View
                       </button>
-                      <button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700">
+                      <button
+                        onClick={() => navigate(`/clients?clientId=${b.client}`)}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+                      >
                         <ArrowUpRight size={16} />
-                        Open
+                        Client
                       </button>
                     </div>
                   </td>
