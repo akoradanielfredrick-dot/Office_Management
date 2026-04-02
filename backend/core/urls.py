@@ -7,7 +7,7 @@ from accounts.forms import SuperAdminAdminAuthenticationForm
 from accounts.views import CsrfCookieView, LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
 from sales.views import QuotationViewSet
-from operations.views import BookingViewSet, SupplierViewSet
+from operations.views import BookingViewSet, ExcursionViewSet, PackageViewSet, SupplierViewSet
 from finance.views import PaymentViewSet, ReceiptViewSet, ExpenseViewSet, AnalyticsViewSet
 from common.views import DashboardViewSet
 
@@ -32,6 +32,8 @@ admin.site.has_permission = MethodType(_super_admin_has_permission, admin.site)
 router = DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')
 router.register(r'sales/quotations', QuotationViewSet, basename='quotation')
+router.register(r'operations/packages', PackageViewSet, basename='package')
+router.register(r'operations/excursions', ExcursionViewSet, basename='excursion')
 router.register(r'operations/bookings', BookingViewSet, basename='booking')
 router.register(r'operations/suppliers', SupplierViewSet, basename='supplier')
 router.register(r'finance/payments', PaymentViewSet, basename='payment')

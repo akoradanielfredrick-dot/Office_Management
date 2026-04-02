@@ -161,7 +161,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 'id': b.id,
                 'ref': b.reference_no,
                 'client': b.client.full_name,
-                'package': b.destination_package,
+                'package': b.package_name or b.destination_package,
                 'revenue': b.paid_amount,
                 'costs': expenses_sum,
                 'profit': b.paid_amount - expenses_sum,

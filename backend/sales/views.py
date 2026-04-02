@@ -56,9 +56,13 @@ class QuotationViewSet(viewsets.ModelViewSet):
                 booking = Booking.objects.create(
                     quotation=quotation,
                     client=quotation.client,
+                    travel_date=quotation.start_date,
+                    number_of_days=max(((quotation.end_date - quotation.start_date).days + 1), 1) if quotation.start_date and quotation.end_date else 1,
+                    package_name=quotation.destination_package,
                     destination_package=quotation.destination_package,
                     num_adults=quotation.num_adults,
                     num_children=quotation.num_children,
+                    itinerary=quotation.notes,
                     start_date=quotation.start_date,
                     end_date=quotation.end_date,
                     subtotal=quotation.subtotal,

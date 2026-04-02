@@ -244,6 +244,20 @@ export const PaymentForm: React.FC = () => {
                 {selectedBooking ? (
                   <div className="space-y-5">
                     <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Package</p>
+                      <p className="mt-2 text-lg font-black text-white">
+                        {selectedBooking.package_name || selectedBooking.destination_package || 'Booking package'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Travel Date</p>
+                      <p className="mt-2 text-lg font-black text-white">
+                        {selectedBooking.travel_date || selectedBooking.start_date || 'TBD'}
+                      </p>
+                    </div>
+
+                    <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Total</p>
                       <p className="mt-2 text-2xl font-black text-white">
                         {selectedBooking.currency} {toNumber(selectedBooking.total_cost).toLocaleString()}

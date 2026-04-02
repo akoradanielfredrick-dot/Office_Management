@@ -40,14 +40,29 @@ interface BookingDetailRecord {
   reference_no: string;
   status: string;
   client_name: string;
+  client_email?: string;
+  client_phone?: string;
+  package_name?: string;
+  package_type_display?: string;
   destination_package: string;
+  travel_date?: string;
+  number_of_days: number;
   num_adults: number;
+  price_per_adult: number | string;
   num_children: number;
+  price_per_child: number | string;
+  extra_charges: number | string;
+  itinerary?: string;
   start_date: string;
   end_date: string;
   currency: string;
+  subtotal: number | string;
+  discount: number | string;
   total_cost: number | string;
   paid_amount: number | string;
+  booking_validity?: string;
+  deposit_terms?: string;
+  payment_channels?: string;
   created_at: string;
 }
 
@@ -115,7 +130,7 @@ export const BookingDetails: React.FC = () => {
               </span>
             </div>
             <p className="text-sm font-medium text-slate-500">
-              Tour for {booking.client_name} | {booking.destination_package}
+              Tour for {booking.client_name} | {booking.package_name || booking.destination_package}
             </p>
           </div>
         </div>
@@ -147,16 +162,18 @@ export const BookingDetails: React.FC = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700">
             <MapPin size={22} />
           </div>
-          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Destination</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.destination_package}</p>
+          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Package</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.package_name || booking.destination_package}</p>
+          {booking.package_type_display ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">{booking.package_type_display}</p> : null}
         </div>
 
         <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
             <Calendar size={22} />
           </div>
-          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Travel Window</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.start_date} to {booking.end_date}</p>
+          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Travel Date</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.travel_date || booking.start_date}</p>
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{booking.number_of_days} day trip</p>
         </div>
 
         <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
@@ -164,7 +181,10 @@ export const BookingDetails: React.FC = () => {
             <Users size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Travellers</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.num_adults} Adults, {booking.num_children} Child</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.num_adults} Adults, {booking.num_children} Children</p>
+          <p className="mt-1 text-xs font-medium text-slate-500">
+            {booking.currency} {toNumber(booking.price_per_adult).toLocaleString()} per adult | {booking.currency} {toNumber(booking.price_per_child).toLocaleString()} per child
+          </p>
         </div>
       </section>
 
@@ -290,17 +310,68 @@ export const BookingDetails: React.FC = () => {
                   </table>
                 </div>
               </div>
-            ) : (
-              <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-300">
-                  {activeTab === 'itinerary' ? <ListChecks size={28} /> : <Users size={28} />}
+            ) : activeTab === 'itinerary' ? (
+              <div className="space-y-6">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Safari Plan</p>
+                  <h2 className="mt-2 text-2xl font-black text-slate-900">Itinerary & Terms</h2>
                 </div>
-                <h3 className="mt-5 text-xl font-black text-slate-900">
-                  {activeTab === 'itinerary' ? 'Itinerary Manager' : 'Traveller Manager'}
-                </h3>
-                <p className="mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
-                  This panel is ready for the next phase of operations detail expansion.
-                </p>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Validity</p>
+                    <p className="mt-3 text-sm font-medium leading-6 text-slate-700">{booking.booking_validity || 'Not specified'}</p>
+                  </div>
+                  <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Deposit Terms</p>
+                    <p className="mt-3 text-sm font-medium leading-6 text-slate-700">{booking.deposit_terms || 'Not specified'}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.6rem] border border-slate-200 bg-white p-5">
+                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Itinerary</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm font-medium leading-7 text-slate-700">
+                    {booking.itinerary || 'No itinerary has been entered yet.'}
+                  </p>
+                </div>
+
+                <div className="rounded-[1.6rem] border border-slate-200 bg-primary-50 p-5">
+                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-primary-700">Payment Channels</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm font-medium leading-7 text-slate-700">
+                    {booking.payment_channels || 'No payment channels have been specified yet.'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Client Snapshot</p>
+                  <h2 className="mt-2 text-2xl font-black text-slate-900">Traveller Contact Context</h2>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Lead Client</p>
+                    <p className="mt-3 text-sm font-bold text-slate-900">{booking.client_name}</p>
+                    <p className="mt-2 text-sm font-medium text-slate-600">{booking.client_email || 'No email captured'}</p>
+                    <p className="mt-1 text-sm font-medium text-slate-600">{booking.client_phone || 'No phone captured'}</p>
+                  </div>
+                  <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Pricing Snapshot</p>
+                    <p className="mt-3 text-sm font-medium text-slate-700">
+                      Adults: {booking.num_adults} x {booking.currency} {toNumber(booking.price_per_adult).toLocaleString()}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Children: {booking.num_children} x {booking.currency} {toNumber(booking.price_per_child).toLocaleString()}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Extra charges: {booking.currency} {toNumber(booking.extra_charges).toLocaleString()}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Discount: {booking.currency} {toNumber(booking.discount).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </section>
@@ -319,7 +390,7 @@ export const BookingDetails: React.FC = () => {
             <div className="space-y-5 px-6 py-6">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Revenue Collected</p>
-                <p className="mt-2 text-2xl font-black text-emerald-400">+{booking.currency} {booking.paid_amount.toLocaleString()}</p>
+                <p className="mt-2 text-2xl font-black text-emerald-400">+{booking.currency} {paidAmount.toLocaleString()}</p>
               </div>
 
               <div>
@@ -337,7 +408,7 @@ export const BookingDetails: React.FC = () => {
               <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <div
                   className={clsx('h-full rounded-full transition-all duration-1000', grossProfit >= 0 ? 'bg-emerald-400' : 'bg-rose-500')}
-                  style={{ width: `${Math.max(0, Math.min(100, (grossProfit / booking.paid_amount) * 100))}%` }}
+                  style={{ width: `${Math.max(0, Math.min(100, paidAmount > 0 ? (grossProfit / paidAmount) * 100 : 0))}%` }}
                 />
               </div>
             </div>
@@ -377,6 +448,17 @@ export const BookingDetails: React.FC = () => {
                     Created {new Date(booking.created_at).toLocaleDateString()}
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4">
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Subtotal</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{booking.currency} {toNumber(booking.subtotal).toLocaleString()}</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Payment Channels</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{booking.payment_channels || 'Not specified'}</p>
               </div>
             </div>
           </section>

@@ -16,11 +16,16 @@ interface Booking {
   id: string;
   reference_no: string;
   client_name: string;
+  package_name?: string;
+  package_type?: string;
+  package_type_display?: string;
   destination_package: string;
   total_cost: number | string;
   currency: string;
   status: 'CONFIRMED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
-  start_date: string;
+  travel_date?: string;
+  start_date?: string;
+  number_of_days?: number;
 }
 
 export const BookingTable: React.FC = () => {
@@ -49,6 +54,7 @@ export const BookingTable: React.FC = () => {
     return [
       booking.reference_no,
       booking.client_name,
+      booking.package_name,
       booking.destination_package,
     ].some((value) => value?.toLowerCase().includes(needle));
   });
@@ -101,7 +107,7 @@ export const BookingTable: React.FC = () => {
             <Calendar size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Next Departure</p>
-          <p className="mt-2 text-lg font-black text-slate-900">{filteredBookings[0]?.start_date || 'No upcoming trip'}</p>
+          <p className="mt-2 text-lg font-black text-slate-900">{filteredBookings[0]?.travel_date || filteredBookings[0]?.start_date || 'No upcoming trip'}</p>
         </div>
 
         <div className="rounded-[1.8rem] border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
@@ -155,7 +161,8 @@ export const BookingTable: React.FC = () => {
                       <p className="font-black text-slate-900">{b.reference_no}</p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500">
                         <MapPin size={12} />
-                        {b.destination_package}
+                        {b.package_name || b.destination_package}
+                        {b.package_type_display ? ` | ${b.package_type_display}` : ''}
                       </p>
                     </div>
                   </td>
@@ -174,8 +181,10 @@ export const BookingTable: React.FC = () => {
 
                   <td className="px-6 py-5">
                     <div>
-                      <p className="font-bold text-slate-900">{b.start_date}</p>
-                      <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">Confirmed date</p>
+                      <p className="font-bold text-slate-900">{b.travel_date || b.start_date || 'TBD'}</p>
+                      <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                        {b.number_of_days ? `${b.number_of_days} day trip` : 'Confirmed date'}
+                      </p>
                     </div>
                   </td>
 
