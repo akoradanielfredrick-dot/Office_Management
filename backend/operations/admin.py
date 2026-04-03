@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import DatabaseError, connection
 
 from .models import (
     ApiIdempotencyRecord,
@@ -22,8 +23,41 @@ from .models import (
 )
 
 
+def _table_exists(model):
+    try:
+        return model._meta.db_table in connection.introspection.table_names()
+    except Exception:
+        return False
+
+
+class SafeAdminMixin:
+    required_models = ()
+
+    def _has_required_tables(self):
+        if not self.required_models:
+            return True
+        return all(_table_exists(model) for model in self.required_models)
+
+    def get_queryset(self, request):
+        if not self._has_required_tables():
+            return self.model._default_manager.none()
+        try:
+            return super().get_queryset(request)
+        except DatabaseError:
+            return self.model._default_manager.none()
+
+    def has_module_permission(self, request):
+        return super().has_module_permission(request) and self._has_required_tables()
+
+    def get_model_perms(self, request):
+        if not self._has_required_tables():
+            return {}
+        return super().get_model_perms(request)
+
+
 @admin.register(Excursion)
-class ExcursionAdmin(admin.ModelAdmin):
+class ExcursionAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Excursion,)
     list_display = ("name", "location", "excursion_type", "price", "is_deleted", "updated_at")
     list_filter = ("excursion_type", "location", "is_deleted", "created_at", "updated_at")
     search_fields = ("name", "location", "itinerary")
@@ -64,12 +98,22 @@ class ExternalProductMappingInline(admin.TabularInline):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Product,)
     list_display = ("product_code", "name", "category", "pricing_mode", "destination", "is_active", "updated_at")
     list_filter = ("category", "pricing_mode", "is_active")
     search_fields = ("product_code", "name", "slug", "destination")
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [ProductParticipantCategoryInline, ProductPriceInline, ExternalProductMappingInline]
+
+    def get_inlines(self, request, obj):
+        inlines = []
+        if _table_exists(ProductParticipantCategory):
+            inlines.append(ProductParticipantCategoryInline)
+        if _table_exists(ProductPrice):
+            inlines.append(ProductPriceInline)
+        if _table_exists(ExternalProductMapping):
+            inlines.append(ExternalProductMappingInline)
+        return inlines
 
 
 class ScheduleCategoryAvailabilityInline(admin.TabularInline):
@@ -78,7 +122,8 @@ class ScheduleCategoryAvailabilityInline(admin.TabularInline):
 
 
 @admin.register(ProductSchedule)
-class ProductScheduleAdmin(admin.ModelAdmin):
+class ProductScheduleAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (ProductSchedule,)
     list_display = (
         "schedule_code",
         "product",
@@ -107,7 +152,8 @@ class ReservationParticipantInline(admin.TabularInline):
 
 
 @admin.register(Reservation)
-class ReservationAdmin(admin.ModelAdmin):
+class ReservationAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Reservation,)
     list_display = (
         "reference_no",
         "customer_full_name",
@@ -141,14 +187,16 @@ class BookingAuditEntryInline(admin.TabularInline):
 
 
 @admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+class SupplierAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Supplier,)
     list_display = ("name", "category", "contact_person", "phone", "email", "is_deleted")
     list_filter = ("category", "is_deleted")
     search_fields = ("name", "contact_person", "email", "phone", "address")
 
 
 @admin.register(Booking)
-class BookingAdmin(admin.ModelAdmin):
+class BookingAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Booking,)
     list_display = (
         "reference_no",
         "client",
@@ -175,8 +223,6 @@ class BookingAdmin(admin.ModelAdmin):
                 "status",
                 "payment_status",
                 "source",
-                "integration_provider",
-                "external_booking_reference",
             )
         }),
         ("Product snapshot", {
@@ -223,13 +269,36 @@ class BookingAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("reference_no", "subtotal", "paid_amount", "cancelled_at")
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("client", "product", "schedule", "reservation").only(
+            "id",
+            "client__full_name",
+            "product__name",
+            "schedule__schedule_code",
+            "reservation__reference_no",
+            "reference_no",
+            "status",
+            "payment_status",
+            "source",
+            "travel_date",
+            "start_date",
+            "total_cost",
+            "currency",
+            "product_name_snapshot",
+            "product_category_snapshot",
+            "product_destination_snapshot",
+            "created_at",
+        )
+
     @admin.action(description="Soft delete selected bookings")
     def soft_delete(self, request, queryset):
         queryset.update(is_deleted=True)
 
 
 @admin.register(BookingAuditEntry)
-class BookingAuditEntryAdmin(admin.ModelAdmin):
+class BookingAuditEntryAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (BookingAuditEntry,)
     list_display = ("entity_type", "action", "actor", "created_at")
     list_filter = ("entity_type", "action")
     search_fields = ("notes",)
@@ -237,14 +306,16 @@ class BookingAuditEntryAdmin(admin.ModelAdmin):
 
 
 @admin.register(ExternalProductMapping)
-class ExternalProductMappingAdmin(admin.ModelAdmin):
+class ExternalProductMappingAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (ExternalProductMapping,)
     list_display = ("provider", "external_product_id", "product", "participant_category", "is_active", "is_default", "updated_at")
     list_filter = ("provider", "is_active", "is_default", "default_currency")
     search_fields = ("external_product_id", "external_option_id", "external_rate_id", "external_product_name", "product__name")
 
 
 @admin.register(ApiIdempotencyRecord)
-class ApiIdempotencyRecordAdmin(admin.ModelAdmin):
+class ApiIdempotencyRecordAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (ApiIdempotencyRecord,)
     list_display = ("provider", "event_type", "idempotency_key", "processing_status", "hit_count", "last_seen_at")
     list_filter = ("provider", "event_type", "processing_status")
     search_fields = ("idempotency_key", "request_hash", "last_error")
@@ -252,7 +323,8 @@ class ApiIdempotencyRecordAdmin(admin.ModelAdmin):
 
 
 @admin.register(InboundBookingPayload)
-class InboundBookingPayloadAdmin(admin.ModelAdmin):
+class InboundBookingPayloadAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (InboundBookingPayload,)
     list_display = (
         "provider",
         "event_type",
@@ -268,14 +340,16 @@ class InboundBookingPayloadAdmin(admin.ModelAdmin):
 
 
 @admin.register(Itinerary)
-class ItineraryAdmin(admin.ModelAdmin):
+class ItineraryAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (Itinerary,)
     list_display = ("title", "booking", "is_deleted", "created_at")
     list_filter = ("is_deleted",)
     search_fields = ("title", "booking__reference_no")
 
 
 @admin.register(ItineraryDay)
-class ItineraryDayAdmin(admin.ModelAdmin):
+class ItineraryDayAdmin(SafeAdminMixin, admin.ModelAdmin):
+    required_models = (ItineraryDay,)
     list_display = ("itinerary", "day_number", "title", "supplier")
     list_filter = ("supplier",)
     search_fields = ("title", "description", "itinerary__booking__reference_no")
