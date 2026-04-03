@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Ban,
   CirclePlus,
   Search,
   Filter,
@@ -12,19 +13,25 @@ import {
   Wallet,
 } from 'lucide-react';
 import { api, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from './listTypes';
 
 interface Booking {
   id: string;
   client: string;
   reference_no: string;
   client_name: string;
+  product_name?: string;
+  schedule_code?: string;
   package_name?: string;
   package_type?: string;
   package_type_display?: string;
   destination_package: string;
   total_cost: number | string;
   currency: string;
-  status: 'CONFIRMED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  source?: string;
+  payment_status?: string;
+  refund_status?: string;
+  status: 'PENDING' | 'CONFIRMED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED' | 'FAILED' | 'AMENDED';
   travel_date?: string;
   start_date?: string;
   number_of_days?: number;
@@ -33,39 +40,124 @@ interface Booking {
 export const BookingTable: React.FC = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = React.useState<Booking[]>([]);
+  const [totalCount, setTotalCount] = React.useState(0);
   const [search, setSearch] = React.useState('');
+  const [busyBookingId, setBusyBookingId] = React.useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState('ALL');
+  const [paymentFilter, setPaymentFilter] = React.useState('ALL');
+  const [sourceFilter, setSourceFilter] = React.useState('ALL');
+  const [refundFilter, setRefundFilter] = React.useState('ALL');
+  const [dateWindowFilter, setDateWindowFilter] = React.useState('ALL');
+  const [page, setPage] = React.useState(1);
+  const pageSize = 20;
 
-  React.useEffect(() => {
-    const fetchBookings = async () => {
-      const response = await api.get('/operations/bookings/');
-      setBookings(response.data);
+  const fetchBookings = React.useCallback(async () => {
+    const params: Record<string, string | number> = {
+      page,
+      page_size: pageSize,
+      ordering: '-created_at',
     };
 
+    if (search.trim()) {
+      params.search = search.trim();
+    }
+    if (statusFilter !== 'ALL') {
+      params.status = statusFilter;
+    }
+    if (paymentFilter !== 'ALL') {
+      params.payment_status = paymentFilter;
+    }
+    if (sourceFilter !== 'ALL') {
+      params.source = sourceFilter;
+    }
+    if (refundFilter !== 'ALL') {
+      params.refund_status = refundFilter;
+    }
+    if (dateWindowFilter !== 'ALL') {
+      params.travel_window = dateWindowFilter;
+    }
+
+    const response = await api.get<PaginatedResponse<Booking>>('/operations/bookings/', { params });
+    setBookings(response.data.results);
+    setTotalCount(response.data.count);
+  }, [dateWindowFilter, page, paymentFilter, refundFilter, search, sourceFilter, statusFilter]);
+
+  React.useEffect(() => {
     fetchBookings().catch((error) => {
       console.error('Failed to load bookings:', error);
       setBookings([]);
+      setTotalCount(0);
     });
-  }, []);
+  }, [fetchBookings]);
 
-  const filteredBookings = bookings.filter((booking) => {
-    const needle = search.trim().toLowerCase();
-    if (!needle) {
+  React.useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, paymentFilter, sourceFilter, refundFilter, dateWindowFilter]);
+
+  const uniqueSources = React.useMemo(
+    () => Array.from(new Set(bookings.map((booking) => booking.source).filter(Boolean))) as string[],
+    [bookings]
+  );
+
+  const uniquePaymentStatuses = React.useMemo(
+    () => Array.from(new Set(bookings.map((booking) => booking.payment_status).filter(Boolean))) as string[],
+    [bookings]
+  );
+
+  const uniqueRefundStatuses = React.useMemo(
+    () => Array.from(new Set(bookings.map((booking) => booking.refund_status).filter(Boolean))) as string[],
+    [bookings]
+  );
+
+  const matchesDateWindow = (booking: Booking) => {
+    if (dateWindowFilter === 'ALL') {
       return true;
     }
 
-    return [
-      booking.reference_no,
-      booking.client_name,
-      booking.package_name,
-      booking.destination_package,
-    ].some((value) => value?.toLowerCase().includes(needle));
-  });
+    const rawDate = booking.travel_date || booking.start_date;
+    if (!rawDate) {
+      return false;
+    }
 
-  const bookingValueByCurrency = filteredBookings.reduce<Record<string, number>>((summary, booking) => {
+    const tripDate = new Date(rawDate);
+    if (Number.isNaN(tripDate.getTime())) {
+      return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    switch (dateWindowFilter) {
+      case 'TODAY':
+        return diffDays === 0;
+      case 'NEXT_7_DAYS':
+        return diffDays >= 0 && diffDays <= 7;
+      case 'NEXT_30_DAYS':
+        return diffDays >= 0 && diffDays <= 30;
+      case 'PAST':
+        return diffDays < 0;
+      default:
+        return true;
+    }
+  };
+
+  const activeFilterCount = [
+    statusFilter,
+    paymentFilter,
+    sourceFilter,
+    refundFilter,
+    dateWindowFilter,
+  ].filter((value) => value !== 'ALL').length;
+
+  const bookingValueByCurrency = bookings.reduce<Record<string, number>>((summary, booking) => {
     const currency = booking.currency || 'KES';
     summary[currency] = (summary[currency] || 0) + toNumber(booking.total_cost);
     return summary;
   }, {});
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,8 +169,45 @@ export const BookingTable: React.FC = () => {
         return 'bg-slate-100 text-slate-700 ring-slate-200';
       case 'CANCELLED':
         return 'bg-rose-100 text-rose-700 ring-rose-200';
+      case 'PENDING':
+        return 'bg-amber-100 text-amber-700 ring-amber-200';
+      case 'FAILED':
+        return 'bg-rose-100 text-rose-700 ring-rose-200';
+      case 'AMENDED':
+        return 'bg-violet-100 text-violet-700 ring-violet-200';
       default:
         return 'bg-slate-100 text-slate-700 ring-slate-200';
+    }
+  };
+
+  const handleCancelBooking = async (booking: Booking) => {
+    const reason = window.prompt(`Cancel booking ${booking.reference_no}. Enter a reason:`)?.trim();
+    if (!reason) {
+      return;
+    }
+
+    const shouldReleaseInventory = window.confirm(
+      'Release inventory back to the schedule?\n\nChoose OK to restore space, or Cancel to keep inventory blocked.'
+    );
+    const refundStatusInput = window.prompt(
+      'Refund status (NONE, PENDING, PARTIAL, REFUNDED). Leave blank for NONE:',
+      booking.refund_status || 'NONE'
+    );
+
+    setBusyBookingId(booking.id);
+    try {
+      await api.post(`/operations/bookings/${booking.id}/cancel/`, {
+        reason,
+        cancelled_by_type: 'ADMIN',
+        release_inventory: shouldReleaseInventory,
+        refund_status: (refundStatusInput || 'NONE').trim().toUpperCase(),
+      });
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to cancel booking:', error);
+      window.alert('Unable to cancel this booking right now.');
+    } finally {
+      setBusyBookingId(null);
     }
   };
 
@@ -96,9 +225,13 @@ export const BookingTable: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+          >
             <Filter size={17} />
-            Filters
+            Filters {activeFilterCount ? `(${activeFilterCount})` : ''}
           </button>
           <button
             type="button"
@@ -117,7 +250,7 @@ export const BookingTable: React.FC = () => {
             <BriefcaseBusiness size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Confirmed Trips</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">{filteredBookings.filter((b) => b.status === 'CONFIRMED').length}</p>
+          <p className="mt-2 text-3xl font-black text-slate-900">{bookings.filter((b) => b.status === 'CONFIRMED').length}</p>
         </div>
 
         <div className="rounded-[1.8rem] border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm">
@@ -125,7 +258,7 @@ export const BookingTable: React.FC = () => {
             <Calendar size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Next Departure</p>
-          <p className="mt-2 text-lg font-black text-slate-900">{filteredBookings[0]?.travel_date || filteredBookings[0]?.start_date || 'No upcoming trip'}</p>
+          <p className="mt-2 text-lg font-black text-slate-900">{bookings[0]?.travel_date || bookings[0]?.start_date || 'No upcoming trip'}</p>
         </div>
 
         <div className="rounded-[1.8rem] border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
@@ -162,9 +295,111 @@ export const BookingTable: React.FC = () => {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-500 shadow-sm">
-              {filteredBookings.length} live records
+              {totalCount} matching records
             </div>
           </div>
+
+          {filtersOpen ? (
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <div>
+                <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                >
+                  <option value="ALL">All statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="ONGOING">Ongoing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="AMENDED">Amended</option>
+                  <option value="FAILED">Failed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Payment</label>
+                <select
+                  value={paymentFilter}
+                  onChange={(event) => setPaymentFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                >
+                  <option value="ALL">All payment states</option>
+                  <option value="UNPAID">UNPAID</option>
+                  {uniquePaymentStatuses.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Source</label>
+                <select
+                  value={sourceFilter}
+                  onChange={(event) => setSourceFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                >
+                  <option value="ALL">All sources</option>
+                  <option value="MANUAL_OFFICE">MANUAL_OFFICE</option>
+                  {uniqueSources.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Refund</label>
+                <select
+                  value={refundFilter}
+                  onChange={(event) => setRefundFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                >
+                  <option value="ALL">All refund states</option>
+                  <option value="NONE">NONE</option>
+                  {uniqueRefundStatuses.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Date Window</label>
+                <select
+                  value={dateWindowFilter}
+                  onChange={(event) => setDateWindowFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                >
+                  <option value="ALL">All dates</option>
+                  <option value="TODAY">Today</option>
+                  <option value="NEXT_7_DAYS">Next 7 days</option>
+                  <option value="NEXT_30_DAYS">Next 30 days</option>
+                  <option value="PAST">Past trips</option>
+                </select>
+              </div>
+            </div>
+          ) : null}
+
+          {activeFilterCount ? (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Active filters</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter('ALL');
+                  setPaymentFilter('ALL');
+                  setSourceFilter('ALL');
+                  setRefundFilter('ALL');
+                  setDateWindowFilter('ALL');
+                  setPage(1);
+                }}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                Clear All
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="overflow-x-auto">
@@ -180,15 +415,16 @@ export const BookingTable: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredBookings.map((b) => (
+              {bookings.map((b) => (
                 <tr key={b.id} className="group transition-colors hover:bg-slate-50/80">
                   <td className="px-6 py-5">
                     <div>
                       <p className="font-black text-slate-900">{b.reference_no}</p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500">
                         <MapPin size={12} />
-                        {b.package_name || b.destination_package}
+                        {b.product_name || b.package_name || b.destination_package}
                         {b.package_type_display ? ` | ${b.package_type_display}` : ''}
+                        {b.schedule_code ? ` | ${b.schedule_code}` : ''}
                       </p>
                     </div>
                   </td>
@@ -219,7 +455,7 @@ export const BookingTable: React.FC = () => {
                       {b.currency} {toNumber(b.total_cost).toLocaleString()}
                     </p>
                     <p className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-emerald-600">
-                      Full payment pending
+                      {b.payment_status || 'UNPAID'}
                     </p>
                   </td>
 
@@ -245,12 +481,47 @@ export const BookingTable: React.FC = () => {
                         <ArrowUpRight size={16} />
                         Client
                       </button>
+                      {b.status !== 'CANCELLED' ? (
+                        <button
+                          onClick={() => void handleCancelBooking(b)}
+                          disabled={busyBookingId === b.id}
+                          className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-60"
+                        >
+                          <Ban size={16} />
+                          Cancel
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-slate-500">
+            Page {page} of {totalPages}
+          </p>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </section>
     </div>

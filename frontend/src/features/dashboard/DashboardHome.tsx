@@ -11,6 +11,7 @@ import {
   CreditCard,
   Users,
   Activity,
+  Boxes,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -132,6 +133,46 @@ export const DashboardHome: React.FC = () => {
       icon: Calendar,
       path: '/bookings',
       tone: 'bg-[#384a66]',
+      iconBg: 'bg-white/15',
+    },
+    {
+      label: 'Manage Products',
+      description: 'Update tours, rates, and catalog data',
+      icon: Boxes,
+      path: '/products',
+      tone: 'bg-[#4c5b85]',
+      iconBg: 'bg-white/15',
+    },
+    {
+      label: 'Create Schedule',
+      description: 'Publish departures and live capacity',
+      icon: Clock3,
+      path: '/schedules/new',
+      tone: 'bg-[#7a5f42]',
+      iconBg: 'bg-white/15',
+    },
+    {
+      label: 'View Availability',
+      description: 'See remaining, reserved, and confirmed space',
+      icon: Activity,
+      path: '/availability',
+      tone: 'bg-[#255b7a]',
+      iconBg: 'bg-white/15',
+    },
+    {
+      label: 'Integration Ops',
+      description: 'Review mappings, payloads, and idempotency keys',
+      icon: ShieldCheck,
+      path: '/integrations',
+      tone: 'bg-[#5a4f84]',
+      iconBg: 'bg-white/15',
+    },
+    {
+      label: 'Create Reservation',
+      description: 'Place temporary inventory holds',
+      icon: ShieldCheck,
+      path: '/reservations/new',
+      tone: 'bg-[#2c6b63]',
       iconBg: 'bg-white/15',
     },
     {

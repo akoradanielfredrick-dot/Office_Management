@@ -3,61 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-  Calendar,
-  ChevronDown,
-  Clock3,
-  FileText,
-  MapPinned,
-  Save,
-  Users,
-  WalletCards,
-  X,
-} from 'lucide-react';
+import { Calendar, ChevronDown, Clock3, FileText, Save, ShieldAlert, Users, X } from 'lucide-react';
 import { api, formatMoney, toNumber } from '../../lib/api';
 
-const bookingSchema = z.object({
+const reservationSchema = z.object({
   client: z.string().uuid('Please select a client'),
   product: z.string().uuid('Please select a product'),
   schedule: z.string().uuid('Please select a schedule'),
   customer_full_name: z.string().min(2, 'Customer name is required'),
   customer_email: z.string().email('Please enter a valid email').optional().or(z.literal('')),
   customer_phone: z.string().optional(),
-  travel_date: z.string().min(1, 'Travel date is required'),
-  number_of_days: z.number().min(1, 'Number of days must be at least 1'),
+  hold_expires_at: z.string().min(1, 'Expiry time is required'),
   adult_quantity: z.number().min(0),
   adult_price: z.number().min(0),
   child_quantity: z.number().min(0),
   child_price: z.number().min(0),
   infant_quantity: z.number().min(0),
   infant_price: z.number().min(0),
-  extra_charges: z.number().min(0),
-  discount: z.number().min(0),
-  itinerary: z.string().optional(),
-  booking_validity: z.string().optional(),
-  deposit_terms: z.string().optional(),
-  payment_channels: z.string().optional(),
   notes: z.string().optional(),
-  internal_notes: z.string().optional(),
-  supplier_notes: z.string().optional(),
+  internal_comments: z.string().optional(),
   currency: z.string().min(3),
-  status: z.enum(['PENDING', 'CONFIRMED', 'ONGOING', 'COMPLETED', 'FAILED', 'AMENDED']),
-  source: z.enum(['ADMIN', 'WEBSITE', 'OTA', 'API', 'MANUAL_OFFICE', 'LEGACY']),
 });
 
-type BookingFormValues = z.infer<typeof bookingSchema>;
+type ReservationFormValues = z.infer<typeof reservationSchema>;
 
 interface ClientOption {
   id: string;
   full_name: string;
   email?: string;
   phone?: string;
-}
-
-interface ParticipantCategoryOption {
-  id: string;
-  code: string;
-  label: string;
 }
 
 interface ProductPriceOption {
@@ -71,44 +45,47 @@ interface ProductPriceOption {
 
 interface ProductOption {
   id: string;
-  product_code: string;
   name: string;
-  category: string;
   category_display: string;
   destination: string;
   description?: string;
-  cancellation_policy?: string;
   default_currency: string;
-  participant_categories: ParticipantCategoryOption[];
   prices: ProductPriceOption[];
 }
 
 interface ScheduleOption {
   id: string;
   schedule_code: string;
-  title?: string;
   product: string;
   start_at?: string;
-  end_at?: string;
-  timezone: string;
-  status: string;
-  status_display: string;
   total_capacity: number;
   remaining_capacity: number;
-  notes?: string;
+  status: string;
 }
 
-const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
+interface AvailabilitySnapshot {
+  remaining_capacity: number;
+  reserved_count: number;
+  confirmed_count: number;
+  cancelled_count: number;
+  released_count: number;
+  is_available: boolean;
+  can_sell_requested_quantity: boolean;
+}
+
 const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 const readonlyInputClassName = `${inputClassName} bg-slate-50 text-slate-500`;
+const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
-export const BookingForm: React.FC = () => {
+export const ReservationForm: React.FC = () => {
   const navigate = useNavigate();
   const [clients, setClients] = React.useState<ClientOption[]>([]);
   const [products, setProducts] = React.useState<ProductOption[]>([]);
   const [schedules, setSchedules] = React.useState<ScheduleOption[]>([]);
   const [submitError, setSubmitError] = React.useState('');
+  const [availability, setAvailability] = React.useState<AvailabilitySnapshot | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = React.useState(false);
 
   const {
     register,
@@ -116,8 +93,8 @@ export const BookingForm: React.FC = () => {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<BookingFormValues>({
-    resolver: zodResolver(bookingSchema),
+  } = useForm<ReservationFormValues>({
+    resolver: zodResolver(reservationSchema),
     defaultValues: {
       client: '',
       product: '',
@@ -125,26 +102,16 @@ export const BookingForm: React.FC = () => {
       customer_full_name: '',
       customer_email: '',
       customer_phone: '',
-      travel_date: new Date().toISOString().split('T')[0],
-      number_of_days: 1,
+      hold_expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
       adult_quantity: 2,
       adult_price: 0,
       child_quantity: 0,
       child_price: 0,
       infant_quantity: 0,
       infant_price: 0,
-      extra_charges: 0,
-      discount: 0,
-      itinerary: '',
-      booking_validity: '',
-      deposit_terms: '',
-      payment_channels: '',
       notes: '',
-      internal_notes: '',
-      supplier_notes: '',
+      internal_comments: '',
       currency: 'KES',
-      status: 'CONFIRMED',
-      source: 'MANUAL_OFFICE',
     },
   });
 
@@ -162,7 +129,7 @@ export const BookingForm: React.FC = () => {
     };
 
     fetchLookups().catch((error) => {
-      console.error('Failed to load booking lookups:', error);
+      console.error('Failed to load reservation lookups:', error);
       setClients([]);
       setProducts([]);
       setSchedules([]);
@@ -193,22 +160,7 @@ export const BookingForm: React.FC = () => {
     }
 
     setValue('currency', selectedProduct.default_currency || 'KES');
-    setValue('itinerary', selectedProduct.description || '');
   }, [selectedProduct, setValue]);
-
-  React.useEffect(() => {
-    if (!selectedSchedule || !selectedSchedule.start_at) {
-      return;
-    }
-
-    setValue('travel_date', selectedSchedule.start_at.slice(0, 10));
-  }, [selectedSchedule, setValue]);
-
-  React.useEffect(() => {
-    if (selectedScheduleId && !filteredSchedules.some((schedule) => schedule.id === selectedScheduleId)) {
-      setValue('schedule', '');
-    }
-  }, [filteredSchedules, selectedScheduleId, setValue]);
 
   const adultQuantity = watch('adult_quantity');
   const adultPrice = watch('adult_price');
@@ -216,8 +168,6 @@ export const BookingForm: React.FC = () => {
   const childPrice = watch('child_price');
   const infantQuantity = watch('infant_quantity');
   const infantPrice = watch('infant_price');
-  const extraCharges = watch('extra_charges');
-  const discount = watch('discount');
   const currency = watch('currency');
 
   React.useEffect(() => {
@@ -246,53 +196,66 @@ export const BookingForm: React.FC = () => {
     setValue('infant_price', infantRate ? toNumber(infantRate.amount) : 0);
   }, [currency, selectedProduct, setValue]);
 
+  React.useEffect(() => {
+    if (selectedScheduleId && !filteredSchedules.some((schedule) => schedule.id === selectedScheduleId)) {
+      setValue('schedule', '');
+    }
+  }, [filteredSchedules, selectedScheduleId, setValue]);
+
   const subtotal =
     toNumber(adultQuantity) * toNumber(adultPrice) +
     toNumber(childQuantity) * toNumber(childPrice) +
-    toNumber(infantQuantity) * toNumber(infantPrice) +
-    toNumber(extraCharges);
-  const totalCost = Math.max(subtotal - toNumber(discount), 0);
+    toNumber(infantQuantity) * toNumber(infantPrice);
   const totalParticipants = toNumber(adultQuantity) + toNumber(childQuantity) + toNumber(infantQuantity);
 
-  const onSubmit = async (data: BookingFormValues) => {
+  React.useEffect(() => {
+    if (!selectedScheduleId) {
+      setAvailability(null);
+      return;
+    }
+
+    const requestedQuantity = totalParticipants;
+    setAvailabilityLoading(true);
+
+    api
+      .get(`/operations/schedules/${selectedScheduleId}/availability/`, {
+        params: { quantity: requestedQuantity || 0 },
+      })
+      .then((response) => setAvailability(response.data))
+      .catch((error) => {
+        console.error('Failed to load live availability:', error);
+        setAvailability(null);
+      })
+      .finally(() => setAvailabilityLoading(false));
+  }, [selectedScheduleId, totalParticipants]);
+
+  const onSubmit = async (data: ReservationFormValues) => {
     setSubmitError('');
 
     try {
-      const participant_quantities = [
+      const participants = [
         { category_code: 'ADULT', category_label: 'Adult', quantity: toNumber(data.adult_quantity), unit_price: toNumber(data.adult_price) },
         { category_code: 'CHILD', category_label: 'Child', quantity: toNumber(data.child_quantity), unit_price: toNumber(data.child_price) },
         { category_code: 'INFANT', category_label: 'Infant', quantity: toNumber(data.infant_quantity), unit_price: toNumber(data.infant_price) },
       ].filter((item) => item.quantity > 0);
 
-      const response = await api.post('/operations/bookings/', {
+      await api.post('/operations/reservations/', {
         client: data.client,
         product: data.product,
         schedule: data.schedule,
         customer_full_name: data.customer_full_name,
         customer_email: data.customer_email || null,
         customer_phone: data.customer_phone || '',
-        travel_date: data.travel_date,
-        number_of_days: toNumber(data.number_of_days),
-        extra_charges: toNumber(data.extra_charges),
-        discount: toNumber(data.discount),
-        itinerary: data.itinerary || '',
-        booking_validity: data.booking_validity || '',
-        deposit_terms: data.deposit_terms || '',
-        payment_channels: data.payment_channels || '',
+        hold_expires_at: new Date(data.hold_expires_at).toISOString(),
         notes: data.notes || '',
-        internal_notes: data.internal_notes || '',
-        supplier_notes: data.supplier_notes || '',
-        currency: data.currency,
-        status: data.status,
-        source: data.source,
-        destination_package: selectedProduct?.destination || selectedProduct?.name || '',
-        participant_quantities,
+        internal_comments: data.internal_comments || '',
+        participants,
       });
 
-      navigate(`/bookings/${response.data.id}`);
+      navigate('/reservations');
     } catch (error) {
-      console.error('Failed to create booking:', error);
-      setSubmitError('Unable to create the booking right now. Please check the schedule capacity, traveller counts, and pricing details.');
+      console.error('Failed to create reservation:', error);
+      setSubmitError('Unable to create this hold right now. Please check schedule availability and hold expiry.');
     }
   };
 
@@ -302,9 +265,9 @@ export const BookingForm: React.FC = () => {
         <div className="space-y-3">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Operations Workspace</p>
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Create Structured Booking</h1>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Create Reservation Hold</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-              Create a confirmed booking against a live product schedule so availability, payment tracking, and future OTA/API flows stay aligned.
+              Hold inventory temporarily before confirmation so the office team can secure space while waiting for payment or final approval.
             </p>
           </div>
         </div>
@@ -325,7 +288,7 @@ export const BookingForm: React.FC = () => {
                 <Users size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Setup</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Reservation Setup</p>
                 <h2 className="mt-1 text-2xl font-black text-slate-900">Client, Product & Schedule</h2>
               </div>
             </div>
@@ -350,13 +313,11 @@ export const BookingForm: React.FC = () => {
               <div>
                 <label className={labelClassName}>Lead Traveller Name</label>
                 <input {...register('customer_full_name')} className={inputClassName} />
-                {errors.customer_full_name && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.customer_full_name.message}</p>}
               </div>
 
               <div>
                 <label className={labelClassName}>Lead Traveller Email</label>
                 <input type="email" {...register('customer_email')} className={inputClassName} />
-                {errors.customer_email && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.customer_email.message}</p>}
               </div>
 
               <div>
@@ -371,18 +332,13 @@ export const BookingForm: React.FC = () => {
                     <option value="">-- Choose Product --</option>
                     {products.map((product) => (
                       <option key={product.id} value={product.id}>
-                        {product.name} {product.category_display ? `(${product.category_display})` : ''}
+                        {product.name} ({product.category_display})
                       </option>
                     ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 </div>
                 {errors.product && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.product.message}</p>}
-              </div>
-
-              <div>
-                <label className={labelClassName}>Destination</label>
-                <input value={selectedProduct?.destination || ''} readOnly className={readonlyInputClassName} placeholder="Destination appears here" />
               </div>
 
               <div>
@@ -402,43 +358,30 @@ export const BookingForm: React.FC = () => {
               </div>
 
               <div>
-                <label className={labelClassName}>Travel Date</label>
+                <label className={labelClassName}>Hold Expires At</label>
                 <div className="relative">
                   <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input type="date" {...register('travel_date')} className={`${inputClassName} pl-11`} />
+                  <input type="datetime-local" {...register('hold_expires_at')} className={`${inputClassName} pl-11`} />
                 </div>
               </div>
 
               <div>
-                <label className={labelClassName}>Number of Days</label>
-                <input type="number" min="1" {...register('number_of_days', { valueAsNumber: true })} className={inputClassName} />
-              </div>
-
-              <div>
-                <label className={labelClassName}>Booking Status</label>
+                <label className={labelClassName}>Currency</label>
                 <div className="relative">
-                  <select {...register('status')} className={`${inputClassName} appearance-none pr-12`}>
-                    <option value="PENDING">Pending</option>
-                    <option value="CONFIRMED">Confirmed</option>
-                    <option value="ONGOING">Ongoing</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="FAILED">Failed</option>
-                    <option value="AMENDED">Amended</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClassName}>Booking Source</label>
-                <div className="relative">
-                  <select {...register('source')} className={`${inputClassName} appearance-none pr-12`}>
-                    <option value="MANUAL_OFFICE">Manual Office Entry</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="WEBSITE">Website</option>
-                    <option value="OTA">OTA</option>
-                    <option value="API">API</option>
-                    <option value="LEGACY">Legacy</option>
+                  <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
+                    {Array.from(new Set((selectedProduct?.prices || []).map((price) => price.currency))).map((priceCurrency) => (
+                      <option key={priceCurrency} value={priceCurrency}>
+                        {priceCurrency}
+                      </option>
+                    ))}
+                    {selectedProduct?.prices?.length ? null : (
+                      <>
+                        <option value="KES">KES</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                      </>
+                    )}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 </div>
@@ -449,11 +392,11 @@ export const BookingForm: React.FC = () => {
           <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2964ff]">
-                <WalletCards size={22} />
+                <ShieldAlert size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Pricing</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Participant Inventory & Charges</h2>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Held Inventory</p>
+                <h2 className="mt-1 text-2xl font-black text-slate-900">Participant Quantities</h2>
               </div>
             </div>
 
@@ -482,35 +425,6 @@ export const BookingForm: React.FC = () => {
                 <label className={labelClassName}>Infant Price</label>
                 <input type="number" min="0" step="0.01" {...register('infant_price', { valueAsNumber: true })} className={inputClassName} />
               </div>
-              <div>
-                <label className={labelClassName}>Extra Charges</label>
-                <input type="number" min="0" step="0.01" {...register('extra_charges', { valueAsNumber: true })} className={inputClassName} />
-              </div>
-              <div>
-                <label className={labelClassName}>Discount</label>
-                <input type="number" min="0" step="0.01" {...register('discount', { valueAsNumber: true })} className={inputClassName} />
-              </div>
-              <div>
-                <label className={labelClassName}>Currency</label>
-                <div className="relative">
-                  <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
-                    {Array.from(new Set((selectedProduct?.prices || []).map((price) => price.currency))).map((priceCurrency) => (
-                      <option key={priceCurrency} value={priceCurrency}>
-                        {priceCurrency}
-                      </option>
-                    ))}
-                    {selectedProduct?.prices?.length ? null : (
-                      <>
-                        <option value="KES">KES</option>
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                      </>
-                    )}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                </div>
-              </div>
             </div>
           </section>
 
@@ -520,39 +434,19 @@ export const BookingForm: React.FC = () => {
                 <FileText size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Content</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Itinerary, Policies & Notes</h2>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Notes</p>
+                <h2 className="mt-1 text-2xl font-black text-slate-900">Client & Internal Context</h2>
               </div>
             </div>
 
             <div className="mt-6 grid gap-5">
               <div>
-                <label className={labelClassName}>Itinerary / Description</label>
-                <textarea {...register('itinerary')} className="min-h-[150px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <label className={labelClassName}>Customer Notes</label>
+                <textarea {...register('notes')} className="min-h-[120px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
               </div>
               <div>
-                <label className={labelClassName}>Booking Validity</label>
-                <textarea {...register('booking_validity')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
-              </div>
-              <div>
-                <label className={labelClassName}>Deposit Terms</label>
-                <textarea {...register('deposit_terms')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
-              </div>
-              <div>
-                <label className={labelClassName}>Payment Channels</label>
-                <textarea {...register('payment_channels')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
-              </div>
-              <div>
-                <label className={labelClassName}>Client Notes</label>
-                <textarea {...register('notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
-              </div>
-              <div>
-                <label className={labelClassName}>Internal Notes</label>
-                <textarea {...register('internal_notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
-              </div>
-              <div>
-                <label className={labelClassName}>Supplier / Fulfilment Notes</label>
-                <textarea {...register('supplier_notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <label className={labelClassName}>Internal Comments</label>
+                <textarea {...register('internal_comments')} className="min-h-[120px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
               </div>
             </div>
           </section>
@@ -561,10 +455,10 @@ export const BookingForm: React.FC = () => {
         <div className="space-y-6">
           <section className="overflow-hidden rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
             <div className="border-b border-[#c8dfc0] px-6 py-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Live Summary</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Live Hold Summary</p>
               <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[#234126]">
                 <Clock3 size={22} />
-                Inventory Snapshot
+                Reservation Totals
               </h2>
             </div>
 
@@ -572,36 +466,38 @@ export const BookingForm: React.FC = () => {
               <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Product</p>
                 <p className="mt-2 text-lg font-black text-[#234126]">{selectedProduct?.name || 'No product selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedProduct?.category_display || 'Choose a sellable product'}</p>
+                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedProduct?.destination || 'Choose a sellable product'}</p>
               </div>
 
               <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Schedule</p>
                 <p className="mt-2 text-sm font-black text-[#234126]">{selectedSchedule?.schedule_code || 'No schedule selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">
-                  {selectedSchedule?.start_at ? selectedSchedule.start_at.replace('T', ' ').slice(0, 16) : 'Choose a departure or access window'}
-                </p>
+                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedSchedule?.start_at ? selectedSchedule.start_at.replace('T', ' ').slice(0, 16) : 'Choose a departure or access window'}</p>
                 <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-[#6b8f65]">
-                  {selectedSchedule ? `${selectedSchedule.remaining_capacity} / ${selectedSchedule.total_capacity} spaces left` : 'Availability pending'}
+                  {availabilityLoading
+                    ? 'Checking live availability...'
+                    : availability
+                      ? `${availability.remaining_capacity} live spaces left`
+                      : selectedSchedule
+                        ? `${selectedSchedule.remaining_capacity} / ${selectedSchedule.total_capacity} spaces left`
+                        : 'Availability pending'}
                 </p>
               </div>
 
               <div className="grid gap-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Travellers</span>
+                  <span className="text-[#5e7d5d]">Participants</span>
                   <span className="font-black text-[#234126]">{totalParticipants}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Subtotal</span>
+                  <span className="text-[#5e7d5d]">Hold Value</span>
                   <span className="font-black text-[#234126]">{formatMoney(currency, subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Discount</span>
-                  <span className="font-black text-[#234126]">{formatMoney(currency, discount)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-[#c8dfc0] pt-3 text-sm">
-                  <span className="text-[#3c593d]">Total Cost</span>
-                  <span className="text-xl font-black text-[#234126]">{formatMoney(currency, totalCost)}</span>
+                  <span className="text-[#5e7d5d]">Can Hold Requested Qty</span>
+                  <span className="font-black text-[#234126]">
+                    {availability ? (availability.can_sell_requested_quantity ? 'YES' : 'NO') : 'PENDING'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -610,18 +506,13 @@ export const BookingForm: React.FC = () => {
           <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e6] text-[#d97706]">
-                <MapPinned size={20} />
+                <Clock3 size={20} />
               </div>
               <div>
-                <p className="text-sm font-black text-slate-900">Product Context</p>
+                <p className="text-sm font-black text-slate-900">Hold Behavior</p>
                 <p className="mt-1 text-xs font-medium leading-6 text-slate-500">
-                  {selectedProduct?.destination || 'Destination will appear here once a product is selected.'}
+                  Active reservations reduce schedule availability immediately. Expired or cancelled holds release the inventory automatically.
                 </p>
-                {selectedProduct?.cancellation_policy ? (
-                  <p className="mt-2 text-xs font-medium leading-6 text-slate-500">
-                    Cancellation policy: {selectedProduct.cancellation_policy}
-                  </p>
-                ) : null}
               </div>
             </div>
           </section>
@@ -638,7 +529,7 @@ export const BookingForm: React.FC = () => {
             className="inline-flex w-full items-center justify-center gap-3 rounded-[1.3rem] bg-primary-600 px-5 py-4 text-sm font-black text-white shadow-[0_16px_28px_-20px_rgba(70,111,42,0.85)] transition-all hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Save size={18} />
-            {isSubmitting ? 'Saving Booking...' : 'Create Booking'}
+            {isSubmitting ? 'Saving Reservation...' : 'Create Reservation'}
           </button>
         </div>
       </form>

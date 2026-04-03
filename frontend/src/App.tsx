@@ -18,6 +18,16 @@ import { OutstandingBalances } from './features/analytics/OutstandingBalances';
 import { ClientList } from './features/clients/ClientList';
 import { ClientForm } from './features/clients/ClientForm';
 import { BookingForm } from './features/operations/BookingForm';
+import { ProductList } from './features/operations/ProductList';
+import { ProductForm } from './features/operations/ProductForm';
+import { ScheduleList } from './features/operations/ScheduleList';
+import { ScheduleForm } from './features/operations/ScheduleForm';
+import { AvailabilityDashboard } from './features/operations/AvailabilityDashboard';
+import { IntegrationOpsDashboard } from './features/operations/IntegrationOpsDashboard';
+import { ReservationList } from './features/operations/ReservationList';
+import { ReservationForm } from './features/operations/ReservationForm';
+import { ReservationDetails } from './features/operations/ReservationDetails';
+import { BookingAmendForm } from './features/operations/BookingAmendForm';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -46,6 +56,18 @@ const App: React.FC = () => {
           <Route path="bookings" element={<BookingTable />} />
           <Route path="bookings/new" element={<BookingForm />} />
           <Route path="bookings/:id" element={<BookingDetails />} />
+          <Route path="bookings/:id/amend" element={<BookingAmendForm />} />
+          <Route path="products" element={<ProductList />} />
+          <Route path="products/new" element={<ProductForm />} />
+          <Route path="products/:id/edit" element={<ProductForm />} />
+          <Route path="schedules" element={<ScheduleList />} />
+          <Route path="schedules/new" element={<ScheduleForm />} />
+          <Route path="schedules/:id/edit" element={<ScheduleForm />} />
+          <Route path="availability" element={<AvailabilityDashboard />} />
+          <Route path="integrations" element={<IntegrationOpsDashboard />} />
+          <Route path="reservations" element={<ReservationList />} />
+          <Route path="reservations/new" element={<ReservationForm />} />
+          <Route path="reservations/:id" element={<ReservationDetails />} />
           <Route path="finance/payments" element={<PaymentTable />} />
           <Route path="finance/payments/new" element={<PaymentForm />} />
           <Route path="finance/expenses" element={<ExpenseTable />} />

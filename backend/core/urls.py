@@ -6,7 +6,18 @@ from rest_framework.routers import DefaultRouter
 from accounts.forms import SuperAdminAdminAuthenticationForm
 from accounts.views import CsrfCookieView, LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
-from operations.views import BookingViewSet, ExcursionViewSet, PackageViewSet, SupplierViewSet
+from operations.views import (
+    ApiIdempotencyRecordViewSet,
+    BookingViewSet,
+    ExcursionViewSet,
+    ExternalProductMappingViewSet,
+    InboundBookingPayloadViewSet,
+    PackageViewSet,
+    ProductScheduleViewSet,
+    ProductViewSet,
+    ReservationViewSet,
+    SupplierViewSet,
+)
 from finance.views import PaymentViewSet, ReceiptViewSet, ExpenseViewSet, AnalyticsViewSet
 from common.views import DashboardViewSet
 
@@ -32,7 +43,13 @@ router = DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')
 router.register(r'operations/packages', PackageViewSet, basename='package')
 router.register(r'operations/excursions', ExcursionViewSet, basename='excursion')
+router.register(r'operations/products', ProductViewSet, basename='product')
+router.register(r'operations/product-mappings', ExternalProductMappingViewSet, basename='external-product-mapping')
+router.register(r'operations/schedules', ProductScheduleViewSet, basename='product-schedule')
+router.register(r'operations/reservations', ReservationViewSet, basename='reservation')
 router.register(r'operations/bookings', BookingViewSet, basename='booking')
+router.register(r'operations/inbound-booking-payloads', InboundBookingPayloadViewSet, basename='inbound-booking-payload')
+router.register(r'operations/idempotency-keys', ApiIdempotencyRecordViewSet, basename='api-idempotency-record')
 router.register(r'operations/suppliers', SupplierViewSet, basename='supplier')
 router.register(r'finance/payments', PaymentViewSet, basename='payment')
 router.register(r'finance/receipts', ReceiptViewSet, basename='receipt')

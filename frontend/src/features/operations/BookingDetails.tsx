@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
+  Ban,
   Printer,
   CreditCard,
   ShieldCheck,
@@ -9,6 +10,7 @@ import {
   History,
   ListChecks,
   ShoppingCart,
+  Pencil,
   MapPin,
   Calendar,
   Users,
@@ -41,9 +43,17 @@ interface BookingDetailRecord {
   client: string;
   reference_no: string;
   status: string;
+  payment_status?: string;
+  source?: string;
   client_name: string;
   client_email?: string;
   client_phone?: string;
+  customer_full_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  product_name?: string;
+  schedule_code?: string;
+  reservation_reference?: string;
   package_name?: string;
   package_type_display?: string;
   destination_package: string;
@@ -65,41 +75,73 @@ interface BookingDetailRecord {
   booking_validity?: string;
   deposit_terms?: string;
   payment_channels?: string;
+  supplier_notes?: string;
+  cancellation_reason?: string;
+  cancelled_at?: string;
+  cancelled_by_type?: string;
+  refund_status?: string;
+  inventory_released_on_cancel?: boolean;
+  amendment_history?: Array<{
+    timestamp?: string;
+    actor_name?: string;
+    previous_schedule?: string | null;
+    new_schedule?: string | null;
+    previous_total_quantity?: number;
+    new_total_quantity?: number;
+  }>;
+  audit_entries?: Array<{
+    id: string;
+    entity_type: string;
+    action: string;
+    actor_name?: string;
+    notes?: string;
+    payload?: Record<string, unknown>;
+    created_at: string;
+  }>;
+  participant_quantities?: Array<{
+    id: string;
+    category_code: string;
+    category_label: string;
+    quantity: number;
+    unit_price: number | string;
+    total_price: number | string;
+  }>;
   created_at: string;
 }
 
 export const BookingDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'itinerary' | 'payments' | 'travellers' | 'expenses'>('expenses');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'payments' | 'travellers' | 'expenses' | 'timeline'>('expenses');
   const [booking, setBooking] = React.useState<BookingDetailRecord | null>(null);
   const [payments, setPayments] = React.useState<BookingPayment[]>([]);
   const [expenses, setExpenses] = React.useState<BookingExpense[]>([]);
+  const [busy, setBusy] = React.useState(false);
 
-  React.useEffect(() => {
+  const fetchData = React.useCallback(async () => {
     if (!id) {
       return;
     }
 
-    const fetchData = async () => {
-      const [bookingResponse, paymentsResponse, expensesResponse] = await Promise.all([
-        api.get(`/operations/bookings/${id}/`),
-        api.get(`/finance/payments/?booking=${id}`),
-        api.get(`/finance/expenses/?booking=${id}`),
-      ]);
+    const [bookingResponse, paymentsResponse, expensesResponse] = await Promise.all([
+      api.get(`/operations/bookings/${id}/`),
+      api.get(`/finance/payments/?booking=${id}`),
+      api.get(`/finance/expenses/?booking=${id}`),
+    ]);
 
-      setBooking(bookingResponse.data);
-      setPayments(paymentsResponse.data);
-      setExpenses(expensesResponse.data);
-    };
+    setBooking(bookingResponse.data);
+    setPayments(paymentsResponse.data);
+    setExpenses(expensesResponse.data);
+  }, [id]);
 
+  React.useEffect(() => {
     fetchData().catch((error) => {
       console.error('Failed to load booking details:', error);
       setBooking(null);
       setPayments([]);
       setExpenses([]);
     });
-  }, [id]);
+  }, [fetchData]);
 
   if (!booking) {
     return <div className="rounded-[2rem] border border-slate-200 bg-white p-8 text-sm font-semibold text-slate-500 shadow-sm">Loading booking...</div>;
@@ -111,6 +153,83 @@ export const BookingDetails: React.FC = () => {
   const grossProfit = paidAmount - totalExpenses;
   const balance = totalCost - paidAmount;
   const paymentProgress = totalCost > 0 ? (paidAmount / totalCost) * 100 : 0;
+  const timelineItems = [
+    ...(booking.audit_entries || []).map((entry) => ({
+      id: `audit-${entry.id}`,
+      kind: 'audit' as const,
+      title: entry.action.replace(/_/g, ' '),
+      subtitle: entry.notes || `${entry.entity_type} event`,
+      actor: entry.actor_name || 'System',
+      at: entry.created_at,
+    })),
+    ...(booking.amendment_history || []).map((entry, index) => ({
+      id: `amendment-${index}`,
+      kind: 'amendment' as const,
+      title: 'Booking amended',
+      subtitle: [
+        entry.previous_schedule && entry.new_schedule && entry.previous_schedule !== entry.new_schedule
+          ? `${entry.previous_schedule} -> ${entry.new_schedule}`
+          : null,
+        typeof entry.previous_total_quantity === 'number' && typeof entry.new_total_quantity === 'number'
+          ? `${entry.previous_total_quantity} pax -> ${entry.new_total_quantity} pax`
+          : null,
+      ].filter(Boolean).join(' | ') || 'Inventory-safe amendment recorded',
+      actor: entry.actor_name || 'System',
+      at: entry.timestamp || booking.created_at,
+    })),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+
+  const getStatusTone = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'bg-emerald-100 text-emerald-700 ring-emerald-200';
+      case 'ONGOING':
+        return 'bg-sky-100 text-sky-700 ring-sky-200';
+      case 'COMPLETED':
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
+      case 'CANCELLED':
+        return 'bg-rose-100 text-rose-700 ring-rose-200';
+      case 'PENDING':
+        return 'bg-amber-100 text-amber-700 ring-amber-200';
+      case 'FAILED':
+        return 'bg-rose-100 text-rose-700 ring-rose-200';
+      case 'AMENDED':
+        return 'bg-violet-100 text-violet-700 ring-violet-200';
+      default:
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    const reason = window.prompt(`Cancel booking ${booking.reference_no}. Enter a reason:`)?.trim();
+    if (!reason) {
+      return;
+    }
+
+    const shouldReleaseInventory = window.confirm(
+      'Release inventory back to the schedule?\n\nChoose OK to restore space, or Cancel to keep inventory blocked.'
+    );
+    const refundStatusInput = window.prompt(
+      'Refund status (NONE, PENDING, PARTIAL, REFUNDED). Leave blank for NONE:',
+      booking.refund_status || 'NONE'
+    );
+
+    setBusy(true);
+    try {
+      await api.post(`/operations/bookings/${booking.id}/cancel/`, {
+        reason,
+        cancelled_by_type: 'ADMIN',
+        release_inventory: shouldReleaseInventory,
+        refund_status: (refundStatusInput || 'NONE').trim().toUpperCase(),
+      });
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to cancel booking:', error);
+      window.alert('Unable to cancel this booking right now.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const downloadBooking = () => {
     const itinerary = booking.itinerary?.trim() || 'Not provided';
@@ -308,12 +427,12 @@ export const BookingDetails: React.FC = () => {
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Operations Record</p>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-black tracking-tight text-slate-900">{booking.reference_no}</h1>
-              <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700 ring-1 ring-emerald-200">
+              <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1 ${getStatusTone(booking.status)}`}>
                 {booking.status}
               </span>
             </div>
             <p className="text-sm font-medium text-slate-500">
-              Tour for {booking.client_name} | {booking.package_name || booking.destination_package}
+              Tour for {booking.customer_full_name || booking.client_name} | {booking.product_name || booking.package_name || booking.destination_package}
             </p>
           </div>
         </div>
@@ -347,6 +466,26 @@ export const BookingDetails: React.FC = () => {
             <CreditCard size={18} />
             Add Payment
           </button>
+          {booking.status !== 'CANCELLED' ? (
+            <button
+              onClick={() => navigate(`/bookings/${booking.id}/amend`)}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 disabled:opacity-60"
+            >
+              <Pencil size={18} />
+              Amend Booking
+            </button>
+          ) : null}
+          {booking.status !== 'CANCELLED' ? (
+            <button
+              onClick={handleCancelBooking}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-60"
+            >
+              <Ban size={18} />
+              Cancel Booking
+            </button>
+          ) : null}
           <button
             onClick={() => navigate(`/finance/expenses/new?bookingId=${booking.id}`)}
             className="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-900/20 transition-colors hover:bg-rose-700"
@@ -357,14 +496,15 @@ export const BookingDetails: React.FC = () => {
         </div>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-3">
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700">
             <MapPin size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Package</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.package_name || booking.destination_package}</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.product_name || booking.package_name || booking.destination_package}</p>
           {booking.package_type_display ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">{booking.package_type_display}</p> : null}
+          {booking.schedule_code ? <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{booking.schedule_code}</p> : null}
         </div>
 
         <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
@@ -386,6 +526,17 @@ export const BookingDetails: React.FC = () => {
             {booking.currency} {toNumber(booking.price_per_adult).toLocaleString()} per adult | {booking.currency} {toNumber(booking.price_per_child).toLocaleString()} per child
           </p>
         </div>
+
+        <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+            <Ban size={22} />
+          </div>
+          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Cancellation / Refund</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.refund_status || 'NONE'}</p>
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+            {booking.cancelled_at ? `Cancelled ${new Date(booking.cancelled_at).toLocaleDateString()}` : 'Active booking'}
+          </p>
+        </div>
       </section>
 
       <div className="grid gap-8 xl:grid-cols-[1.7fr_0.8fr]">
@@ -396,6 +547,7 @@ export const BookingDetails: React.FC = () => {
               { id: 'payments', label: 'Payments', icon: History },
               { id: 'itinerary', label: 'Itinerary', icon: ListChecks },
               { id: 'travellers', label: 'Travellers', icon: Users },
+              { id: 'timeline', label: 'Timeline', icon: History },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -542,7 +694,7 @@ export const BookingDetails: React.FC = () => {
                   </p>
                 </div>
               </div>
-            ) : (
+            ) : activeTab === 'travellers' ? (
               <div className="space-y-6">
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Client Snapshot</p>
@@ -552,9 +704,9 @@ export const BookingDetails: React.FC = () => {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Lead Client</p>
-                    <p className="mt-3 text-sm font-bold text-slate-900">{booking.client_name}</p>
-                    <p className="mt-2 text-sm font-medium text-slate-600">{booking.client_email || 'No email captured'}</p>
-                    <p className="mt-1 text-sm font-medium text-slate-600">{booking.client_phone || 'No phone captured'}</p>
+                    <p className="mt-3 text-sm font-bold text-slate-900">{booking.customer_full_name || booking.client_name}</p>
+                    <p className="mt-2 text-sm font-medium text-slate-600">{booking.customer_email || booking.client_email || 'No email captured'}</p>
+                    <p className="mt-1 text-sm font-medium text-slate-600">{booking.customer_phone || booking.client_phone || 'No phone captured'}</p>
                   </div>
                   <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Pricing Snapshot</p>
@@ -570,7 +722,63 @@ export const BookingDetails: React.FC = () => {
                     <p className="mt-2 text-sm font-medium text-slate-700">
                       Discount: {booking.currency} {toNumber(booking.discount).toLocaleString()}
                     </p>
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Payment status: {booking.payment_status || 'UNPAID'}
+                    </p>
                   </div>
+                </div>
+
+                {booking.participant_quantities?.length ? (
+                  <div className="rounded-[1.6rem] border border-slate-200 bg-white p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Structured Participant Quantities</p>
+                    <div className="mt-4 space-y-3">
+                      {booking.participant_quantities.map((line) => (
+                        <div key={line.id} className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{line.category_label}</p>
+                            <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{line.category_code}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-slate-900">{line.quantity} x {booking.currency} {toNumber(line.unit_price).toLocaleString()}</p>
+                            <p className="text-xs font-medium text-slate-500">{booking.currency} {toNumber(line.total_price).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Record Trace</p>
+                    <h2 className="mt-2 text-2xl font-black text-slate-900">Audit Timeline</h2>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    {timelineItems.length} events
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {timelineItems.length ? timelineItems.map((item) => (
+                    <div key={item.id} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="text-sm font-black uppercase tracking-[0.18em] text-slate-900">{item.title}</p>
+                          <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{item.subtitle}</p>
+                        </div>
+                        <div className="text-left md:text-right">
+                          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{item.actor}</p>
+                          <p className="mt-2 text-sm font-medium text-slate-600">{new Date(item.at).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5 text-sm font-medium text-slate-600">
+                      No audit events have been recorded yet.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -659,6 +867,27 @@ export const BookingDetails: React.FC = () => {
               <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
                 <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Payment Channels</p>
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{booking.payment_channels || 'Not specified'}</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Source & Reservation</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                  {booking.source || 'MANUAL_OFFICE'}{booking.reservation_reference ? ` | ${booking.reservation_reference}` : ''}
+                </p>
+                {booking.cancellation_reason ? <p className="mt-2 text-sm font-medium leading-6 text-rose-600">{booking.cancellation_reason}</p> : null}
+              </div>
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Cancellation Controls</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                  {booking.cancelled_at
+                    ? `Cancelled on ${new Date(booking.cancelled_at).toLocaleString()} by ${booking.cancelled_by_type || 'SYSTEM'}`
+                    : 'Booking is still active.'}
+                </p>
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                  Refund status: {booking.refund_status || 'NONE'}
+                </p>
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                  Inventory release: {booking.inventory_released_on_cancel ? 'Released' : 'Not released'}
+                </p>
               </div>
             </div>
           </section>
