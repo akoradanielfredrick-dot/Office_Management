@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { jsPDF } from 'jspdf';
-import { api, toNumber } from '../../lib/api';
+import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
 
 interface BookingPayment {
   id: string;
@@ -663,7 +663,7 @@ export const BookingDetails: React.FC = () => {
                           </td>
                           <td className="px-5 py-5 text-right">
                             <button
-                              onClick={() => p.receipt?.id && window.open(`/api/finance/receipts/${p.receipt.id}/download/`, '_blank')}
+                              onClick={() => p.receipt?.id && window.open(buildBackendApiUrl(`/finance/receipts/${p.receipt.id}/download/`), '_blank', 'noopener,noreferrer')}
                               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
                             >
                               <Download size={15} />

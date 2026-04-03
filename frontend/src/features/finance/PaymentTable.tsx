@@ -12,7 +12,7 @@ import {
   ReceiptText,
   ArrowUpRight,
 } from 'lucide-react';
-import { api, toNumber } from '../../lib/api';
+import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
 
 interface Payment {
   id: string;
@@ -233,7 +233,7 @@ export const PaymentTable: React.FC = () => {
                         Booking
                       </button>
                       <button
-                        onClick={() => p.receipt?.id && window.open(`/api/finance/receipts/${p.receipt.id}/download/`, '_blank')}
+                        onClick={() => p.receipt?.id && window.open(buildBackendApiUrl(`/finance/receipts/${p.receipt.id}/download/`), '_blank', 'noopener,noreferrer')}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
                       >
                         <Download size={15} />

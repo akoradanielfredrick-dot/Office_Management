@@ -57,6 +57,10 @@ export const ensureCsrfCookie = async (): Promise<void> => {
 
 export const backendAdminUrl = `${resolveBackendOrigin()}/admin/`;
 export const backendAdminConfirmUrl = `${resolveBackendOrigin()}/admin/confirm-access/?next=/admin/`;
+export const buildBackendApiUrl = (path: string): string => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${resolveBackendOrigin()}/api${normalizedPath}`;
+};
 
 export const toNumber = (value: number | string | null | undefined): number => Number(value || 0);
 
