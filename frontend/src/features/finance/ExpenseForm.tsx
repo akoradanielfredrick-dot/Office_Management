@@ -15,6 +15,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { api, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from '../operations/listTypes';
 
 const expenseSchema = z.object({
   category: z.string().min(1, 'Please select a category'),
@@ -32,13 +33,36 @@ const expenseSchema = z.object({
 
 type ExpenseFormValues = z.infer<typeof expenseSchema>;
 
+interface SupplierOption {
+  id: string;
+  name: string;
+}
+
+interface BookingOption {
+  id: string;
+  reference_no: string;
+  client_name?: string;
+}
+
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
+
 export const ExpenseForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookingIdFromUrl = searchParams.get('bookingId');
 
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierOption[]>([]);
+  const [bookings, setBookings] = useState<BookingOption[]>([]);
   const [submitError, setSubmitError] = useState('');
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ExpenseFormValues>({
@@ -64,8 +88,8 @@ export const ExpenseForm: React.FC = () => {
         api.get('/operations/suppliers/'),
         api.get('/operations/bookings/'),
       ]);
-      setSuppliers(suppliersResponse.data);
-      setBookings(bookingsResponse.data);
+      setSuppliers(extractResults<SupplierOption>(suppliersResponse.data));
+      setBookings(extractResults<BookingOption>(bookingsResponse.data));
     };
 
     fetchLookups().catch((error) => {
