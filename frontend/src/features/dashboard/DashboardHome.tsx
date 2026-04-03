@@ -144,6 +144,14 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      label: 'Catalog View',
+      description: 'See clients, products, packages, and excursions together',
+      icon: Boxes,
+      path: '/catalog',
+      tone: 'bg-[#4d6a58]',
+      iconBg: 'bg-white/15',
+    },
+    {
       label: 'Create Schedule',
       description: 'Publish departures and live capacity',
       icon: Clock3,

@@ -20,6 +20,11 @@ import { ClientForm } from './features/clients/ClientForm';
 import { BookingForm } from './features/operations/BookingForm';
 import { ProductList } from './features/operations/ProductList';
 import { ProductForm } from './features/operations/ProductForm';
+import { CatalogOverview } from './features/operations/CatalogOverview';
+import { PackageList } from './features/operations/PackageList';
+import { PackageForm } from './features/operations/PackageForm';
+import { ExcursionList } from './features/operations/ExcursionList';
+import { ExcursionForm } from './features/operations/ExcursionForm';
 import { ScheduleList } from './features/operations/ScheduleList';
 import { ScheduleForm } from './features/operations/ScheduleForm';
 import { AvailabilityDashboard } from './features/operations/AvailabilityDashboard';
@@ -57,7 +62,14 @@ const App: React.FC = () => {
           <Route path="bookings/new" element={<BookingForm />} />
           <Route path="bookings/:id" element={<BookingDetails />} />
           <Route path="bookings/:id/amend" element={<BookingAmendForm />} />
+          <Route path="catalog" element={<CatalogOverview />} />
           <Route path="products" element={<ProductList />} />
+          <Route path="packages" element={<PackageList />} />
+          <Route path="packages/new" element={<PackageForm />} />
+          <Route path="packages/:id/edit" element={<PackageForm />} />
+          <Route path="excursions" element={<ExcursionList />} />
+          <Route path="excursions/new" element={<ExcursionForm />} />
+          <Route path="excursions/:id/edit" element={<ExcursionForm />} />
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/:id/edit" element={<ProductForm />} />
           <Route path="schedules" element={<ScheduleList />} />
