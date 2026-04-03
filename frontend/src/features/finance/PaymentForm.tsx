@@ -15,6 +15,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { api, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from '../operations/listTypes';
 
 const paymentSchema = z.object({
   booking: z.string().uuid('Please select a booking'),
@@ -30,11 +31,37 @@ const paymentSchema = z.object({
 
 type PaymentFormValues = z.infer<typeof paymentSchema>;
 
+interface BookingOption {
+  id: string;
+  reference_no: string;
+  client_name?: string;
+  product_name?: string;
+  product_name_snapshot?: string;
+  product_destination_snapshot?: string;
+  travel_date?: string;
+  start_date?: string;
+  currency: string;
+  total_cost: number | string;
+  paid_amount: number | string;
+}
+
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
+
 export const PaymentForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookingIdFromUrl = searchParams.get('bookingId');
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<BookingOption[]>([]);
   const [submitError, setSubmitError] = useState('');
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<PaymentFormValues>({
@@ -59,7 +86,7 @@ export const PaymentForm: React.FC = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       const response = await api.get('/operations/bookings/');
-      setBookings(response.data);
+      setBookings(extractResults<BookingOption>(response.data));
     };
 
     fetchBookings().catch((error) => {
