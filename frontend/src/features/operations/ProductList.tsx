@@ -156,12 +156,23 @@ export const ProductList: React.FC = () => {
                   <td className="px-6 py-5 text-sm font-medium text-slate-600">{product.destination || 'Not set'}</td>
                   <td className="px-6 py-5 text-sm font-medium text-slate-600">{product.duration_text || 'Not set'}</td>
                   <td className="px-6 py-5">
-                    <div className="flex flex-wrap gap-2">
-                      {displayedCurrencies.map((currency) => (
-                        <span key={`${product.id}-${currency}`} className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 ring-1 ring-slate-200">
-                          {currency} {getCurrencyAmount(product, currency)}
-                        </span>
-                      ))}
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                      <table className="w-full min-w-[220px] text-left">
+                        <thead>
+                          <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                            <th className="px-3 py-2">Currency</th>
+                            <th className="px-3 py-2 text-right">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/80">
+                          {displayedCurrencies.map((currency) => (
+                            <tr key={`${product.id}-${currency}`} className="text-sm font-semibold text-slate-700">
+                              <td className="px-3 py-2">{currency}</td>
+                              <td className="px-3 py-2 text-right">{getCurrencyAmount(product, currency)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </td>
                   <td className="px-6 py-5">
