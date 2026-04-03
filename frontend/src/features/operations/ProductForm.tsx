@@ -14,7 +14,6 @@ const productSchema = z.object({
   destination: z.string().optional(),
   duration_text: z.string().optional(),
   pricing_mode: z.enum(['PER_PERSON', 'PER_GROUP', 'COLLECTIVE_FIXED']),
-  default_currency: z.enum(['USD', 'EUR', 'GBP']),
   is_active: z.boolean(),
 });
 
@@ -29,6 +28,7 @@ interface PriceValues {
 }
 
 interface ProductResponse extends ProductValues {
+  default_currency?: PriceValues['currency'];
   prices: Array<{
     id: string;
     participant_category?: string | null;
@@ -82,7 +82,6 @@ export const ProductForm: React.FC = () => {
       destination: '',
       duration_text: '',
       pricing_mode: 'PER_PERSON',
-      default_currency: 'USD',
       is_active: true,
     },
   });
@@ -103,7 +102,6 @@ export const ProductForm: React.FC = () => {
           destination: product.destination || '',
           duration_text: product.duration_text || '',
           pricing_mode: product.pricing_mode,
-          default_currency: product.default_currency,
           is_active: product.is_active,
         });
         setPrices(
@@ -132,8 +130,11 @@ export const ProductForm: React.FC = () => {
   const onSubmit = async (data: ProductValues) => {
     setSubmitError('');
 
+    const defaultCurrency = prices.find((price) => price.amount > 0)?.currency || 'USD';
+
     const payload = {
       ...data,
+      default_currency: defaultCurrency,
       participant_categories: [
         { code: 'ADULT', label: 'Adult', uses_inventory: true, is_active: true, metadata: {} },
         { code: 'CHILD', label: 'Child', uses_inventory: true, is_active: true, metadata: {} },
@@ -157,9 +158,19 @@ export const ProductForm: React.FC = () => {
       }
 
       navigate('/products');
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} product:`, error);
-      setSubmitError(`Unable to ${isEditMode ? 'update' : 'save'} this product right now. Please check the pricing rows and required product details.`);
+      const responseData = error?.response?.data;
+      const detailMessage =
+        responseData?.detail ||
+        Object.entries(responseData || {})
+          .map(([field, value]) => `${field}: ${Array.isArray(value) ? value.join(', ') : String(value)}`)
+          .join(' | ');
+
+      setSubmitError(
+        detailMessage ||
+        `Unable to ${isEditMode ? 'update' : 'save'} this product right now. Please check the pricing rows and required product details.`
+      );
     }
   };
 
@@ -231,17 +242,6 @@ export const ProductForm: React.FC = () => {
             <div>
               <label className={labelClassName}>Duration</label>
               <input {...register('duration_text')} className={inputClassName} />
-            </div>
-            <div>
-              <label className={labelClassName}>Default Currency</label>
-              <div className="relative">
-                <select {...register('default_currency')} className={`${inputClassName} appearance-none pr-12`}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              </div>
             </div>
             <div>
               <label className={labelClassName}>Status</label>
