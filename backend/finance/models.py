@@ -24,7 +24,7 @@ class Payment(models.Model):
     internal_reference = models.CharField(max_length=50, unique=True, blank=True)
     
     amount = models.DecimalField(max_digits=15, decimal_places=2)
-    currency = models.CharField(max_length=3, default='KES')
+    currency = models.CharField(max_length=3, default='USD')
     exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='DEPOSIT')
     
@@ -99,7 +99,7 @@ class Expense(models.Model):
     description = models.TextField(null=True, blank=True)
     
     amount = models.DecimalField(max_digits=15, decimal_places=2)
-    currency = models.CharField(max_length=3, default='KES')
+    currency = models.CharField(max_length=3, default='USD')
     exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000)
     
     payment_method = models.CharField(max_length=50, choices=METHOD_CHOICES, default='CASH')

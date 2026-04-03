@@ -23,6 +23,7 @@ interface DashboardStats {
   active_bookings: number;
   pending_payments: number;
   expenses_this_month: string | number;
+  expenses_this_month_by_currency?: Record<string, string | number>;
 }
 
 interface ActivityItem {
@@ -34,7 +35,10 @@ interface ActivityItem {
   date: string;
   status: string;
   amount: number | string;
+  currency?: string;
 }
+
+const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
 
 const normalizeRoleLabel = (role: unknown): string => {
   if (typeof role === 'string' && role.trim()) {
@@ -93,6 +97,10 @@ export const DashboardHome: React.FC = () => {
 
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
   const roleLabel = normalizeRoleLabel(user?.role);
+  const monthlyExpenseBreakdown = operatingCurrencies.map((currency) => ({
+    currency,
+    value: Number(stats?.expenses_this_month_by_currency?.[currency]) || 0,
+  }));
   const todayLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -120,7 +128,7 @@ export const DashboardHome: React.FC = () => {
     },
     {
       label: 'Monthly Expenses',
-      value: formatMoney('KES', stats?.expenses_this_month ?? 0),
+      value: monthlyExpenseBreakdown.map(({ currency, value }) => `${currency} ${value.toLocaleString()}`).join(' | '),
       icon: ShoppingCart,
       iconWrap: 'bg-[#ffecef] text-[#f33a5f]',
     },
@@ -364,7 +372,7 @@ export const DashboardHome: React.FC = () => {
                       </div>
 
                       <div className="text-right">
-                        <p className="text-[1rem] font-semibold text-slate-950">{formatMoney('KES', item.amount)}</p>
+                        <p className="text-[1rem] font-semibold text-slate-950">{formatMoney(item.currency || 'USD', item.amount)}</p>
                         <p className="text-[0.92rem] text-slate-500">{new Date(item.date).toLocaleDateString()}</p>
                       </div>
                     </button>

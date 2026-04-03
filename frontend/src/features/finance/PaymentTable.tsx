@@ -53,21 +53,18 @@ export const PaymentTable: React.FC = () => {
   const mtdBreakdown = monthToDatePayments.reduce(
     (summary, payment) => {
       const amount = toNumber(payment.amount);
-      const rate = toNumber(payment.exchange_rate) || 1;
       const currency = payment.currency.toUpperCase();
 
       if (currency === 'USD') {
         summary.usd += amount;
       } else if (currency === 'EUR') {
         summary.eur += amount;
-      } else {
-        summary.kes += amount;
+      } else if (currency === 'GBP') {
+        summary.gbp += amount;
       }
-
-      summary.kesEquivalent += currency === 'KES' ? amount : amount * rate;
       return summary;
     },
-    { kes: 0, usd: 0, eur: 0, kesEquivalent: 0 }
+    { usd: 0, eur: 0, gbp: 0 }
   );
 
   const getMethodIcon = (method: string) => {
@@ -109,12 +106,8 @@ export const PaymentTable: React.FC = () => {
             <DollarSign size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Total Collections (MTD)</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">KES {mtdBreakdown.kesEquivalent.toLocaleString()}</p>
+          <p className="mt-2 text-3xl font-black text-slate-900">USD {mtdBreakdown.usd.toLocaleString()}</p>
           <div className="mt-4 grid gap-2 text-xs font-semibold text-slate-500">
-            <div className="flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 ring-1 ring-primary-100">
-              <span>KES Recorded</span>
-              <span className="font-black text-slate-700">KES {mtdBreakdown.kes.toLocaleString()}</span>
-            </div>
             <div className="flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 ring-1 ring-primary-100">
               <span>USD Recorded</span>
               <span className="font-black text-slate-700">USD {mtdBreakdown.usd.toLocaleString()}</span>
@@ -123,9 +116,13 @@ export const PaymentTable: React.FC = () => {
               <span>EUR Recorded</span>
               <span className="font-black text-slate-700">EUR {mtdBreakdown.eur.toLocaleString()}</span>
             </div>
+            <div className="flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 ring-1 ring-primary-100">
+              <span>GBP Recorded</span>
+              <span className="font-black text-slate-700">GBP {mtdBreakdown.gbp.toLocaleString()}</span>
+            </div>
           </div>
           <p className="mt-4 text-xs font-medium leading-5 text-slate-500">
-            Foreign collections are converted to KES using the saved exchange rate, then combined into the MTD total above.
+            Collections are shown in the three operating currencies only: USD, EUR, and GBP.
           </p>
         </div>
 

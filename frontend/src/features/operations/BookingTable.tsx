@@ -152,7 +152,7 @@ export const BookingTable: React.FC = () => {
   ].filter((value) => value !== 'ALL').length;
 
   const bookingValueByCurrency = bookings.reduce<Record<string, number>>((summary, booking) => {
-    const currency = booking.currency || 'KES';
+    const currency = booking.currency || 'USD';
     summary[currency] = (summary[currency] || 0) + toNumber(booking.total_cost);
     return summary;
   }, {});

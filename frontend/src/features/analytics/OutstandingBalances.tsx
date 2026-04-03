@@ -9,6 +9,7 @@ interface DebtData {
   id: string;
   ref: string;
   client: string;
+  currency: string;
   total_cost: number;
   paid_amount: number;
   balance: number;
@@ -36,7 +37,13 @@ export const OutstandingBalances: React.FC = () => {
     fetchDebt();
   }, []);
 
-  const totalDebt = debtData.reduce((sum, d) => sum + d.balance, 0);
+  const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+  const totalDebtByCurrency = operatingCurrencies.map((currency) => ({
+    currency,
+    value: debtData
+      .filter((debt) => debt.currency === currency)
+      .reduce((sum, debt) => sum + Number(debt.balance), 0),
+  }));
 
   if (loading) return <div className="p-8 text-center text-slate-400">Aging debt records...</div>;
 
@@ -59,7 +66,11 @@ export const OutstandingBalances: React.FC = () => {
       <section className="grid gap-5 md:grid-cols-2">
         <div className="rounded-[1.8rem] border border-rose-200 bg-rose-600 p-5 text-white shadow-xl shadow-rose-200/50">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-rose-100">Total Outstanding Portfolio</p>
-          <p className="mt-3 text-3xl font-black">KES {totalDebt.toLocaleString()}</p>
+          <div className="mt-3 space-y-2">
+            {totalDebtByCurrency.map((item) => (
+              <p key={item.currency} className="text-xl font-black">{item.currency} {item.value.toLocaleString()}</p>
+            ))}
+          </div>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em]">
             <AlertCircle size={13} />
             High risk (60+ days): {debtData.filter((d) => d.days_overdue > 60).length}
@@ -104,9 +115,9 @@ export const OutstandingBalances: React.FC = () => {
                     <p className="font-black text-slate-900">{d.ref}</p>
                     <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{d.client}</p>
                   </td>
-                  <td className="px-6 py-5 text-right text-sm font-medium text-slate-500">{d.total_cost.toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{d.paid_amount.toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">{d.balance.toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-medium text-slate-500">{d.currency} {d.total_cost.toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{d.currency} {d.paid_amount.toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">{d.currency} {d.balance.toLocaleString()}</td>
                   <td className="px-6 py-5 text-center">
                     <span className={clsx(
                       'inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1',

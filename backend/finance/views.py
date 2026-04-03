@@ -14,6 +14,26 @@ from django.http import FileResponse
 from accounts.permissions import IsFinanceUser
 from .services import generate_receipt_pdf
 
+
+ALLOWED_ANALYTICS_CURRENCIES = ("USD", "EUR", "GBP")
+
+
+def _empty_currency_totals():
+    return {currency: decimal.Decimal(0) for currency in ALLOWED_ANALYTICS_CURRENCIES}
+
+
+def _normalize_currency_totals(rows, currency_key='currency', total_key='total'):
+    totals = _empty_currency_totals()
+    for row in rows:
+        currency = row.get(currency_key)
+        if currency in totals:
+            totals[currency] = row.get(total_key) or decimal.Decimal(0)
+    return totals
+
+
+def _serialize_currency_totals(totals):
+    return {currency: totals.get(currency, decimal.Decimal(0)) for currency in ALLOWED_ANALYTICS_CURRENCIES}
+
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.filter(is_deleted=False).order_by('-created_at')
     serializer_class = PaymentSerializer
@@ -125,28 +145,57 @@ class AnalyticsViewSet(viewsets.ViewSet):
         total_revenue = Payment.objects.filter(is_deleted=False).aggregate(
             total=Coalesce(Sum(F('amount') * F('exchange_rate'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
+        revenue_by_currency = _normalize_currency_totals(
+            Payment.objects.filter(is_deleted=False, currency__in=ALLOWED_ANALYTICS_CURRENCIES)
+            .values('currency')
+            .annotate(total=Coalesce(Sum('amount', output_field=DecimalField()), decimal.Decimal(0)))
+        )
 
         # 2. Total Expenses (All categories)
         total_expenses = Expense.objects.filter(is_deleted=False).aggregate(
             total=Coalesce(Sum(F('amount') * F('exchange_rate'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
+        expenses_by_currency = _normalize_currency_totals(
+            Expense.objects.filter(is_deleted=False, currency__in=ALLOWED_ANALYTICS_CURRENCIES)
+            .values('currency')
+            .annotate(total=Coalesce(Sum('amount', output_field=DecimalField()), decimal.Decimal(0)))
+        )
 
         # 3. Direct Costs (Tour-linked costs)
         direct_costs = Expense.objects.filter(is_deleted=False, booking__isnull=False).aggregate(
             total=Coalesce(Sum(F('amount') * F('exchange_rate'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
+        direct_costs_by_currency = _normalize_currency_totals(
+            Expense.objects.filter(is_deleted=False, booking__isnull=False, currency__in=ALLOWED_ANALYTICS_CURRENCIES)
+            .values('currency')
+            .annotate(total=Coalesce(Sum('amount', output_field=DecimalField()), decimal.Decimal(0)))
+        )
 
         # 4. Total Outstanding (Difference between total cost and paid amount)
         total_outstanding = Booking.objects.filter(is_deleted=False).aggregate(
             total=Coalesce(Sum(F('total_cost') - F('paid_amount'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
+        outstanding_by_currency = _normalize_currency_totals(
+            Booking.objects.filter(is_deleted=False, currency__in=ALLOWED_ANALYTICS_CURRENCIES)
+            .values('currency')
+            .annotate(total=Coalesce(Sum(F('total_cost') - F('paid_amount'), output_field=DecimalField()), decimal.Decimal(0)))
+        )
+        net_cashflow_by_currency = {
+            currency: revenue_by_currency[currency] - expenses_by_currency[currency]
+            for currency in ALLOWED_ANALYTICS_CURRENCIES
+        }
 
         return response.Response({
             'total_revenue': total_revenue,
             'total_expenses': total_expenses,
             'direct_costs': direct_costs,
             'net_cashflow': total_revenue - total_expenses,
-            'total_outstanding': total_outstanding
+            'total_outstanding': total_outstanding,
+            'revenue_by_currency': _serialize_currency_totals(revenue_by_currency),
+            'expenses_by_currency': _serialize_currency_totals(expenses_by_currency),
+            'direct_costs_by_currency': _serialize_currency_totals(direct_costs_by_currency),
+            'net_cashflow_by_currency': _serialize_currency_totals(net_cashflow_by_currency),
+            'outstanding_by_currency': _serialize_currency_totals(outstanding_by_currency),
         })
 
     @decorators.action(detail=False, methods=['get'])
@@ -163,6 +212,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 'ref': b.reference_no,
                 'client': b.client.full_name,
                 'product': b.product_name_snapshot or b.product_destination_snapshot,
+                'currency': b.currency,
                 'revenue': b.paid_amount,
                 'costs': expenses_sum,
                 'profit': b.paid_amount - expenses_sum,
@@ -208,6 +258,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 'id': booking.id,
                 'ref': booking.reference_no,
                 'client': booking.client.full_name,
+                'currency': booking.currency,
                 'total_cost': booking.total_cost,
                 'paid_amount': booking.paid_amount,
                 'balance': booking.total_cost - booking.paid_amount,

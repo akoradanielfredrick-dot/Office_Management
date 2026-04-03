@@ -21,6 +21,11 @@ interface Stats {
   direct_costs: string | number;
   net_cashflow: string | number;
   total_outstanding: string | number;
+  revenue_by_currency?: Record<string, string | number>;
+  expenses_by_currency?: Record<string, string | number>;
+  direct_costs_by_currency?: Record<string, string | number>;
+  net_cashflow_by_currency?: Record<string, string | number>;
+  outstanding_by_currency?: Record<string, string | number>;
 }
 
 const fallbackStats: Stats = {
@@ -29,7 +34,20 @@ const fallbackStats: Stats = {
   direct_costs: 310000,
   net_cashflow: 755000,
   total_outstanding: 1150000,
+  revenue_by_currency: { USD: 0, EUR: 0, GBP: 0 },
+  expenses_by_currency: { USD: 0, EUR: 0, GBP: 0 },
+  direct_costs_by_currency: { USD: 0, EUR: 0, GBP: 0 },
+  net_cashflow_by_currency: { USD: 0, EUR: 0, GBP: 0 },
+  outstanding_by_currency: { USD: 0, EUR: 0, GBP: 0 },
 };
+
+const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+
+const getCurrencyBreakdown = (values?: Record<string, string | number>) =>
+  operatingCurrencies.map((currency) => ({
+    currency,
+    value: Number(values?.[currency]) || 0,
+  }));
 
 export const AnalyticsDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -59,12 +77,20 @@ export const AnalyticsDashboard: React.FC = () => {
     return <div className="p-8 text-center text-slate-400">Synchronizing financial intelligence...</div>;
   }
 
-  const revenue = Number(stats?.total_revenue) || 0;
-  const expenses = Number(stats?.total_expenses) || 0;
-  const directCosts = Number(stats?.direct_costs) || 0;
-  const netCashflow = Number(stats?.net_cashflow) || 0;
-  const outstanding = Number(stats?.total_outstanding) || 0;
-  const indirectCosts = Math.max(expenses - directCosts, 0);
+  const revenueBreakdown = getCurrencyBreakdown(stats?.revenue_by_currency);
+  const expenseBreakdown = getCurrencyBreakdown(stats?.expenses_by_currency);
+  const directCostBreakdown = getCurrencyBreakdown(stats?.direct_costs_by_currency);
+  const netCashflowBreakdown = getCurrencyBreakdown(stats?.net_cashflow_by_currency);
+  const outstandingBreakdown = getCurrencyBreakdown(stats?.outstanding_by_currency);
+  const totalRevenue = revenueBreakdown.reduce((sum, item) => sum + item.value, 0);
+  const totalExpenses = expenseBreakdown.reduce((sum, item) => sum + item.value, 0);
+  const totalDirectCosts = directCostBreakdown.reduce((sum, item) => sum + item.value, 0);
+  const totalNetCashflow = netCashflowBreakdown.reduce((sum, item) => sum + item.value, 0);
+  const indirectCostBreakdown = operatingCurrencies.map((currency, index) => ({
+    currency,
+    value: Math.max(expenseBreakdown[index].value - directCostBreakdown[index].value, 0),
+  }));
+  const totalIndirectCosts = indirectCostBreakdown.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="space-y-8">
@@ -91,15 +117,15 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Revenue</p>
-                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {revenue.toLocaleString()}</p>
+                <MetricBreakdown items={revenueBreakdown} />
               </div>
               <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Net Cashflow</p>
-                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {netCashflow.toLocaleString()}</p>
+                <MetricBreakdown items={netCashflowBreakdown} />
               </div>
               <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Collections Risk</p>
-                <p className="mt-2 text-[1.4rem] font-semibold text-slate-950">KES {outstanding.toLocaleString()}</p>
+                <MetricBreakdown items={outstandingBreakdown} />
               </div>
             </div>
           </div>
@@ -133,10 +159,10 @@ export const AnalyticsDashboard: React.FC = () => {
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Revenue" amount={revenue} trend="Realized cash" icon={TrendingUp} color="emerald" />
-        <StatCard label="Total Expenses" amount={expenses} trend="All outflows" icon={TrendingDown} color="rose" />
-        <StatCard label="Net Cashflow" amount={netCashflow} trend="Operational surplus" icon={DollarSign} color="blue" />
-        <StatCard label="Pending Collections" amount={outstanding} trend="Recovery exposure" icon={AlertCircle} color="amber" />
+        <StatCard label="Total Revenue" items={revenueBreakdown} trend="USD/EUR/GBP mix" icon={TrendingUp} color="emerald" />
+        <StatCard label="Total Expenses" items={expenseBreakdown} trend="USD/EUR/GBP mix" icon={TrendingDown} color="rose" />
+        <StatCard label="Net Cashflow" items={netCashflowBreakdown} trend="USD/EUR/GBP mix" icon={DollarSign} color="blue" />
+        <StatCard label="Pending Collections" items={outstandingBreakdown} trend="USD/EUR/GBP mix" icon={AlertCircle} color="amber" />
       </section>
 
       <section className="grid gap-8 xl:grid-cols-[1.6fr_0.9fr]">
@@ -165,11 +191,11 @@ export const AnalyticsDashboard: React.FC = () => {
                   <div className="flex h-full w-full items-end justify-center gap-2">
                     <div
                       className="w-5 rounded-t-2xl bg-emerald-400/85 shadow-lg shadow-emerald-500/10"
-                      style={{ height: `${(revenue / (revenue + expenses || 1)) * 100 * scale}%` }}
+                      style={{ height: `${(totalRevenue / (totalRevenue + totalExpenses || 1)) * 100 * scale}%` }}
                     />
                     <div
                       className="w-5 rounded-t-2xl bg-rose-400/85 shadow-lg shadow-rose-500/10"
-                      style={{ height: `${(expenses / (revenue + expenses || 1)) * 100 * scale}%` }}
+                      style={{ height: `${(totalExpenses / (totalRevenue + totalExpenses || 1)) * 100 * scale}%` }}
                     />
                   </div>
                   <span className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
@@ -189,23 +215,23 @@ export const AnalyticsDashboard: React.FC = () => {
         <div className="space-y-5">
           <div className="rounded-[1.8rem] border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 shadow-sm">
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Direct Variable Costs</p>
-            <p className="mt-2 text-3xl font-black text-slate-900">KES {directCosts.toLocaleString()}</p>
+            <MetricBreakdown items={directCostBreakdown} compact />
             <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-rose-500" style={{ width: `${(directCosts / (expenses || 1)) * 100}%` }} />
+              <div className="h-full rounded-full bg-rose-500" style={{ width: `${(totalDirectCosts / (totalExpenses || 1)) * 100}%` }} />
             </div>
             <p className="mt-3 text-xs font-semibold text-slate-500">
-              {(directCosts / (expenses || 1) * 100).toFixed(1)}% of total outflows
+              {(totalDirectCosts / (totalExpenses || 1) * 100).toFixed(1)}% of total outflows
             </p>
           </div>
 
           <div className="rounded-[1.8rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Indirect & Fixed Costs</p>
-            <p className="mt-2 text-3xl font-black text-slate-900">KES {indirectCosts.toLocaleString()}</p>
+            <MetricBreakdown items={indirectCostBreakdown} compact />
             <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-slate-500" style={{ width: `${(indirectCosts / (expenses || 1)) * 100}%` }} />
+              <div className="h-full rounded-full bg-slate-500" style={{ width: `${(totalIndirectCosts / (totalExpenses || 1)) * 100}%` }} />
             </div>
             <p className="mt-3 text-xs font-semibold text-slate-500">
-              {(indirectCosts / (expenses || 1) * 100).toFixed(1)}% of total outflows
+              {(totalIndirectCosts / (totalExpenses || 1) * 100).toFixed(1)}% of total outflows
             </p>
           </div>
 
@@ -231,11 +257,11 @@ export const AnalyticsDashboard: React.FC = () => {
 
 const StatCard: React.FC<{
   label: string;
-  amount: number;
+  items: Array<{ currency: string; value: number }>;
   trend: string;
   icon: any;
   color: 'emerald' | 'rose' | 'blue' | 'amber';
-}> = ({ label, amount, trend, icon: Icon, color }) => (
+}> = ({ label, items, trend, icon: Icon, color }) => (
   <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
     <div className="flex items-center justify-between">
       <div
@@ -262,7 +288,21 @@ const StatCard: React.FC<{
       </span>
     </div>
     <p className="mt-6 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">{label}</p>
-    <p className="mt-2 text-3xl font-black text-slate-900">KES {amount.toLocaleString()}</p>
+    <MetricBreakdown items={items} compact />
+  </div>
+);
+
+const MetricBreakdown: React.FC<{
+  items: Array<{ currency: string; value: number }>;
+  compact?: boolean;
+}> = ({ items, compact = false }) => (
+  <div className={clsx('mt-3 space-y-2', compact && 'space-y-1.5')}>
+    {items.map((item) => (
+      <div key={item.currency} className="flex items-center justify-between text-sm">
+        <span className={clsx('font-semibold text-slate-500', compact && 'text-xs uppercase tracking-[0.18em]')}>{item.currency}</span>
+        <span className={clsx('font-black text-slate-900', compact ? 'text-sm' : 'text-lg')}>{item.value.toLocaleString()}</span>
+      </div>
+    ))}
   </div>
 );
 

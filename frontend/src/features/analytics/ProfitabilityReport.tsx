@@ -9,6 +9,7 @@ interface ProfitData {
   ref: string;
   client: string;
   product?: string;
+  currency?: string;
   revenue: number;
   costs: number;
   profit: number;
@@ -16,9 +17,11 @@ interface ProfitData {
 }
 
 const fallbackData: ProfitData[] = [
-  { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', product: 'Maasai Mara Safari', revenue: 150000, costs: 40000, profit: 110000, margin: 73.3 },
-  { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', product: 'Amboseli Executive Trip', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
+  { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', product: 'Maasai Mara Safari', currency: 'USD', revenue: 150000, costs: 40000, profit: 110000, margin: 73.3 },
+  { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', product: 'Amboseli Executive Trip', currency: 'EUR', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
 ];
+
+const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
 
 export const ProfitabilityReport: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +50,11 @@ export const ProfitabilityReport: React.FC = () => {
   const totalRev = reportData.reduce((sum, d) => sum + Number(d.revenue), 0);
   const totalCost = reportData.reduce((sum, d) => sum + Number(d.costs), 0);
   const avgMargin = reportData.length > 0 ? reportData.reduce((sum, d) => sum + Number(d.margin), 0) / reportData.length : 0;
+  const totalsByCurrency = operatingCurrencies.map((currency) => ({
+    currency,
+    revenue: reportData.filter((item) => (item.currency || 'USD') === currency).reduce((sum, item) => sum + Number(item.revenue), 0),
+    costs: reportData.filter((item) => (item.currency || 'USD') === currency).reduce((sum, item) => sum + Number(item.costs), 0),
+  }));
 
   if (loading) return <div className="p-8 text-center text-slate-400">Analyzing tour margins...</div>;
 
@@ -70,8 +78,8 @@ export const ProfitabilityReport: React.FC = () => {
 
       <section className="grid gap-5 md:grid-cols-3">
         <MetricCard label="Avg. Portfolio Margin" value={`${avgMargin.toFixed(1)}%`} tone="emerald" />
-        <MetricCard label="Total Realized Revenue" value={`KES ${totalRev.toLocaleString()}`} tone="blue" />
-        <MetricCard label="Total Direct Costs" value={`KES ${totalCost.toLocaleString()}`} tone="rose" />
+        <MetricCard label="Total Realized Revenue" value={totalsByCurrency.map((item) => `${item.currency} ${item.revenue.toLocaleString()}`).join(' | ')} tone="blue" />
+        <MetricCard label="Total Direct Costs" value={totalsByCurrency.map((item) => `${item.currency} ${item.costs.toLocaleString()}`).join(' | ')} tone="rose" />
       </section>
 
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
@@ -95,9 +103,9 @@ export const ProfitabilityReport: React.FC = () => {
                     <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{p.client}</p>
                     {p.product && <p className="mt-1 text-xs font-medium text-primary-700">{p.product}</p>}
                   </td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{Number(p.revenue).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{Number(p.costs).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{Number(p.profit).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{p.currency || 'USD'} {Number(p.revenue).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{p.currency || 'USD'} {Number(p.costs).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{p.currency || 'USD'} {Number(p.profit).toLocaleString()}</td>
                   <td className="px-6 py-5 text-center">
                     <span className={clsx(
                       'inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1',

@@ -298,6 +298,7 @@ class ReservationParticipantSerializer(serializers.ModelSerializer):
 class ReservationSerializer(serializers.ModelSerializer):
     participants = ReservationParticipantSerializer(many=True)
     product_name = serializers.CharField(source="product.name", read_only=True)
+    product_default_currency = serializers.CharField(source="product.default_currency", read_only=True)
     schedule_code = serializers.CharField(source="schedule.schedule_code", read_only=True)
     is_active_hold = serializers.BooleanField(read_only=True)
 
@@ -309,6 +310,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             "client",
             "product",
             "product_name",
+            "product_default_currency",
             "schedule",
             "schedule_code",
             "status",

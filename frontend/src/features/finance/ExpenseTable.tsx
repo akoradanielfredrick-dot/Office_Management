@@ -28,6 +28,19 @@ interface Expense {
   description: string;
 }
 
+const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+
+const sumByCurrency = (items: Expense[]) =>
+  operatingCurrencies.reduce<Record<(typeof operatingCurrencies)[number], number>>(
+    (summary, currency) => {
+      summary[currency] = items
+        .filter((item) => item.currency === currency)
+        .reduce((sum, item) => sum + toNumber(item.amount), 0);
+      return summary;
+    },
+    { USD: 0, EUR: 0, GBP: 0 }
+  );
+
 export const ExpenseTable: React.FC = () => {
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -48,9 +61,9 @@ export const ExpenseTable: React.FC = () => {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
   const monthExpenses = expenses.filter((expense) => new Date(expense.expense_date) >= monthStart);
-  const totalExpenses = monthExpenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
-  const directCosts = expenses.filter((expense) => expense.booking_ref).reduce((sum, expense) => sum + toNumber(expense.amount), 0);
-  const generalOverheads = expenses.filter((expense) => !expense.booking_ref).reduce((sum, expense) => sum + toNumber(expense.amount), 0);
+  const totalExpenses = sumByCurrency(monthExpenses);
+  const directCosts = sumByCurrency(expenses.filter((expense) => expense.booking_ref));
+  const generalOverheads = sumByCurrency(expenses.filter((expense) => !expense.booking_ref));
 
   return (
     <div className="space-y-8">
@@ -80,7 +93,11 @@ export const ExpenseTable: React.FC = () => {
             <Wallet size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Total Expenses (MTD)</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">KES {totalExpenses.toLocaleString()}</p>
+          <div className="mt-3 space-y-2">
+            {operatingCurrencies.map((currency) => (
+              <p key={currency} className="text-lg font-black text-slate-900">{currency} {totalExpenses[currency].toLocaleString()}</p>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-[1.8rem] border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm">
@@ -88,7 +105,11 @@ export const ExpenseTable: React.FC = () => {
             <BriefcaseBusiness size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Tour Direct Costs</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">KES {directCosts.toLocaleString()}</p>
+          <div className="mt-3 space-y-2">
+            {operatingCurrencies.map((currency) => (
+              <p key={currency} className="text-lg font-black text-slate-900">{currency} {directCosts[currency].toLocaleString()}</p>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-[1.8rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
@@ -96,7 +117,11 @@ export const ExpenseTable: React.FC = () => {
             <Landmark size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">General Overheads</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">KES {generalOverheads.toLocaleString()}</p>
+          <div className="mt-3 space-y-2">
+            {operatingCurrencies.map((currency) => (
+              <p key={currency} className="text-lg font-black text-slate-900">{currency} {generalOverheads[currency].toLocaleString()}</p>
+            ))}
+          </div>
         </div>
       </section>
 

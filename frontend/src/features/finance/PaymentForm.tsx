@@ -64,12 +64,12 @@ export const PaymentForm: React.FC = () => {
   const [bookings, setBookings] = useState<BookingOption[]>([]);
   const [submitError, setSubmitError] = useState('');
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<PaymentFormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       booking: bookingIdFromUrl || '',
       amount: 0,
-      currency: 'KES',
+      currency: 'USD',
       exchange_rate: 1,
       payment_type: 'DEPOSIT',
       payment_date: new Date().toISOString().split('T')[0],
@@ -82,6 +82,12 @@ export const PaymentForm: React.FC = () => {
   const selectedBookingId = watch('booking');
   const selectedBooking = bookings.find((b) => b.id === selectedBookingId);
   const selectedPaymentType = watch('payment_type');
+
+  useEffect(() => {
+    if (selectedBooking?.currency) {
+      setValue('currency', selectedBooking.currency);
+    }
+  }, [selectedBooking, setValue]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -114,7 +120,7 @@ export const PaymentForm: React.FC = () => {
 
   const balance = selectedBooking ? toNumber(selectedBooking.total_cost) - toNumber(selectedBooking.paid_amount) : 0;
   const minimumDeposit = selectedBooking ? toNumber(selectedBooking.total_cost) * 0.5 : 0;
-  const depositHintCurrency = selectedBooking?.currency || 'KES';
+  const depositHintCurrency = selectedBooking?.currency || 'USD';
   const inputClassName = 'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
   const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
@@ -195,7 +201,6 @@ export const PaymentForm: React.FC = () => {
                   <label className={labelClassName}>Currency</label>
                   <div className="relative">
                     <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
-                      <option value="KES">KES - Kenya Shilling</option>
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
                       <option value="GBP">GBP - Pound Sterling</option>
@@ -205,7 +210,7 @@ export const PaymentForm: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className={labelClassName}>Exchange Rate (to KES)</label>
+                  <label className={labelClassName}>Exchange Rate</label>
                   <div className="relative">
                     <ArrowRightLeft size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input

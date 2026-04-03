@@ -74,6 +74,24 @@ interface AvailabilitySnapshot {
   can_sell_requested_quantity: boolean;
 }
 
+const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+
+const resolveSelectableCurrencies = (product?: ProductOption): string[] => {
+  const currencies = Array.from(
+    new Set((product?.prices || []).map((price) => price.currency).filter((value) => operatingCurrencies.includes(value as (typeof operatingCurrencies)[number])))
+  );
+
+  return currencies.length ? currencies : [...operatingCurrencies];
+};
+
+const resolvePreferredCurrency = (product?: ProductOption): string => {
+  const allowedCurrencies = resolveSelectableCurrencies(product);
+  if (product?.default_currency && allowedCurrencies.includes(product.default_currency)) {
+    return product.default_currency;
+  }
+  return allowedCurrencies[0] || 'USD';
+};
+
 const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
   if (Array.isArray(payload)) {
     return payload;
@@ -124,7 +142,7 @@ export const ReservationForm: React.FC = () => {
       infant_price: 0,
       notes: '',
       internal_comments: '',
-      currency: 'KES',
+      currency: 'USD',
     },
   });
 
@@ -172,7 +190,7 @@ export const ReservationForm: React.FC = () => {
       return;
     }
 
-    setValue('currency', selectedProduct.default_currency || 'KES');
+    setValue('currency', resolvePreferredCurrency(selectedProduct));
   }, [selectedProduct, setValue]);
 
   const adultQuantity = watch('adult_quantity');
@@ -382,19 +400,11 @@ export const ReservationForm: React.FC = () => {
                 <label className={labelClassName}>Currency</label>
                 <div className="relative">
                   <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
-                    {Array.from(new Set((selectedProduct?.prices || []).map((price) => price.currency))).map((priceCurrency) => (
+                    {resolveSelectableCurrencies(selectedProduct).map((priceCurrency) => (
                       <option key={priceCurrency} value={priceCurrency}>
                         {priceCurrency}
                       </option>
                     ))}
-                    {selectedProduct?.prices?.length ? null : (
-                      <>
-                        <option value="KES">KES</option>
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                      </>
-                    )}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 </div>

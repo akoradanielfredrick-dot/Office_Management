@@ -71,7 +71,7 @@ export const ExpenseForm: React.FC = () => {
       category: 'OTHER',
       expense_date: new Date().toISOString().split('T')[0],
       amount: 0,
-      currency: 'KES',
+      currency: 'USD',
       exchange_rate: 1,
       payment_method: 'CASH',
       booking: bookingIdFromUrl || '',
@@ -220,9 +220,9 @@ export const ExpenseForm: React.FC = () => {
                   <label className={labelClassName}>Currency</label>
                   <div className="relative">
                     <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
-                      <option value="KES">KES - Kenya Shilling</option>
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - Pound Sterling</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   </div>

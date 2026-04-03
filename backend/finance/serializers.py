@@ -3,6 +3,8 @@ from .models import Payment, Receipt, Expense
 from operations.models import Booking
 from decimal import Decimal
 
+ALLOWED_FINANCE_CURRENCIES = {"USD", "EUR", "GBP"}
+
 class ReceiptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Receipt
@@ -29,7 +31,12 @@ class PaymentSerializer(serializers.ModelSerializer):
         amount = attrs.get('amount')
         exchange_rate = attrs.get('exchange_rate')
         payment_type = attrs.get('payment_type') or getattr(self.instance, 'payment_type', 'DEPOSIT')
-        currency = attrs.get('currency') or getattr(self.instance, 'currency', 'KES')
+        currency = attrs.get('currency') or getattr(self.instance, 'currency', '')
+
+        if currency and currency not in ALLOWED_FINANCE_CURRENCIES:
+            raise serializers.ValidationError({
+                'currency': "Only USD, EUR, and GBP are allowed for payments."
+            })
 
         if not booking or amount is None or exchange_rate is None:
             return attrs
@@ -62,3 +69,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'supplier', 'supplier_name', 'recorded_by_name', 'created_at'
         ]
         read_only_fields = ['internal_reference', 'created_at']
+
+    def validate_currency(self, value):
+        if value not in ALLOWED_FINANCE_CURRENCIES:
+            raise serializers.ValidationError("Only USD, EUR, and GBP are allowed for expenses.")
+        return value

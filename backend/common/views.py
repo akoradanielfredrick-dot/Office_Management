@@ -8,6 +8,23 @@ import decimal
 from django.db.models.functions import Coalesce
 from django.db.models import DecimalField
 
+
+OPERATING_CURRENCIES = ("USD", "EUR", "GBP")
+
+
+def _currency_totals(queryset, amount_field):
+    rows = (
+        queryset.filter(currency__in=OPERATING_CURRENCIES)
+        .values("currency")
+        .annotate(total=Coalesce(Sum(amount_field, output_field=DecimalField()), decimal.Decimal(0)))
+    )
+    totals = {currency: decimal.Decimal(0) for currency in OPERATING_CURRENCIES}
+    for row in rows:
+        currency = row.get("currency")
+        if currency in totals:
+            totals[currency] = row.get("total") or decimal.Decimal(0)
+    return totals
+
 class DashboardViewSet(viewsets.ViewSet):
     """
     General Dashboard statistics for the landing page.
@@ -26,13 +43,15 @@ class DashboardViewSet(viewsets.ViewSet):
         
         # 2. Monthly Expenses
         now = timezone.now()
-        expenses_this_month = Expense.objects.filter(
+        expenses_queryset = Expense.objects.filter(
             is_deleted=False, 
             expense_date__month=now.month,
             expense_date__year=now.year
-        ).aggregate(
+        )
+        expenses_this_month = expenses_queryset.aggregate(
             total=Coalesce(Sum(F('amount') * F('exchange_rate'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
+        expenses_this_month_by_currency = _currency_totals(expenses_queryset, 'amount')
 
         # 3. Recent Activity (Latest 5 items combined)
         # We'll fetch 5 of each and take the most recent 5 total
@@ -48,7 +67,8 @@ class DashboardViewSet(viewsets.ViewSet):
                 'subtitle': b.client.full_name,
                 'date': b.created_at,
                 'status': b.status,
-                'amount': b.total_cost
+                'amount': b.total_cost,
+                'currency': b.currency or 'USD',
             })
         for p in recent_payments:
             activity.append({
@@ -59,7 +79,8 @@ class DashboardViewSet(viewsets.ViewSet):
                 'subtitle': p.booking.client.full_name if p.booking else "Unknown",
                 'date': p.created_at,
                 'status': 'RECEIVED',
-                'amount': p.amount
+                'amount': p.amount,
+                'currency': p.currency or 'USD',
             })
             
         # Sort combined activity and take top 5
@@ -71,7 +92,8 @@ class DashboardViewSet(viewsets.ViewSet):
                 'total_clients': total_clients,
                 'active_bookings': active_bookings,
                 'pending_payments': pending_payments,
-                'expenses_this_month': expenses_this_month
+                'expenses_this_month': expenses_this_month,
+                'expenses_this_month_by_currency': expenses_this_month_by_currency,
             },
             'recent_activity': recent_activity
         })

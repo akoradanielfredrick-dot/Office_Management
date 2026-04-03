@@ -65,4 +65,4 @@ export const buildBackendApiUrl = (path: string): string => {
 export const toNumber = (value: number | string | null | undefined): number => Number(value || 0);
 
 export const formatMoney = (currency: string | undefined, value: number | string | null | undefined): string =>
-  `${currency || 'KES'} ${toNumber(value).toLocaleString()}`;
+  `${currency || 'USD'} ${toNumber(value).toLocaleString()}`;

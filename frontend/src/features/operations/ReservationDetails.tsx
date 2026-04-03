@@ -9,6 +9,7 @@ interface ReservationDetail {
   client?: string;
   product?: string;
   product_name: string;
+  product_default_currency?: string;
   schedule?: string;
   schedule_code: string;
   status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'CONVERTED';
@@ -170,7 +171,7 @@ export const ReservationDetails: React.FC = () => {
             <ShieldAlert size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Hold Value</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{formatMoney('KES', holdValue)}</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{formatMoney(reservation.product_default_currency || 'USD', holdValue)}</p>
         </div>
       </section>
 
