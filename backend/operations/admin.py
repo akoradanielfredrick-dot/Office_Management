@@ -24,11 +24,24 @@ from .models import (
 
 @admin.register(Excursion)
 class ExcursionAdmin(admin.ModelAdmin):
-    list_display = ("name", "product", "location", "excursion_type", "price_usd", "price_eur", "price_gbp", "is_deleted", "updated_at")
+    list_display = ("name", "location", "excursion_type", "price", "is_deleted", "updated_at")
     list_filter = ("excursion_type", "location", "is_deleted", "created_at", "updated_at")
-    search_fields = ("name", "product__name", "location", "itinerary")
+    search_fields = ("name", "location", "itinerary")
     ordering = ("name",)
     actions = ["soft_delete"]
+    fields = ("name", "location", "excursion_type", "price", "itinerary", "is_deleted")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).only(
+            "id",
+            "name",
+            "location",
+            "excursion_type",
+            "price",
+            "itinerary",
+            "is_deleted",
+            "updated_at",
+        )
 
     @admin.action(description="Soft delete selected excursions")
     def soft_delete(self, request, queryset):

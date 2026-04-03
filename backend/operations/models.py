@@ -606,9 +606,9 @@ class Booking(models.Model):
 
     travel_date = models.DateField(null=True, blank=True)
     number_of_days = models.PositiveIntegerField(default=1)
-    product_name_snapshot = models.CharField(max_length=255, blank=True)
-    product_category_snapshot = models.CharField(max_length=50, blank=True)
-    product_destination_snapshot = models.CharField(max_length=255, blank=True)
+    product_name_snapshot = models.CharField(max_length=255, blank=True, db_column="package_name")
+    product_category_snapshot = models.CharField(max_length=50, blank=True, db_column="package_type")
+    product_destination_snapshot = models.CharField(max_length=255, blank=True, db_column="destination_package")
     num_adults = models.PositiveIntegerField(default=0)
     num_children = models.PositiveIntegerField(default=0)
     price_per_adult = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)

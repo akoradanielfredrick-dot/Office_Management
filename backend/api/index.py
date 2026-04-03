@@ -16,8 +16,6 @@ os.environ.setdefault("DJANGO_STATIC_ROOT", "/tmp/django-static")
 
 
 def _should_prepare_runtime() -> bool:
-    if os.environ.get("VERCEL"):
-        return True
     return os.environ.get("AUTO_PREPARE_DJANGO", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
