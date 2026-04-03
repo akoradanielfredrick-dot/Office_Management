@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Calendar, ChevronDown, Clock3, FileText, Save, ShieldAlert, Users, X } from 'lucide-react';
 import { api, formatMoney, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from './listTypes';
 
 const reservationSchema = z.object({
   client: z.string().uuid('Please select a client'),
@@ -73,6 +74,18 @@ interface AvailabilitySnapshot {
   can_sell_requested_quantity: boolean;
 }
 
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
+
 const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 const readonlyInputClassName = `${inputClassName} bg-slate-50 text-slate-500`;
@@ -123,9 +136,9 @@ export const ReservationForm: React.FC = () => {
         api.get('/operations/schedules/'),
       ]);
 
-      setClients(clientsResponse.data);
-      setProducts(productsResponse.data);
-      setSchedules(schedulesResponse.data);
+      setClients(extractResults<ClientOption>(clientsResponse.data));
+      setProducts(extractResults<ProductOption>(productsResponse.data));
+      setSchedules(extractResults<ScheduleOption>(schedulesResponse.data));
     };
 
     fetchLookups().catch((error) => {
