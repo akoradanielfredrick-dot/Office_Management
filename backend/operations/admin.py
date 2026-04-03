@@ -25,9 +25,9 @@ from .models import (
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
-    list_display = ("name", "package_type", "price", "is_deleted", "updated_at")
+    list_display = ("name", "product", "package_type", "price_usd", "price_eur", "price_gbp", "is_deleted", "updated_at")
     list_filter = ("package_type", "is_deleted", "created_at", "updated_at")
-    search_fields = ("name", "itinerary")
+    search_fields = ("name", "product__name", "itinerary")
     ordering = ("name",)
     actions = ["soft_delete"]
 
@@ -38,9 +38,9 @@ class PackageAdmin(admin.ModelAdmin):
 
 @admin.register(Excursion)
 class ExcursionAdmin(admin.ModelAdmin):
-    list_display = ("name", "location", "excursion_type", "price", "is_deleted", "updated_at")
+    list_display = ("name", "product", "location", "excursion_type", "price_usd", "price_eur", "price_gbp", "is_deleted", "updated_at")
     list_filter = ("excursion_type", "location", "is_deleted", "created_at", "updated_at")
-    search_fields = ("name", "location", "itinerary")
+    search_fields = ("name", "product__name", "location", "itinerary")
     ordering = ("name",)
     actions = ["soft_delete"]
 

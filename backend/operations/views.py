@@ -25,11 +25,11 @@ from .services import amend_booking, cancel_booking, cancel_reservation, convert
 
 
 class PackageViewSet(viewsets.ModelViewSet):
-    queryset = Package.objects.filter(is_deleted=False).order_by("name")
+    queryset = Package.objects.filter(is_deleted=False).select_related("product").order_by("name")
     serializer_class = PackageSerializer
     permission_classes = [IsOperationsUser]
     filterset_fields = ["id", "package_type"]
-    search_fields = ["name", "itinerary"]
+    search_fields = ["name", "product__name", "itinerary"]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -66,11 +66,11 @@ class PackageViewSet(viewsets.ModelViewSet):
 
 
 class ExcursionViewSet(viewsets.ModelViewSet):
-    queryset = Excursion.objects.filter(is_deleted=False).order_by("name")
+    queryset = Excursion.objects.filter(is_deleted=False).select_related("product").order_by("name")
     serializer_class = ExcursionSerializer
     permission_classes = [IsOperationsUser]
     filterset_fields = ["id", "location"]
-    search_fields = ["name", "location", "itinerary"]
+    search_fields = ["name", "product__name", "location", "itinerary"]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -110,8 +110,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related("participant_categories", "prices", "external_mappings").order_by("name")
     serializer_class = ProductSerializer
     permission_classes = [IsOperationsUser]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id", "category", "is_active", "pricing_mode", "slug"]
     search_fields = ["name", "product_code", "destination", "slug", "description"]
+    ordering_fields = ["name", "product_code", "created_at", "updated_at"]
+    ordering = ["name"]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:

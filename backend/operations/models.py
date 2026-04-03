@@ -35,9 +35,19 @@ class Package(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="legacy_package_records",
+    )
     name = models.CharField(max_length=255, unique=True)
     package_type = models.CharField(max_length=20, choices=PACKAGE_TYPE_CHOICES)
     price = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_usd = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_eur = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_gbp = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     itinerary = models.TextField(blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,15 +61,51 @@ class Package(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if self.product_id:
+            if not self.name:
+                self.name = self.product.name
+            if not self.itinerary:
+                self.itinerary = self.product.description
+            safari_type = (self.product.metadata or {}).get("safari_type")
+            if safari_type in dict(self.PACKAGE_TYPE_CHOICES):
+                self.package_type = safari_type
+
+            standard_prices = {
+                price.currency: price.amount
+                for price in self.product.prices.filter(participant_category__isnull=True, rate_name="STANDARD", is_active=True)
+            }
+            if self.price_usd == 0 and standard_prices.get(ProductPrice.Currency.USD) is not None:
+                self.price_usd = standard_prices[ProductPrice.Currency.USD]
+            if self.price_eur == 0 and standard_prices.get(ProductPrice.Currency.EUR) is not None:
+                self.price_eur = standard_prices[ProductPrice.Currency.EUR]
+            if self.price_gbp == 0 and standard_prices.get(ProductPrice.Currency.GBP) is not None:
+                self.price_gbp = standard_prices[ProductPrice.Currency.GBP]
+
+        if self.price == 0 and self.price_usd:
+            self.price = self.price_usd
+
+        super().save(*args, **kwargs)
+
 
 class Excursion(models.Model):
     EXCURSION_TYPE_CHOICES = Package.PACKAGE_TYPE_CHOICES
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="legacy_excursion_records",
+    )
     name = models.CharField(max_length=255, unique=True)
     location = models.CharField(max_length=255)
     excursion_type = models.CharField(max_length=20, choices=EXCURSION_TYPE_CHOICES, default="ROAD_SAFARI")
     price = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_usd = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_eur = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    price_gbp = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     itinerary = models.TextField(blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,6 +118,34 @@ class Excursion(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.location}"
+
+    def save(self, *args, **kwargs):
+        if self.product_id:
+            if not self.name:
+                self.name = self.product.name
+            if not self.location:
+                self.location = self.product.destination or self.product.name
+            if not self.itinerary:
+                self.itinerary = self.product.description
+            safari_type = (self.product.metadata or {}).get("safari_type")
+            if safari_type in dict(self.EXCURSION_TYPE_CHOICES):
+                self.excursion_type = safari_type
+
+            standard_prices = {
+                price.currency: price.amount
+                for price in self.product.prices.filter(participant_category__isnull=True, rate_name="STANDARD", is_active=True)
+            }
+            if self.price_usd == 0 and standard_prices.get(ProductPrice.Currency.USD) is not None:
+                self.price_usd = standard_prices[ProductPrice.Currency.USD]
+            if self.price_eur == 0 and standard_prices.get(ProductPrice.Currency.EUR) is not None:
+                self.price_eur = standard_prices[ProductPrice.Currency.EUR]
+            if self.price_gbp == 0 and standard_prices.get(ProductPrice.Currency.GBP) is not None:
+                self.price_gbp = standard_prices[ProductPrice.Currency.GBP]
+
+        if self.price == 0 and self.price_usd:
+            self.price = self.price_usd
+
+        super().save(*args, **kwargs)
 
 
 class Supplier(models.Model):

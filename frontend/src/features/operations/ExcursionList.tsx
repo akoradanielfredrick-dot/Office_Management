@@ -5,10 +5,15 @@ import { api } from '../../lib/api';
 
 interface ExcursionRecord {
   id: string;
+  product?: string;
+  product_name?: string;
   name: string;
   location: string;
   excursion_type_display: string;
   price: string | number;
+  price_usd: string | number;
+  price_eur: string | number;
+  price_gbp: string | number;
   itinerary?: string;
 }
 
@@ -84,13 +89,15 @@ export const ExcursionList: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left">
+          <table className="w-full min-w-[1220px] text-left">
             <thead className="bg-white">
               <tr className="border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
                 <th className="px-6 py-4">Excursion</th>
                 <th className="px-6 py-4">Location</th>
                 <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Price</th>
+                <th className="px-6 py-4">USD</th>
+                <th className="px-6 py-4">EUR</th>
+                <th className="px-6 py-4">GBP</th>
                 <th className="px-6 py-4">Itinerary</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -100,6 +107,9 @@ export const ExcursionList: React.FC = () => {
                 <tr key={item.id} className="transition-colors hover:bg-slate-50/80">
                   <td className="px-6 py-5">
                     <p className="font-black text-slate-900">{item.name}</p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                      {item.product_name ? `Linked to ${item.product_name}` : 'Manual excursion record'}
+                    </p>
                   </td>
                   <td className="px-6 py-5">
                     <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
@@ -113,7 +123,9 @@ export const ExcursionList: React.FC = () => {
                       {item.excursion_type_display}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-sm font-black text-slate-900">{Number(item.price).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-sm font-black text-slate-900">${Number(item.price_usd || item.price || 0).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-sm font-black text-slate-900">EUR {Number(item.price_eur || 0).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-sm font-black text-slate-900">GBP {Number(item.price_gbp || 0).toLocaleString()}</td>
                   <td className="px-6 py-5 text-sm font-medium text-slate-600">{item.itinerary || 'Not provided'}</td>
                   <td className="px-6 py-5">
                     <div className="flex justify-end">

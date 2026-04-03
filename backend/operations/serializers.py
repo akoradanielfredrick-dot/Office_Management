@@ -25,24 +25,45 @@ from .services import create_booking, create_reservation, mark_inbound_booking_p
 
 class PackageSerializer(serializers.ModelSerializer):
     package_type_display = serializers.CharField(source="get_package_type_display", read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
 
     class Meta:
         model = Package
-        fields = ["id", "name", "package_type", "package_type_display", "price", "itinerary", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "product",
+            "product_name",
+            "name",
+            "package_type",
+            "package_type_display",
+            "price",
+            "price_usd",
+            "price_eur",
+            "price_gbp",
+            "itinerary",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class ExcursionSerializer(serializers.ModelSerializer):
     excursion_type_display = serializers.CharField(source="get_excursion_type_display", read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
 
     class Meta:
         model = Excursion
         fields = [
             "id",
+            "product",
+            "product_name",
             "name",
             "location",
             "excursion_type",
             "excursion_type_display",
             "price",
+            "price_usd",
+            "price_eur",
+            "price_gbp",
             "itinerary",
             "created_at",
             "updated_at",
