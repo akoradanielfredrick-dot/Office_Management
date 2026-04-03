@@ -60,6 +60,45 @@ const buildStandardPrices = (
     };
   });
 
+const formatApiError = (responseData: unknown, fallbackMessage: string): string => {
+  if (!responseData) {
+    return fallbackMessage;
+  }
+
+  if (typeof responseData === 'string') {
+    return responseData.includes('<!DOCTYPE') || responseData.includes('<html')
+      ? fallbackMessage
+      : responseData;
+  }
+
+  if (typeof responseData === 'object') {
+    const detail = (responseData as { detail?: unknown }).detail;
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+
+    const parts = Object.entries(responseData as Record<string, unknown>)
+      .map(([field, value]) => {
+        if (Array.isArray(value)) {
+          return `${field}: ${value.join(', ')}`;
+        }
+
+        if (typeof value === 'string') {
+          return `${field}: ${value}`;
+        }
+
+        return '';
+      })
+      .filter(Boolean);
+
+    if (parts.length > 0) {
+      return parts.join(' | ');
+    }
+  }
+
+  return fallbackMessage;
+};
+
 export const ProductForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -160,17 +199,8 @@ export const ProductForm: React.FC = () => {
       navigate('/products');
     } catch (error: any) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} product:`, error);
-      const responseData = error?.response?.data;
-      const detailMessage =
-        responseData?.detail ||
-        Object.entries(responseData || {})
-          .map(([field, value]) => `${field}: ${Array.isArray(value) ? value.join(', ') : String(value)}`)
-          .join(' | ');
-
-      setSubmitError(
-        detailMessage ||
-        `Unable to ${isEditMode ? 'update' : 'save'} this product right now. Please check the pricing rows and required product details.`
-      );
+      const fallbackMessage = `Unable to ${isEditMode ? 'update' : 'save'} this product right now. Please check the pricing rows and required product details.`;
+      setSubmitError(formatApiError(error?.response?.data, fallbackMessage));
     }
   };
 
