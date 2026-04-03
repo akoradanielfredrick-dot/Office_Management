@@ -14,6 +14,16 @@ def unique_slug(Product, base_slug):
     return candidate
 
 
+def unique_product_code(Product, prefix, legacy_id):
+    base_code = f"{prefix}-{str(legacy_id).replace('-', '')[:8].upper()}"
+    candidate = base_code
+    counter = 1
+    while Product.objects.filter(product_code=candidate).exists():
+        counter += 1
+        candidate = f"{base_code}-{counter}"
+    return candidate
+
+
 def create_default_categories(ProductParticipantCategory, product):
     existing = set(
         ProductParticipantCategory.objects.filter(product=product).values_list("code", flat=True)
@@ -43,6 +53,7 @@ def forwards(apps, schema_editor):
         product = Product.objects.filter(legacy_package=package).first()
         if not product:
             product = Product.objects.create(
+                product_code=unique_product_code(Product, "PRD-PKG", package.id),
                 name=package.name,
                 slug=unique_slug(Product, slugify(package.name)),
                 category="PACKAGE",
@@ -62,6 +73,7 @@ def forwards(apps, schema_editor):
         product = Product.objects.filter(legacy_excursion=excursion).first()
         if not product:
             product = Product.objects.create(
+                product_code=unique_product_code(Product, "PRD-EXC", excursion.id),
                 name=excursion.name,
                 slug=unique_slug(Product, slugify(f"{excursion.name}-{excursion.location}")),
                 category="EXCURSION",
