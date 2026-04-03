@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ChevronDown, Plus, Save, Trash2, X } from 'lucide-react';
+import { ChevronDown, Save, X } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const productSchema = z.object({
@@ -14,7 +14,7 @@ const productSchema = z.object({
   destination: z.string().optional(),
   duration_text: z.string().optional(),
   pricing_mode: z.enum(['PER_PERSON', 'PER_GROUP', 'COLLECTIVE_FIXED']),
-  default_currency: z.enum(['USD', 'EUR', 'GBP', 'KES']),
+  default_currency: z.enum(['USD', 'EUR', 'GBP']),
   is_active: z.boolean(),
 });
 
@@ -23,7 +23,7 @@ type ProductValues = z.infer<typeof productSchema>;
 interface PriceValues {
   id?: string;
   participant_category?: string | null;
-  currency: 'USD' | 'EUR' | 'GBP' | 'KES';
+  currency: 'USD' | 'EUR' | 'GBP';
   amount: number;
   rate_name: string;
 }
@@ -41,17 +41,31 @@ interface ProductResponse extends ProductValues {
 const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
+const standardCurrencies: PriceValues['currency'][] = ['USD', 'EUR', 'GBP'];
+
+const buildStandardPrices = (
+  incomingPrices?: ProductResponse['prices']
+): PriceValues[] =>
+  standardCurrencies.map((currency) => {
+    const matchedPrice = incomingPrices?.find(
+      (price) => !price.participant_category && price.currency === currency && price.rate_name === 'STANDARD'
+    ) ?? incomingPrices?.find((price) => !price.participant_category && price.currency === currency);
+
+    return {
+      id: matchedPrice?.id,
+      participant_category: matchedPrice?.participant_category || null,
+      currency,
+      amount: matchedPrice ? Number(matchedPrice.amount) : 0,
+      rate_name: 'STANDARD',
+    };
+  });
 
 export const ProductForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [submitError, setSubmitError] = React.useState('');
-  const [prices, setPrices] = React.useState<PriceValues[]>([
-    { currency: 'USD', amount: 0, rate_name: 'STANDARD' },
-    { currency: 'EUR', amount: 0, rate_name: 'STANDARD' },
-    { currency: 'GBP', amount: 0, rate_name: 'STANDARD' },
-  ]);
+  const [prices, setPrices] = React.useState<PriceValues[]>(buildStandardPrices());
 
   const {
     register,
@@ -68,7 +82,7 @@ export const ProductForm: React.FC = () => {
       destination: '',
       duration_text: '',
       pricing_mode: 'PER_PERSON',
-      default_currency: 'KES',
+      default_currency: 'USD',
       is_active: true,
     },
   });
@@ -93,15 +107,7 @@ export const ProductForm: React.FC = () => {
           is_active: product.is_active,
         });
         setPrices(
-          product.prices.length
-            ? product.prices.map((price) => ({
-                id: price.id,
-                participant_category: price.participant_category || null,
-                currency: price.currency,
-                amount: Number(price.amount),
-                rate_name: price.rate_name,
-              }))
-            : [{ currency: 'KES', amount: 0, rate_name: 'STANDARD' }]
+          buildStandardPrices(product.prices)
         );
       })
       .catch((error) => {
@@ -121,14 +127,6 @@ export const ProductForm: React.FC = () => {
           : price
       )
     );
-  };
-
-  const addPriceRow = () => {
-    setPrices((current) => [...current, { currency: 'KES', amount: 0, rate_name: 'STANDARD' }]);
-  };
-
-  const removePriceRow = (index: number) => {
-    setPrices((current) => current.filter((_, currentIndex) => currentIndex !== index));
   };
 
   const onSubmit = async (data: ProductValues) => {
@@ -238,7 +236,6 @@ export const ProductForm: React.FC = () => {
               <label className={labelClassName}>Default Currency</label>
               <div className="relative">
                 <select {...register('default_currency')} className={`${inputClassName} appearance-none pr-12`}>
-                  <option value="KES">KES</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
@@ -269,41 +266,30 @@ export const ProductForm: React.FC = () => {
         </section>
 
         <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
+          <div>
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Product Rates</p>
-              <h2 className="mt-1 text-2xl font-black text-slate-900">Structured Price Rows</h2>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">Three-Currency Rates</h2>
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                Record the standard selling rate in the three operating currencies only: `USD`, `EUR`, and `GBP`.
+              </p>
             </div>
-            <button type="button" onClick={addPriceRow} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
-              <Plus size={16} />
-              Add Rate
-            </button>
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             {prices.map((price, index) => (
-              <div key={`${price.currency}-${index}`} className="grid gap-4 rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_1fr_1fr_auto]">
+              <div key={price.currency} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
                 <div>
                   <label className={labelClassName}>Currency</label>
-                  <select value={price.currency} onChange={(event) => updatePrice(index, 'currency', event.target.value)} className={inputClassName}>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="KES">KES</option>
-                  </select>
+                  <input value={price.currency} readOnly className={`${inputClassName} bg-slate-100 text-slate-500`} />
                 </div>
-                <div>
-                  <label className={labelClassName}>Rate Name</label>
-                  <input value={price.rate_name} onChange={(event) => updatePrice(index, 'rate_name', event.target.value)} className={inputClassName} />
-                </div>
-                <div>
+                <div className="mt-4">
                   <label className={labelClassName}>Amount</label>
                   <input type="number" min="0" step="0.01" value={price.amount} onChange={(event) => updatePrice(index, 'amount', event.target.value)} className={inputClassName} />
                 </div>
-                <div className="flex items-end">
-                  <button type="button" onClick={() => removePriceRow(index)} className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600">
-                    <Trash2 size={18} />
-                  </button>
+                <div className="mt-4">
+                  <label className={labelClassName}>Rate Name</label>
+                  <input value={price.rate_name} readOnly className={`${inputClassName} bg-slate-100 text-slate-500`} />
                 </div>
               </div>
             ))}

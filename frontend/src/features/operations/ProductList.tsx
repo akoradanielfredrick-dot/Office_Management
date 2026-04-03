@@ -23,6 +23,8 @@ interface ProductRecord {
   prices: ProductPrice[];
 }
 
+const displayedCurrencies = ['USD', 'EUR', 'GBP'] as const;
+
 export const ProductList: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = React.useState<ProductRecord[]>([]);
@@ -53,6 +55,14 @@ export const ProductList: React.FC = () => {
       product.destination,
     ].some((value) => value?.toLowerCase().includes(needle));
   });
+
+  const getCurrencyAmount = (product: ProductRecord, currency: (typeof displayedCurrencies)[number]) => {
+    const price = product.prices.find(
+      (item) => item.currency === currency && (!item.participant_category_label || item.participant_category_label.toUpperCase() === 'ADULT')
+    ) ?? product.prices.find((item) => item.currency === currency);
+
+    return price ? Number(price.amount).toLocaleString() : '0';
+  };
 
   const activeCount = filteredProducts.filter((product) => product.is_active).length;
 
@@ -100,10 +110,8 @@ export const ProductList: React.FC = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
             <Globe2 size={22} />
           </div>
-          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Priced Currencies</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">
-            {new Set(filteredProducts.flatMap((product) => product.prices.map((price) => price.currency))).size}
-          </p>
+          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Required Currencies</p>
+          <p className="mt-2 text-3xl font-black text-slate-900">3</p>
         </div>
       </section>
 
@@ -149,13 +157,11 @@ export const ProductList: React.FC = () => {
                   <td className="px-6 py-5 text-sm font-medium text-slate-600">{product.duration_text || 'Not set'}</td>
                   <td className="px-6 py-5">
                     <div className="flex flex-wrap gap-2">
-                      {product.prices.length > 0 ? product.prices.map((price) => (
-                        <span key={price.id} className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 ring-1 ring-slate-200">
-                          {price.currency} {Number(price.amount).toLocaleString()}
+                      {displayedCurrencies.map((currency) => (
+                        <span key={`${product.id}-${currency}`} className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 ring-1 ring-slate-200">
+                          {currency} {getCurrencyAmount(product, currency)}
                         </span>
-                      )) : (
-                        <span className="text-sm font-medium text-slate-400">No rates</span>
-                      )}
+                      ))}
                     </div>
                   </td>
                   <td className="px-6 py-5">
