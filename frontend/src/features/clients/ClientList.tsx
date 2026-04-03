@@ -85,10 +85,6 @@ export const ClientList: React.FC = () => {
 
           <div className="relative z-10 flex h-full flex-col justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#ecd48d] bg-white/72 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[#9c7421] backdrop-blur-sm">
-                <Sparkles size={12} />
-                Client Workspace
-              </div>
 
               <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-slate-950">Clients</h1>
               <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-slate-700">
