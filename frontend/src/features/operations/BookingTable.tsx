@@ -158,6 +158,9 @@ export const BookingTable: React.FC = () => {
   }, {});
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const getBookingDisplayName = (booking: Booking) =>
+    booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Booking';
+  const getClientInitial = (booking: Booking) => (booking.client_name || booking.reference_no || 'B').charAt(0).toUpperCase();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -422,7 +425,7 @@ export const BookingTable: React.FC = () => {
                       <p className="font-black text-slate-900">{b.reference_no}</p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500">
                         <MapPin size={12} />
-                        {b.product_name || b.product_name_snapshot || b.product_destination_snapshot}
+                        {getBookingDisplayName(b)}
                         {b.product_category_display ? ` | ${b.product_category_display}` : ''}
                         {b.schedule_code ? ` | ${b.schedule_code}` : ''}
                       </p>
@@ -432,10 +435,10 @@ export const BookingTable: React.FC = () => {
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-black text-slate-500">
-                        {b.client_name.charAt(0)}
+                        {getClientInitial(b)}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800">{b.client_name}</p>
+                        <p className="font-semibold text-slate-800">{b.client_name || 'Client not captured'}</p>
                         <p className="mt-1 text-xs text-slate-400">Lead traveller</p>
                       </div>
                     </div>

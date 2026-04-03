@@ -117,6 +117,7 @@ export const BookingDetails: React.FC = () => {
   const [payments, setPayments] = React.useState<BookingPayment[]>([]);
   const [expenses, setExpenses] = React.useState<BookingExpense[]>([]);
   const [busy, setBusy] = React.useState(false);
+  const [loadError, setLoadError] = React.useState('');
 
   const fetchData = React.useCallback(async () => {
     if (!id) {
@@ -129,6 +130,7 @@ export const BookingDetails: React.FC = () => {
       api.get(`/finance/expenses/?booking=${id}`),
     ]);
 
+    setLoadError('');
     setBooking(bookingResponse.data);
     setPayments(paymentsResponse.data);
     setExpenses(expensesResponse.data);
@@ -140,13 +142,25 @@ export const BookingDetails: React.FC = () => {
       setBooking(null);
       setPayments([]);
       setExpenses([]);
+      setLoadError('Unable to load this booking right now. The record may be incomplete or temporarily unavailable.');
     });
   }, [fetchData]);
+
+  if (loadError) {
+    return (
+      <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-sm font-semibold text-rose-600 shadow-sm">
+        {loadError}
+      </div>
+    );
+  }
 
   if (!booking) {
     return <div className="rounded-[2rem] border border-slate-200 bg-white p-8 text-sm font-semibold text-slate-500 shadow-sm">Loading booking...</div>;
   }
 
+  const bookingDisplayName =
+    booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Custom Booking';
+  const clientDisplayName = booking.customer_full_name || booking.client_name || 'Client not captured';
   const totalExpenses = expenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
   const paidAmount = toNumber(booking.paid_amount);
   const totalCost = toNumber(booking.total_cost);
@@ -238,7 +252,7 @@ export const BookingDetails: React.FC = () => {
     const paymentChannels = booking.payment_channels?.trim() || 'Not provided';
     const travelDate = booking.travel_date || booking.start_date || 'TBD';
     const endDate = booking.end_date || 'TBD';
-    const productName = booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Custom Booking';
+    const productName = bookingDisplayName;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -432,7 +446,7 @@ export const BookingDetails: React.FC = () => {
               </span>
             </div>
             <p className="text-sm font-medium text-slate-500">
-              Tour for {booking.customer_full_name || booking.client_name} | {booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot}
+              Tour for {clientDisplayName} | {bookingDisplayName}
             </p>
           </div>
         </div>
@@ -502,7 +516,7 @@ export const BookingDetails: React.FC = () => {
             <MapPin size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Product</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot}</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{bookingDisplayName}</p>
           {booking.product_category_display ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">{booking.product_category_display}</p> : null}
           {booking.schedule_code ? <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{booking.schedule_code}</p> : null}
         </div>
@@ -512,7 +526,7 @@ export const BookingDetails: React.FC = () => {
             <Calendar size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Travel Date</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.travel_date || booking.start_date}</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.travel_date || booking.start_date || 'TBD'}</p>
           <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{booking.number_of_days} day trip</p>
         </div>
 
@@ -704,7 +718,7 @@ export const BookingDetails: React.FC = () => {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Lead Client</p>
-                    <p className="mt-3 text-sm font-bold text-slate-900">{booking.customer_full_name || booking.client_name}</p>
+                    <p className="mt-3 text-sm font-bold text-slate-900">{clientDisplayName}</p>
                     <p className="mt-2 text-sm font-medium text-slate-600">{booking.customer_email || booking.client_email || 'No email captured'}</p>
                     <p className="mt-1 text-sm font-medium text-slate-600">{booking.customer_phone || booking.client_phone || 'No phone captured'}</p>
                   </div>
