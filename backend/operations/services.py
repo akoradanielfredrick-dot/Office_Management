@@ -469,7 +469,6 @@ def create_booking(*, data, user):
 
         booking = Booking.objects.create(
             client_id=_pk(data["client"]),
-            package_id=_pk(data.get("package")),
             product=schedule.product,
             schedule=schedule,
             status=data.get("status", Booking.Status.CONFIRMED),
@@ -480,7 +479,7 @@ def create_booking(*, data, user):
             customer_full_name=data.get("customer_full_name") or "",
             customer_email=data.get("customer_email"),
             customer_phone=data.get("customer_phone"),
-            destination_package=data.get("destination_package", ""),
+            product_destination_snapshot=data.get("product_destination_snapshot", ""),
             number_of_days=int(data.get("number_of_days") or 1),
             travel_date=data.get("travel_date"),
             extra_charges=Decimal(data.get("extra_charges") or 0),
@@ -553,7 +552,7 @@ def convert_reservation_to_booking(*, reservation_id, booking_data, user):
             customer_full_name=reservation.customer_full_name,
             customer_email=reservation.customer_email,
             customer_phone=reservation.customer_phone,
-            destination_package=booking_data.get("destination_package", reservation.product.destination or reservation.product.name),
+            product_destination_snapshot=booking_data.get("product_destination_snapshot", reservation.product.destination or reservation.product.name),
             number_of_days=int(booking_data.get("number_of_days") or 1),
             travel_date=booking_data.get("travel_date"),
             extra_charges=Decimal(booking_data.get("extra_charges") or 0),

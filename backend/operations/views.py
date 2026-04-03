@@ -6,7 +6,7 @@ from accounts.permissions import IsOperationsUser
 from common.models import ActivityLog
 
 from .filters import BookingFilter, ProductScheduleFilter, ReservationFilter
-from .models import ApiIdempotencyRecord, Booking, Excursion, ExternalProductMapping, InboundBookingPayload, Package, Product, ProductSchedule, Reservation, Supplier
+from .models import ApiIdempotencyRecord, Booking, Excursion, ExternalProductMapping, InboundBookingPayload, Product, ProductSchedule, Reservation, Supplier
 from .pagination import OperationsPageNumberPagination
 from .serializers import (
     ApiIdempotencyRecordSerializer,
@@ -15,54 +15,12 @@ from .serializers import (
     ExternalProductMappingSerializer,
     InboundBookingPayloadProcessSerializer,
     InboundBookingPayloadSerializer,
-    PackageSerializer,
     ProductScheduleSerializer,
     ProductSerializer,
     ReservationSerializer,
     SupplierSerializer,
 )
 from .services import amend_booking, cancel_booking, cancel_reservation, convert_reservation_to_booking, expire_stale_reservations
-
-
-class PackageViewSet(viewsets.ModelViewSet):
-    queryset = Package.objects.filter(is_deleted=False).select_related("product").order_by("name")
-    serializer_class = PackageSerializer
-    permission_classes = [IsOperationsUser]
-    filterset_fields = ["id", "package_type"]
-    search_fields = ["name", "product__name", "itinerary"]
-
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
-
-    def perform_create(self, serializer):
-        instance = serializer.save()
-        ActivityLog.objects.create(
-            user=self.request.user,
-            action=f"Created Package: {instance.name}",
-            table_name="Package",
-            record_id=instance.id,
-        )
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        ActivityLog.objects.create(
-            user=self.request.user,
-            action=f"Updated Package: {instance.name}",
-            table_name="Package",
-            record_id=instance.id,
-        )
-
-    def perform_destroy(self, instance):
-        instance.is_deleted = True
-        instance.save()
-        ActivityLog.objects.create(
-            user=self.request.user,
-            action=f"Soft Deleted Package: {instance.name}",
-            table_name="Package",
-            record_id=instance.id,
-        )
 
 
 class ExcursionViewSet(viewsets.ModelViewSet):
@@ -265,7 +223,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = BookingFilter
-    search_fields = ["reference_no", "client__full_name", "destination_package", "package_name", "customer_full_name"]
+    search_fields = ["reference_no", "client__full_name", "product_destination_snapshot", "product_name_snapshot", "customer_full_name"]
     ordering_fields = ["created_at", "travel_date", "start_date", "total_cost"]
     ordering = ["-created_at"]
 

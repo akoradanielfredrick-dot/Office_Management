@@ -266,9 +266,9 @@ export const PaymentForm: React.FC = () => {
                 {selectedBooking ? (
                   <div className="space-y-5">
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Package</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Product</p>
                       <p className="mt-2 text-lg font-black text-[#234126]">
-                        {selectedBooking.package_name || selectedBooking.destination_package || 'Booking package'}
+                        {selectedBooking.product_name || selectedBooking.product_name_snapshot || selectedBooking.product_destination_snapshot || 'Booking product'}
                       </p>
                     </div>
 

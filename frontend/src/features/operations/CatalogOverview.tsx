@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Boxes, BriefcaseBusiness, Compass, Users } from 'lucide-react';
+import { ArrowRight, Boxes, Compass, Users } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface ClientRecord {
@@ -18,13 +18,6 @@ interface ProductRecord {
   destination?: string;
 }
 
-interface PackageRecord {
-  id: string;
-  name: string;
-  package_type_display: string;
-  price: string | number;
-}
-
 interface ExcursionRecord {
   id: string;
   name: string;
@@ -37,21 +30,18 @@ export const CatalogOverview: React.FC = () => {
   const navigate = useNavigate();
   const [clients, setClients] = React.useState<ClientRecord[]>([]);
   const [products, setProducts] = React.useState<ProductRecord[]>([]);
-  const [packages, setPackages] = React.useState<PackageRecord[]>([]);
   const [excursions, setExcursions] = React.useState<ExcursionRecord[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const [clientResponse, productResponse, packageResponse, excursionResponse] = await Promise.all([
+      const [clientResponse, productResponse, excursionResponse] = await Promise.all([
         api.get('/clients/'),
         api.get('/operations/products/'),
-        api.get('/operations/packages/'),
         api.get('/operations/excursions/'),
       ]);
 
       setClients(clientResponse.data);
       setProducts(productResponse.data);
-      setPackages(packageResponse.data);
       setExcursions(excursionResponse.data);
     };
 
@@ -59,7 +49,6 @@ export const CatalogOverview: React.FC = () => {
       console.error('Failed to load catalog overview:', error);
       setClients([]);
       setProducts([]);
-      setPackages([]);
       setExcursions([]);
     });
   }, []);
@@ -82,14 +71,6 @@ export const CatalogOverview: React.FC = () => {
       path: '/products',
     },
     {
-      label: 'Legacy Packages',
-      value: packages.length,
-      description: 'Existing package records still available through the backend.',
-      icon: BriefcaseBusiness,
-      tone: 'bg-amber-100 text-amber-700',
-      path: '/packages',
-    },
-    {
       label: 'Excursions',
       value: excursions.length,
       description: 'Excursion records linked directly to the operations API.',
@@ -105,9 +86,9 @@ export const CatalogOverview: React.FC = () => {
         <div className="space-y-3">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Connected Catalog</p>
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Clients, Products, Packages & Excursions</h1>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Clients, Products & Excursions</h1>
             <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-slate-500">
-              This page confirms the frontend is talking to the backend across the main commercial records: client profiles, structured products, legacy packages, and excursions.
+              This page confirms the frontend is talking to the backend across the main commercial records: client profiles, structured products, and excursions.
             </p>
           </div>
         </div>
@@ -152,18 +133,12 @@ export const CatalogOverview: React.FC = () => {
 
         <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Catalog Mix</p>
-          <h2 className="mt-2 text-2xl font-black text-slate-900">Products & Legacy Records</h2>
+          <h2 className="mt-2 text-2xl font-black text-slate-900">Products & Excursions</h2>
           <div className="mt-6 space-y-3">
             {products.slice(0, 3).map((product) => (
               <div key={product.id} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
                 <p className="text-sm font-black text-slate-900">{product.name}</p>
                 <p className="mt-1 text-sm font-medium text-slate-600">{product.category_display} {product.destination ? `| ${product.destination}` : ''}</p>
-              </div>
-            ))}
-            {packages.slice(0, 2).map((item) => (
-              <div key={item.id} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                <p className="text-sm font-black text-slate-900">{item.name}</p>
-                <p className="mt-1 text-sm font-medium text-slate-600">{item.package_type_display} | {Number(item.price).toLocaleString()}</p>
               </div>
             ))}
             {excursions.slice(0, 2).map((item) => (
@@ -172,7 +147,7 @@ export const CatalogOverview: React.FC = () => {
                 <p className="mt-1 text-sm font-medium text-slate-600">{item.excursion_type_display} | {item.location}</p>
               </div>
             ))}
-            {!products.length && !packages.length && !excursions.length ? (
+            {!products.length && !excursions.length ? (
               <p className="text-sm font-medium text-slate-500">No catalog records returned from the backend.</p>
             ) : null}
           </div>

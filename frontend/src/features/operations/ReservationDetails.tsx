@@ -65,7 +65,7 @@ export const ReservationDetails: React.FC = () => {
         number_of_days: 1,
         status: 'CONFIRMED',
         source: 'MANUAL_OFFICE',
-        destination_package: reservation.product_name,
+        product_destination_snapshot: reservation.product_name,
         notes: reservation.notes || '',
         internal_notes: reservation.internal_comments || '',
       });

@@ -21,11 +21,11 @@ interface Booking {
   reference_no: string;
   client_name: string;
   product_name?: string;
+  product_name_snapshot?: string;
+  product_category_snapshot?: string;
+  product_category_display?: string;
+  product_destination_snapshot: string;
   schedule_code?: string;
-  package_name?: string;
-  package_type?: string;
-  package_type_display?: string;
-  destination_package: string;
   total_cost: number | string;
   currency: string;
   source?: string;
@@ -422,8 +422,8 @@ export const BookingTable: React.FC = () => {
                       <p className="font-black text-slate-900">{b.reference_no}</p>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500">
                         <MapPin size={12} />
-                        {b.product_name || b.package_name || b.destination_package}
-                        {b.package_type_display ? ` | ${b.package_type_display}` : ''}
+                        {b.product_name || b.product_name_snapshot || b.product_destination_snapshot}
+                        {b.product_category_display ? ` | ${b.product_category_display}` : ''}
                         {b.schedule_code ? ` | ${b.schedule_code}` : ''}
                       </p>
                     </div>

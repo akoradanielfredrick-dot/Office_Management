@@ -207,7 +207,7 @@ export const ProductForm: React.FC = () => {
                   <option value="SAFARI">Safari</option>
                   <option value="EXCURSION">Excursion</option>
                   <option value="TRANSFER">Transfer</option>
-                  <option value="PACKAGE">Package</option>
+                  <option value="PACKAGE">Tour</option>
                   <option value="HOTEL_ADD_ON">Hotel Add-on</option>
                   <option value="ACTIVITY">Activity</option>
                   <option value="OTHER">Other</option>

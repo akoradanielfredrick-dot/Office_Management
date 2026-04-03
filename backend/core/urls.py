@@ -12,7 +12,6 @@ from operations.views import (
     ExcursionViewSet,
     ExternalProductMappingViewSet,
     InboundBookingPayloadViewSet,
-    PackageViewSet,
     ProductScheduleViewSet,
     ProductViewSet,
     ReservationViewSet,
@@ -41,7 +40,6 @@ admin.site.has_permission = MethodType(_super_admin_has_permission, admin.site)
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')
-router.register(r'operations/packages', PackageViewSet, basename='package')
 router.register(r'operations/excursions', ExcursionViewSet, basename='excursion')
 router.register(r'operations/products', ProductViewSet, basename='product')
 router.register(r'operations/product-mappings', ExternalProductMappingViewSet, basename='external-product-mapping')

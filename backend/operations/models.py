@@ -28,68 +28,11 @@ class IntegrationEventType(models.TextChoices):
     UNKNOWN = "UNKNOWN", "Unknown"
 
 
-class Package(models.Model):
-    PACKAGE_TYPE_CHOICES = [
+class Excursion(models.Model):
+    EXCURSION_TYPE_CHOICES = [
         ("AIR_SAFARI", "Air Safari"),
         ("ROAD_SAFARI", "Road Safari"),
     ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    product = models.ForeignKey(
-        "Product",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="legacy_package_records",
-    )
-    name = models.CharField(max_length=255, unique=True)
-    package_type = models.CharField(max_length=20, choices=PACKAGE_TYPE_CHOICES)
-    price = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    price_usd = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    price_eur = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    price_gbp = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    itinerary = models.TextField(blank=True)
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["name"]
-        verbose_name = "Package"
-        verbose_name_plural = "Packages"
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        if self.product_id:
-            if not self.name:
-                self.name = self.product.name
-            if not self.itinerary:
-                self.itinerary = self.product.description
-            safari_type = (self.product.metadata or {}).get("safari_type")
-            if safari_type in dict(self.PACKAGE_TYPE_CHOICES):
-                self.package_type = safari_type
-
-            standard_prices = {
-                price.currency: price.amount
-                for price in self.product.prices.filter(participant_category__isnull=True, rate_name="STANDARD", is_active=True)
-            }
-            if self.price_usd == 0 and standard_prices.get(ProductPrice.Currency.USD) is not None:
-                self.price_usd = standard_prices[ProductPrice.Currency.USD]
-            if self.price_eur == 0 and standard_prices.get(ProductPrice.Currency.EUR) is not None:
-                self.price_eur = standard_prices[ProductPrice.Currency.EUR]
-            if self.price_gbp == 0 and standard_prices.get(ProductPrice.Currency.GBP) is not None:
-                self.price_gbp = standard_prices[ProductPrice.Currency.GBP]
-
-        if self.price == 0 and self.price_usd:
-            self.price = self.price_usd
-
-        super().save(*args, **kwargs)
-
-
-class Excursion(models.Model):
-    EXCURSION_TYPE_CHOICES = Package.PACKAGE_TYPE_CHOICES
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(
@@ -170,7 +113,7 @@ class Product(models.Model):
         SAFARI = "SAFARI", "Safari"
         EXCURSION = "EXCURSION", "Excursion"
         TRANSFER = "TRANSFER", "Transfer"
-        PACKAGE = "PACKAGE", "Package"
+        PACKAGE = "PACKAGE", "Tour"
         HOTEL_ADD_ON = "HOTEL_ADD_ON", "Hotel Add-on"
         ACTIVITY = "ACTIVITY", "Activity"
         OTHER = "OTHER", "Other"
@@ -199,13 +142,6 @@ class Product(models.Model):
     default_currency = models.CharField(max_length=3, default="KES")
     default_timezone = models.CharField(max_length=64, default=settings.TIME_ZONE)
     metadata = models.JSONField(default=dict, blank=True)
-    legacy_package = models.ForeignKey(
-        Package,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="mapped_products",
-    )
     legacy_excursion = models.ForeignKey(
         Excursion,
         on_delete=models.SET_NULL,
@@ -642,7 +578,6 @@ class Booking(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name="bookings")
-    package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
     schedule = models.ForeignKey(
         ProductSchedule,
@@ -671,9 +606,9 @@ class Booking(models.Model):
 
     travel_date = models.DateField(null=True, blank=True)
     number_of_days = models.PositiveIntegerField(default=1)
-    package_name = models.CharField(max_length=255, blank=True)
-    package_type = models.CharField(max_length=50, blank=True)
-    destination_package = models.CharField(max_length=255, blank=True)
+    product_name_snapshot = models.CharField(max_length=255, blank=True)
+    product_category_snapshot = models.CharField(max_length=50, blank=True)
+    product_destination_snapshot = models.CharField(max_length=255, blank=True)
     num_adults = models.PositiveIntegerField(default=0)
     num_children = models.PositiveIntegerField(default=0)
     price_per_adult = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
@@ -749,22 +684,12 @@ class Booking(models.Model):
             self.customer_phone = self.client.phone
 
         if self.product:
-            self.package_name = self.product.name
-            self.package_type = self.product.category
-            if not self.destination_package:
-                self.destination_package = self.product.destination or self.product.name
+            self.product_name_snapshot = self.product.name
+            self.product_category_snapshot = self.product.category
+            if not self.product_destination_snapshot:
+                self.product_destination_snapshot = self.product.destination or self.product.name
             if not self.currency:
                 self.currency = self.product.default_currency
-
-        if self.package:
-            self.package_name = self.package.name
-            self.package_type = self.package.package_type
-            if not self.destination_package:
-                self.destination_package = self.package.name
-            if not self.itinerary:
-                self.itinerary = self.package.itinerary
-            if self.price_per_adult == 0:
-                self.price_per_adult = self.package.price
 
         if self.schedule and self.schedule.start_at and not self.travel_date:
             local_start = timezone.localtime(self.schedule.start_at)

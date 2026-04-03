@@ -11,7 +11,6 @@ from .models import (
     InboundBookingPayload,
     Itinerary,
     ItineraryDay,
-    Package,
     Product,
     ProductParticipantCategory,
     ProductPrice,
@@ -21,19 +20,6 @@ from .models import (
     ScheduleCategoryAvailability,
     Supplier,
 )
-
-
-@admin.register(Package)
-class PackageAdmin(admin.ModelAdmin):
-    list_display = ("name", "product", "package_type", "price_usd", "price_eur", "price_gbp", "is_deleted", "updated_at")
-    list_filter = ("package_type", "is_deleted", "created_at", "updated_at")
-    search_fields = ("name", "product__name", "itinerary")
-    ordering = ("name",)
-    actions = ["soft_delete"]
-
-    @admin.action(description="Soft delete selected packages")
-    def soft_delete(self, request, queryset):
-        queryset.update(is_deleted=True)
 
 
 @admin.register(Excursion)
@@ -162,7 +148,7 @@ class BookingAdmin(admin.ModelAdmin):
         "total_cost",
     )
     list_filter = ("status", "payment_status", "source", "is_deleted")
-    search_fields = ("reference_no", "client__full_name", "package_name", "destination_package", "customer_full_name")
+    search_fields = ("reference_no", "client__full_name", "product_name_snapshot", "product_destination_snapshot", "customer_full_name")
     inlines = [BookingParticipantInline, BookingTravellerInline, BookingAuditEntryInline]
     actions = ["soft_delete"]
     fieldsets = (
@@ -180,8 +166,8 @@ class BookingAdmin(admin.ModelAdmin):
                 "external_booking_reference",
             )
         }),
-        ("Legacy linkage", {
-            "fields": ("package", "package_name", "package_type", "destination_package")
+        ("Product snapshot", {
+            "fields": ("product_name_snapshot", "product_category_snapshot", "product_destination_snapshot")
         }),
         ("Customer snapshot", {
             "fields": ("customer_full_name", "customer_email", "customer_phone")

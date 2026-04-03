@@ -8,7 +8,7 @@ interface ProfitData {
   id: string;
   ref: string;
   client: string;
-  package?: string;
+  product?: string;
   revenue: number;
   costs: number;
   profit: number;
@@ -16,8 +16,8 @@ interface ProfitData {
 }
 
 const fallbackData: ProfitData[] = [
-  { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', package: 'Maasai Mara Safari', revenue: 150000, costs: 40000, profit: 110000, margin: 73.3 },
-  { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', package: 'Amboseli Executive Trip', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
+  { id: '1', ref: 'BKG-2026-0005', client: 'John Doe', product: 'Maasai Mara Safari', revenue: 150000, costs: 40000, profit: 110000, margin: 73.3 },
+  { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', product: 'Amboseli Executive Trip', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
 ];
 
 export const ProfitabilityReport: React.FC = () => {
@@ -93,7 +93,7 @@ export const ProfitabilityReport: React.FC = () => {
                   <td className="px-6 py-5">
                     <p className="font-black text-slate-900">{p.ref}</p>
                     <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{p.client}</p>
-                    {p.package && <p className="mt-1 text-xs font-medium text-primary-700">{p.package}</p>}
+                    {p.product && <p className="mt-1 text-xs font-medium text-primary-700">{p.product}</p>}
                   </td>
                   <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{Number(p.revenue).toLocaleString()}</td>
                   <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{Number(p.costs).toLocaleString()}</td>

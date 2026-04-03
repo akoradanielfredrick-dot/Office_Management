@@ -145,7 +145,7 @@ export const DashboardHome: React.FC = () => {
     },
     {
       label: 'Catalog View',
-      description: 'See clients, products, packages, and excursions together',
+      description: 'See clients, products, and excursions together',
       icon: Boxes,
       path: '/catalog',
       tone: 'bg-[#4d6a58]',

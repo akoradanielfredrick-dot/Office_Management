@@ -52,11 +52,11 @@ interface BookingDetailRecord {
   customer_email?: string;
   customer_phone?: string;
   product_name?: string;
+  product_name_snapshot?: string;
+  product_category_display?: string;
   schedule_code?: string;
   reservation_reference?: string;
-  package_name?: string;
-  package_type_display?: string;
-  destination_package: string;
+  product_destination_snapshot: string;
   travel_date?: string;
   number_of_days: number;
   num_adults: number;
@@ -238,7 +238,7 @@ export const BookingDetails: React.FC = () => {
     const paymentChannels = booking.payment_channels?.trim() || 'Not provided';
     const travelDate = booking.travel_date || booking.start_date || 'TBD';
     const endDate = booking.end_date || 'TBD';
-    const packageName = booking.package_name || booking.destination_package || 'Custom Booking';
+    const productName = booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Custom Booking';
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -376,8 +376,8 @@ export const BookingDetails: React.FC = () => {
     ]);
 
     drawGridRow([
-      { label: 'Package', value: packageName },
-      { label: 'Package Type', value: booking.package_type_display || 'Not specified' },
+      { label: 'Product', value: productName },
+      { label: 'Product Category', value: booking.product_category_display || 'Not specified' },
       { label: 'Travel Date', value: travelDate },
       { label: 'End Date', value: endDate },
     ]);
@@ -432,7 +432,7 @@ export const BookingDetails: React.FC = () => {
               </span>
             </div>
             <p className="text-sm font-medium text-slate-500">
-              Tour for {booking.customer_full_name || booking.client_name} | {booking.product_name || booking.package_name || booking.destination_package}
+              Tour for {booking.customer_full_name || booking.client_name} | {booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot}
             </p>
           </div>
         </div>
@@ -501,9 +501,9 @@ export const BookingDetails: React.FC = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700">
             <MapPin size={22} />
           </div>
-          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Package</p>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.product_name || booking.package_name || booking.destination_package}</p>
-          {booking.package_type_display ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">{booking.package_type_display}</p> : null}
+          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Product</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot}</p>
+          {booking.product_category_display ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">{booking.product_category_display}</p> : null}
           {booking.schedule_code ? <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{booking.schedule_code}</p> : null}
         </div>
 

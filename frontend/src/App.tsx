@@ -21,8 +21,6 @@ import { BookingForm } from './features/operations/BookingForm';
 import { ProductList } from './features/operations/ProductList';
 import { ProductForm } from './features/operations/ProductForm';
 import { CatalogOverview } from './features/operations/CatalogOverview';
-import { PackageList } from './features/operations/PackageList';
-import { PackageForm } from './features/operations/PackageForm';
 import { ExcursionList } from './features/operations/ExcursionList';
 import { ExcursionForm } from './features/operations/ExcursionForm';
 import { ScheduleList } from './features/operations/ScheduleList';
@@ -64,9 +62,6 @@ const App: React.FC = () => {
           <Route path="bookings/:id/amend" element={<BookingAmendForm />} />
           <Route path="catalog" element={<CatalogOverview />} />
           <Route path="products" element={<ProductList />} />
-          <Route path="packages" element={<PackageList />} />
-          <Route path="packages/new" element={<PackageForm />} />
-          <Route path="packages/:id/edit" element={<PackageForm />} />
           <Route path="excursions" element={<ExcursionList />} />
           <Route path="excursions/new" element={<ExcursionForm />} />
           <Route path="excursions/:id/edit" element={<ExcursionForm />} />

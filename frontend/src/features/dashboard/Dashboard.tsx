@@ -10,7 +10,6 @@ import {
   BarChart3,
   ShoppingCart,
   Boxes,
-  BriefcaseBusiness,
   Compass,
   Clock3,
   ShieldAlert,
@@ -50,9 +49,8 @@ export const Dashboard: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Bookings', path: '/bookings', icon: Calendar },
-    { label: 'Catalog', path: '/catalog', icon: BriefcaseBusiness },
+    { label: 'Catalog', path: '/catalog', icon: Boxes },
     { label: 'Products', path: '/products', icon: Boxes },
-    { label: 'Packages', path: '/packages', icon: BriefcaseBusiness },
     { label: 'Excursions', path: '/excursions', icon: Compass },
     { label: 'Schedules', path: '/schedules', icon: Clock3 },
     { label: 'Availability', path: '/availability', icon: ShieldCheck },

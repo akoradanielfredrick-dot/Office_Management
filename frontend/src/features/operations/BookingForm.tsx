@@ -285,7 +285,7 @@ export const BookingForm: React.FC = () => {
         currency: data.currency,
         status: data.status,
         source: data.source,
-        destination_package: selectedProduct?.destination || selectedProduct?.name || '',
+        product_destination_snapshot: selectedProduct?.destination || selectedProduct?.name || '',
         participant_quantities,
       });
 

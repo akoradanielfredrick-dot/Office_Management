@@ -10,7 +10,6 @@ from .models import (
     Excursion,
     ExternalProductMapping,
     InboundBookingPayload,
-    Package,
     Product,
     ProductParticipantCategory,
     ProductPrice,
@@ -21,29 +20,6 @@ from .models import (
     Supplier,
 )
 from .services import create_booking, create_reservation, mark_inbound_booking_payload_processed, register_inbound_booking_payload
-
-
-class PackageSerializer(serializers.ModelSerializer):
-    package_type_display = serializers.CharField(source="get_package_type_display", read_only=True)
-    product_name = serializers.CharField(source="product.name", read_only=True)
-
-    class Meta:
-        model = Package
-        fields = [
-            "id",
-            "product",
-            "product_name",
-            "name",
-            "package_type",
-            "package_type_display",
-            "price",
-            "price_usd",
-            "price_eur",
-            "price_gbp",
-            "itinerary",
-            "created_at",
-            "updated_at",
-        ]
 
 
 class ExcursionSerializer(serializers.ModelSerializer):
@@ -162,7 +138,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "default_currency",
             "default_timezone",
             "metadata",
-            "legacy_package",
             "legacy_excursion",
             "participant_categories",
             "prices",
@@ -415,7 +390,7 @@ class BookingSerializer(serializers.ModelSerializer):
     client_name = serializers.ReadOnlyField(source="client.full_name")
     client_email = serializers.ReadOnlyField(source="client.email")
     client_phone = serializers.ReadOnlyField(source="client.phone")
-    package_type_display = serializers.SerializerMethodField()
+    product_category_display = serializers.SerializerMethodField()
     product_name = serializers.CharField(source="product.name", read_only=True)
     schedule_code = serializers.CharField(source="schedule.schedule_code", read_only=True)
     reservation_reference = serializers.CharField(source="reservation.reference_no", read_only=True)
@@ -431,16 +406,15 @@ class BookingSerializer(serializers.ModelSerializer):
             "client_name",
             "client_email",
             "client_phone",
-            "package",
             "product",
             "product_name",
             "schedule",
             "schedule_code",
             "reservation",
             "reservation_reference",
-            "package_name",
-            "package_type",
-            "package_type_display",
+            "product_name_snapshot",
+            "product_category_snapshot",
+            "product_category_display",
             "reference_no",
             "status",
             "payment_status",
@@ -450,7 +424,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "integration_provider",
             "integration_provider_display",
             "external_booking_reference",
-            "destination_package",
+            "product_destination_snapshot",
             "travel_date",
             "number_of_days",
             "num_adults",
@@ -494,8 +468,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "subtotal",
             "paid_amount",
             "payment_status",
-            "package_name",
-            "package_type",
+            "product_name_snapshot",
+            "product_category_snapshot",
             "cancellation_reason",
             "cancelled_at",
             "cancelled_by_type",
@@ -503,12 +477,10 @@ class BookingSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_package_type_display(self, obj):
+    def get_product_category_display(self, obj):
         if obj.product:
             return obj.product.get_category_display()
-        if obj.package:
-            return obj.package.get_package_type_display()
-        return obj.package_type.replace("_", " ").title() if obj.package_type else ""
+        return obj.product_category_snapshot.replace("_", " ").title() if obj.product_category_snapshot else ""
 
     def validate(self, attrs):
         schedule = attrs.get("schedule") or getattr(self.instance, "schedule", None)

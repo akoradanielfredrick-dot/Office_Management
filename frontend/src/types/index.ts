@@ -22,8 +22,8 @@ export interface Booking {
   id: string;
   reference_no: string;
   client: Client;
-  package_name?: string;
-  package_type?: string;
+  product_name_snapshot?: string;
+  product_category_snapshot?: string;
   status: 'CONFIRMED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
   travel_date?: string;
   number_of_days?: number;
