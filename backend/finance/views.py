@@ -11,7 +11,7 @@ import decimal
 from django.utils import timezone
 
 from django.http import FileResponse
-from accounts.permissions import IsFinanceUser
+from accounts.permissions import IsFinanceUser, IsAuthenticatedReadOnlyOrFinanceWrite
 from .services import generate_receipt_pdf
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -58,7 +58,7 @@ def _recalculate_booking_paid_amount(booking):
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.filter(is_deleted=False).select_related('booking', 'booking__client', 'received_by', 'receipt').order_by('-created_at')
     serializer_class = PaymentSerializer
-    permission_classes = [IsFinanceUser]
+    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['id', 'booking', 'method']
     search_fields = ['internal_reference', 'booking__reference_no', 'booking__client__full_name', 'txn_reference', 'receipt__receipt_no']
@@ -117,7 +117,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class ReceiptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Receipt.objects.all().order_by('-generated_at')
     serializer_class = ReceiptSerializer
-    permission_classes = [IsFinanceUser]
+    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
 
     @decorators.action(detail=True, methods=['get'])
     def download(self, request, pk=None):

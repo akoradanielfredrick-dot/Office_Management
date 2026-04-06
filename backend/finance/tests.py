@@ -217,3 +217,45 @@ class PaymentWorkflowTests(APITestCase):
         self.assertEqual(response.data[0]['client_name'], self.customer.full_name)
         self.assertIsNone(response.data[0]['receipt'])
         self.assertIsNone(response.data[0]['receipt_no'])
+
+    def test_non_finance_user_can_view_payment_list(self):
+        operations_role = Role.objects.create(name='OPERATIONS')
+        operations_user = User.objects.create_user(
+            email='ops@example.com',
+            password='testpass123',
+            full_name='Operations Viewer',
+            role=operations_role,
+        )
+        Payment.objects.create(
+            booking=self.booking,
+            amount=Decimal('120.00'),
+            currency='USD',
+            exchange_rate=Decimal('1.0000'),
+            payment_type='DEPOSIT',
+            method='MPESA',
+            payment_date='2026-04-06T00:00:00Z',
+            txn_reference='TXN-OPS-VIEW',
+            notes='Visible to all signed-in users',
+            received_by=self.user,
+        )
+
+        self.client.force_authenticate(user=operations_user)
+        response = self.client.get(reverse('payment-list'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['booking_ref'], self.booking.reference_no)
+
+    def test_non_finance_user_cannot_create_payment(self):
+        operations_role = Role.objects.create(name='OPERATIONS')
+        operations_user = User.objects.create_user(
+            email='ops-create@example.com',
+            password='testpass123',
+            full_name='Operations No Create',
+            role=operations_role,
+        )
+
+        self.client.force_authenticate(user=operations_user)
+        response = self.client.post(reverse('payment-list'), self._payment_payload(txn_reference='TXN-NO-CREATE'), format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
