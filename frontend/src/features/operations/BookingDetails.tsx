@@ -462,10 +462,56 @@ export const BookingDetails: React.FC = () => {
       y += rowHeight + rowGap;
     };
 
-    const drawFullWidthSection = (label: string, value: string, minHeight = 84) => {
-      ensureSpace(minHeight * layoutScale + rowGap);
-      const actualHeight = drawFieldBox(left, y, contentWidth, label, value, minHeight);
-      y += actualHeight + rowGap;
+    const drawFlowingFullWidthSection = (label: string, value: string, minHeight = 84) => {
+      const displayValue = value || 'Not provided';
+      const normalizedValue = displayValue.replace(/\r\n/g, '\n');
+      const allValueLines = doc.splitTextToSize(normalizedValue, contentWidth - innerPaddingX * 2);
+      let remainingLines = [...allValueLines];
+      let isContinuation = false;
+
+      while (remainingLines.length > 0 || !isContinuation) {
+        const effectiveLabel = isContinuation ? `${label} (Continued)` : label;
+        const effectiveLabelLines = doc.splitTextToSize(effectiveLabel.toUpperCase(), contentWidth - innerPaddingX * 2);
+        const valueTop = labelTop + effectiveLabelLines.length * labelLineHeight + 8 * layoutScale;
+        const minimumBoxHeight = Math.max(minHeight * layoutScale, valueTop + valueLineHeight + 12 * layoutScale);
+
+        ensureSpace(minimumBoxHeight + rowGap);
+
+        const availableBoxHeight = pageFloor - y - rowGap;
+        const maxValueHeight = Math.max(valueLineHeight, availableBoxHeight - valueTop - 12 * layoutScale);
+        const maxLinesForPage = Math.max(1, Math.floor(maxValueHeight / valueLineHeight));
+        const linesForPage = remainingLines.length > 0 ? remainingLines.splice(0, maxLinesForPage) : ['Not provided'];
+        const contentHeight =
+          labelTop +
+          effectiveLabelLines.length * labelLineHeight +
+          8 * layoutScale +
+          linesForPage.length * valueLineHeight +
+          12 * layoutScale;
+        const boxHeight = Math.max(minHeight * layoutScale, contentHeight);
+
+        doc.setDrawColor(203, 213, 225);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(left, y, contentWidth, boxHeight, boxRadius, boxRadius, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(labelFontSize);
+        doc.setTextColor(100, 116, 139);
+        doc.text(effectiveLabelLines, left + innerPaddingX, y + labelTop, { lineHeightFactor: labelLineHeight / labelFontSize });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(valueFontSize);
+        doc.setTextColor(15, 23, 42);
+        doc.text(linesForPage, left + innerPaddingX, y + valueTop, { lineHeightFactor: valueLineHeight / valueFontSize });
+
+        y += boxHeight + rowGap;
+
+        if (remainingLines.length === 0) {
+          break;
+        }
+
+        ensureSpace(30 * layoutScale);
+        isContinuation = true;
+      }
     };
 
     const drawTwoColumnRow = (fields: Array<{ label: string; value: string }>, minHeight = 58) => {
@@ -554,7 +600,7 @@ export const BookingDetails: React.FC = () => {
     ], 72);
 
     drawSectionBand('Notes & Issuance');
-    drawFullWidthSection('Itinerary', itinerary, 84);
+    drawFlowingFullWidthSection('Itinerary', itinerary, 84);
     drawTwoColumnRow([
       { label: 'Generated From', value: generatedFrom },
       { label: 'Generated On', value: generatedOn },
