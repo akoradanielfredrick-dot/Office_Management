@@ -272,7 +272,7 @@ export const BookingDetails: React.FC = () => {
     const left = 36;
     const right = pageWidth - 36;
     const contentWidth = right - left;
-    const topMargin = 36;
+    const topMargin = 40;
     const bottomMargin = 36;
     let y = topMargin;
     const companyName = 'MRANGA TOURS & SAFARI LTD.';
@@ -309,18 +309,18 @@ export const BookingDetails: React.FC = () => {
       const twoColumnWidth = (contentWidth - twoColumnGap) / 2;
 
       const headerHeight =
-        10 * scale +
-        14 * scale +
-        22 * scale +
+        8 * scale +
         18 * scale +
+        22 * scale +
+        22 * scale +
         11 * scale +
-        14 * scale +
+        16 * scale +
         11 * scale +
-        14 * scale +
+        16 * scale +
         11 * scale +
-        20 * scale +
+        22 * scale +
         10 * scale +
-        16 * scale;
+        18 * scale;
 
       const rowHeights = [
         [
@@ -461,23 +461,23 @@ export const BookingDetails: React.FC = () => {
     };
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9 * layoutScale);
+    doc.setFontSize(8 * layoutScale);
     doc.setTextColor(100, 116, 139);
     doc.text('OFFICIAL BOOKING', left, y);
-    y += 14 * layoutScale;
+    y += 18 * layoutScale;
     doc.setFontSize(22 * layoutScale);
     doc.setTextColor(31, 67, 38);
     doc.text(companyName, left, y);
-    y += 18 * layoutScale;
+    y += 22 * layoutScale;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10 * layoutScale);
     doc.setTextColor(71, 85, 105);
     doc.text(companyAddress, left, y);
-    y += 14 * layoutScale;
+    y += 16 * layoutScale;
     doc.text(companyPhones, left, y);
-    y += 14 * layoutScale;
+    y += 16 * layoutScale;
     doc.text(companyEmail, left, y);
-    y += 20 * layoutScale;
+    y += 22 * layoutScale;
     doc.setDrawColor(109, 129, 65);
     doc.setLineWidth(1.2 * layoutScale);
     doc.line(left, y, right, y);
