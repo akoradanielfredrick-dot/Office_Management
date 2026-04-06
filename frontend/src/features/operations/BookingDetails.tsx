@@ -291,12 +291,14 @@ export const BookingDetails: React.FC = () => {
       const innerWidth = width - 16 * scale;
       const labelFontSize = 8 * scale;
       const valueFontSize = 11 * scale;
+      const labelLineHeight = 8.5 * scale;
+      const valueLineHeight = 11.5 * scale;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(labelFontSize);
       const labelLines = doc.splitTextToSize(label.toUpperCase(), innerWidth);
       doc.setFontSize(valueFontSize);
       const valueLines = doc.splitTextToSize(displayValue, innerWidth);
-      const contentHeight = 14 * scale + labelLines.length * 8 * scale + 6 * scale + valueLines.length * 11 * scale + 14 * scale;
+      const contentHeight = 14 * scale + labelLines.length * labelLineHeight + 8 * scale + valueLines.length * valueLineHeight + 14 * scale;
       return Math.max(minHeight * scale, contentHeight);
     };
 
@@ -308,15 +310,17 @@ export const BookingDetails: React.FC = () => {
 
       const headerHeight =
         10 * scale +
-        12 * scale +
+        14 * scale +
         22 * scale +
-        12 * scale +
-        11 * scale +
-        11 * scale +
-        11 * scale +
         18 * scale +
+        11 * scale +
+        14 * scale +
+        11 * scale +
+        14 * scale +
+        11 * scale +
+        20 * scale +
         10 * scale +
-        14 * scale;
+        16 * scale;
 
       const rowHeights = [
         [
@@ -374,7 +378,8 @@ export const BookingDetails: React.FC = () => {
     const valueFontSize = 11 * layoutScale;
     const innerPaddingX = 8 * layoutScale;
     const labelTop = 14 * layoutScale;
-    const valueTop = 32 * layoutScale;
+    const labelLineHeight = 8.5 * layoutScale;
+    const valueLineHeight = 11.5 * layoutScale;
     const pageFloor = pageHeight - bottomMargin;
 
     const ensureSpace = (needed = 24) => {
@@ -389,11 +394,12 @@ export const BookingDetails: React.FC = () => {
       const displayValue = value || 'Not provided';
       const labelLines = doc.splitTextToSize(label.toUpperCase(), width - innerPaddingX * 2);
       const valueLines = doc.splitTextToSize(displayValue, width - innerPaddingX * 2);
+      const valueTop = labelTop + labelLines.length * labelLineHeight + 8 * layoutScale;
       const contentHeight =
         labelTop +
-        labelLines.length * 8 * layoutScale +
-        6 * layoutScale +
-        valueLines.length * 11 * layoutScale +
+        labelLines.length * labelLineHeight +
+        8 * layoutScale +
+        valueLines.length * valueLineHeight +
         12 * layoutScale;
       const boxHeight = Math.max(minHeight * layoutScale, contentHeight);
 
@@ -404,12 +410,12 @@ export const BookingDetails: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(labelFontSize);
       doc.setTextColor(100, 116, 139);
-      doc.text(labelLines, x + innerPaddingX, top + labelTop);
+      doc.text(labelLines, x + innerPaddingX, top + labelTop, { lineHeightFactor: labelLineHeight / labelFontSize });
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(valueFontSize);
       doc.setTextColor(15, 23, 42);
-      doc.text(valueLines, x + innerPaddingX, top + valueTop);
+      doc.text(valueLines, x + innerPaddingX, top + valueTop, { lineHeightFactor: valueLineHeight / valueFontSize });
 
       return boxHeight;
     };
@@ -458,20 +464,20 @@ export const BookingDetails: React.FC = () => {
     doc.setFontSize(9 * layoutScale);
     doc.setTextColor(100, 116, 139);
     doc.text('OFFICIAL BOOKING', left, y);
-    y += 12 * layoutScale;
+    y += 14 * layoutScale;
     doc.setFontSize(22 * layoutScale);
     doc.setTextColor(31, 67, 38);
     doc.text(companyName, left, y);
-    y += 16 * layoutScale;
+    y += 18 * layoutScale;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10 * layoutScale);
     doc.setTextColor(71, 85, 105);
     doc.text(companyAddress, left, y);
-    y += 12 * layoutScale;
+    y += 14 * layoutScale;
     doc.text(companyPhones, left, y);
-    y += 12 * layoutScale;
+    y += 14 * layoutScale;
     doc.text(companyEmail, left, y);
-    y += 18 * layoutScale;
+    y += 20 * layoutScale;
     doc.setDrawColor(109, 129, 65);
     doc.setLineWidth(1.2 * layoutScale);
     doc.line(left, y, right, y);
@@ -481,7 +487,7 @@ export const BookingDetails: React.FC = () => {
     doc.setFontSize(16 * layoutScale);
     doc.setTextColor(31, 67, 38);
     doc.text('Structured Booking Summary', left, y);
-    y += 14 * layoutScale;
+    y += 16 * layoutScale;
 
     drawGridRow([
       { label: 'Booking Number', value: booking.reference_no },
