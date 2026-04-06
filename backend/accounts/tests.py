@@ -3,7 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from .forms import SuperAdminAdminAuthenticationForm
+from .forms import CustomUserChangeForm, CustomUserCreationForm, SuperAdminAdminAuthenticationForm
 from .middleware import ADMIN_REAUTH_SESSION_KEY
 from .models import PortalModule, Role
 
@@ -166,3 +166,61 @@ class UserAccessControlApiTests(APITestCase):
         response = self.client.get(reverse("api-me"))
 
         self.assertIn(response.status_code, {401, 403, 400})
+
+
+class AdminUserFormTests(TestCase):
+    def setUp(self):
+        self.operations_role = Role.objects.create(name="OPERATIONS")
+
+    def test_creation_form_keeps_plaintext_password_for_admin_confirmation(self):
+        form = CustomUserCreationForm(
+            data={
+                "email": "newstaff@example.com",
+                "full_name": "New Staff",
+                "role": self.operations_role.pk,
+                "phone": "",
+                "status": "active",
+                "portal_modules": [],
+                "password1": "VisiblePass123!",
+                "password2": "VisiblePass123!",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        self.assertTrue(user.check_password("VisiblePass123!"))
+        self.assertEqual(getattr(user, "_admin_plaintext_password", None), "VisiblePass123!")
+
+    def test_change_form_can_reset_password_and_expose_one_time_confirmation_value(self):
+        user = get_user_model().objects.create_user(
+            email="resetme@example.com",
+            password="OldPass123!",
+            full_name="Reset Me",
+            role=self.operations_role,
+        )
+
+        form = CustomUserChangeForm(
+            data={
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": self.operations_role.pk,
+                "phone": user.phone or "",
+                "status": user.status,
+                "portal_modules": [],
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
+                "groups": [],
+                "user_permissions": [],
+                "new_password1": "NewVisiblePass123!",
+                "new_password2": "NewVisiblePass123!",
+                "password": user.password,
+            },
+            instance=user,
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        updated_user = form.save()
+
+        self.assertTrue(updated_user.check_password("NewVisiblePass123!"))
+        self.assertEqual(getattr(updated_user, "_admin_plaintext_password", None), "NewVisiblePass123!")

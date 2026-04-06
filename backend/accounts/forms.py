@@ -23,6 +23,14 @@ class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["portal_modules"].queryset = PortalModule.objects.order_by("label")
+        self.fields["password1"].widget = forms.TextInput(
+            attrs={"autocomplete": "new-password", "spellcheck": "false"}
+        )
+        self.fields["password2"].widget = forms.TextInput(
+            attrs={"autocomplete": "new-password", "spellcheck": "false"}
+        )
+        self.fields["password1"].help_text = "Visible to the administrator while creating the user and shown once again after save."
+        self.fields["password2"].help_text = "Repeat the same password to confirm."
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -31,6 +39,7 @@ class CustomUserCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.status = self.cleaned_data["status"]
+        user._admin_plaintext_password = self.cleaned_data.get("password1", "")
         if commit:
             user.save()
             self.save_m2m()
@@ -43,6 +52,18 @@ class CustomUserChangeForm(UserChangeForm):
         queryset=PortalModule.objects.none(),
         required=False,
         widget=admin.widgets.FilteredSelectMultiple("Assigned modules", is_stacked=False),
+    )
+    new_password1 = forms.CharField(
+        label="New password",
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "new-password", "spellcheck": "false"}),
+        help_text="Leave blank to keep the current password. This value is visible to the administrator while editing.",
+    )
+    new_password2 = forms.CharField(
+        label="Confirm new password",
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "new-password", "spellcheck": "false"}),
+        help_text="Repeat the new password exactly.",
     )
 
     class Media:
@@ -72,8 +93,25 @@ class CustomUserChangeForm(UserChangeForm):
             "user_permissions",
         )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        if new_password1 or new_password2:
+            if new_password1 != new_password2:
+                self.add_error("new_password2", "The two password fields didn't match.")
+            elif len(new_password1 or "") < 8:
+                self.add_error("new_password1", "Password must be at least 8 characters long.")
+
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
+        new_password = self.cleaned_data.get("new_password1")
+        if new_password:
+            user.set_password(new_password)
+            user._admin_plaintext_password = new_password
         if commit:
             user.save()
             self.save_m2m()

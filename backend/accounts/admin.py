@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib import messages
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 from .models import User, Role, PortalModule
 
@@ -29,6 +30,7 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('full_name', 'phone', 'role')}),
         ('Access Control', {'fields': ('status', 'blocked_at', 'revoked_at', 'portal_modules')}),
+        ('Password Reset', {'fields': ('new_password1', 'new_password2')}),
         ('Permissions', {'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login',)}),
     )
@@ -44,6 +46,13 @@ class CustomUserAdmin(UserAdmin):
     def save_model(self, request, obj, form, change):
         obj._apply_super_admin_role_flags()
         super().save_model(request, obj, form, change)
+        raw_password = getattr(obj, "_admin_plaintext_password", "")
+        if raw_password:
+            self.message_user(
+                request,
+                f"Password set for {obj.email}: {raw_password}. Store it securely because it will not be shown again.",
+                level=messages.SUCCESS,
+            )
 
     @admin.display(description='Status')
     def status_badge(self, obj):
