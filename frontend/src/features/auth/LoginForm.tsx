@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { LogIn, Lock, Loader2, Mail } from 'lucide-react';
 import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../lib/api';
 
@@ -18,8 +19,13 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm: React.FC = () => {
   const { login } = useAuthStore();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(searchParams.get('message'));
+
+  React.useEffect(() => {
+    setError(searchParams.get('message'));
+  }, [searchParams]);
 
   const {
     register,
@@ -38,10 +44,7 @@ export const LoginForm: React.FC = () => {
         password: data.password,
       });
       login({
-        id: res.data.user.id,
-        email: res.data.user.email,
-        full_name: res.data.user.full_name,
-        role: res.data.user.role,
+        ...res.data.user,
       });
     } catch (err) {
       const detail = axios.isAxiosError(err) ? err.response?.data?.detail : null;

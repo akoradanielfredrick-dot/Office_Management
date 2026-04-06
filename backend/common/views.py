@@ -1,6 +1,7 @@
 from django.db.models import Sum, F, Count, Q
 from django.utils import timezone
-from rest_framework import viewsets, response, decorators
+from rest_framework import viewsets, response, decorators, permissions
+from accounts.permissions import HasPortalModuleAccess
 from clients.models import Client
 from operations.models import Booking
 from finance.models import Payment, Expense
@@ -30,6 +31,9 @@ class DashboardViewSet(viewsets.ViewSet):
     General Dashboard statistics for the landing page.
     """
     
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("dashboard",)
+
     @decorators.action(detail=False, methods=['get'])
     def summary(self, request):
         # 1. KPI Counts

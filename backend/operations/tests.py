@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from accounts.models import Role
+from accounts.models import PortalModule, Role
 from clients.models import Client
 
 from .models import ExternalProductMapping, InboundBookingPayload, IntegrationEventType, IntegrationProvider, Product, ProductParticipantCategory, ProductSchedule, Reservation
@@ -32,6 +32,7 @@ class InventoryFlowTests(TestCase):
             full_name="Ops User",
             role=role,
         )
+        self.user.portal_modules.set(PortalModule.objects.all())
         self.client_record = Client.objects.create(
             full_name="Jane Traveller",
             email="jane@example.com",

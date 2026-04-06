@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from accounts.models import Role, User
+from accounts.models import PortalModule, Role, User
 from clients.models import Client
 
 
@@ -57,3 +57,33 @@ class ClientApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["full_name"], "Jane Wanjiku")
+
+    def test_user_without_client_access_is_denied(self):
+        operations_role = Role.objects.create(name="OPERATIONS")
+        restricted_user = User.objects.create_user(
+            email="restricted@example.com",
+            password="testpass123",
+            full_name="Restricted User",
+            role=operations_role,
+        )
+        self.client.force_authenticate(user=restricted_user)
+
+        response = self.client.get(reverse("client-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_user_with_client_module_can_access_clients(self):
+        operations_role = Role.objects.create(name="OPERATIONS")
+        permitted_user = User.objects.create_user(
+            email="permitted@example.com",
+            password="testpass123",
+            full_name="Permitted User",
+            role=operations_role,
+        )
+        client_module = PortalModule.objects.get(key="clients")
+        permitted_user.portal_modules.add(client_module)
+        self.client.force_authenticate(user=permitted_user)
+
+        response = self.client.get(reverse("client-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

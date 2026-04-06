@@ -19,6 +19,7 @@ import {
 import { clsx } from 'clsx';
 import { jsPDF } from 'jspdf';
 import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
 import type { PaginatedResponse } from './listTypes';
 
 interface BookingPayment {
@@ -125,6 +126,7 @@ interface BookingDetailRecord {
 export const BookingDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'itinerary' | 'payments' | 'travellers' | 'expenses' | 'timeline'>('expenses');
   const [booking, setBooking] = React.useState<BookingDetailRecord | null>(null);
   const [payments, setPayments] = React.useState<BookingPayment[]>([]);
@@ -136,18 +138,20 @@ export const BookingDetails: React.FC = () => {
     if (!id) {
       return;
     }
+    const canViewPayments = Boolean(user?.is_management || user?.portal_permissions.includes('payments.view'));
+    const canViewExpenses = Boolean(user?.is_management || user?.portal_permissions.includes('expenses.view'));
 
     const [bookingResponse, paymentsResponse, expensesResponse] = await Promise.all([
       api.get(`/operations/bookings/${id}/`),
-      api.get(`/finance/payments/?booking=${id}`),
-      api.get(`/finance/expenses/?booking=${id}`),
+      canViewPayments ? api.get(`/finance/payments/?booking=${id}`) : Promise.resolve({ data: [] }),
+      canViewExpenses ? api.get(`/finance/expenses/?booking=${id}`) : Promise.resolve({ data: [] }),
     ]);
 
     setLoadError('');
     setBooking(bookingResponse.data);
     setPayments(extractResults<BookingPayment>(paymentsResponse.data));
     setExpenses(extractResults<BookingExpense>(expensesResponse.data));
-  }, [id]);
+  }, [id, user?.is_management, user?.portal_permissions]);
 
   React.useEffect(() => {
     fetchData().catch((error) => {
@@ -174,6 +178,8 @@ export const BookingDetails: React.FC = () => {
   const bookingDisplayName =
     booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Custom Booking';
   const clientDisplayName = booking.customer_full_name || booking.client_name || 'Client not captured';
+  const canViewPayments = Boolean(user?.is_management || user?.portal_permissions.includes('payments.view'));
+  const canViewExpenses = Boolean(user?.is_management || user?.portal_permissions.includes('expenses.view'));
   const totalExpenses = expenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
   const paidAmount = toNumber(booking.paid_amount);
   const totalCost = toNumber(booking.total_cost);
@@ -205,6 +211,17 @@ export const BookingDetails: React.FC = () => {
       at: entry.timestamp || booking.created_at,
     })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+
+  React.useEffect(() => {
+    if (activeTab === 'payments' && !canViewPayments) {
+      setActiveTab(canViewExpenses ? 'expenses' : 'itinerary');
+      return;
+    }
+
+    if (activeTab === 'expenses' && !canViewExpenses) {
+      setActiveTab(canViewPayments ? 'payments' : 'itinerary');
+    }
+  }, [activeTab, canViewExpenses, canViewPayments]);
 
   const getStatusTone = (status: string) => {
     switch (status) {
@@ -666,13 +683,15 @@ export const BookingDetails: React.FC = () => {
             <Users size={18} />
             View Client
           </button>
-          <button
-            onClick={() => navigate(`/finance/payments/new?bookingId=${booking.id}`)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary-900/20 transition-colors hover:bg-primary-800"
-          >
-            <CreditCard size={18} />
-            Add Payment
-          </button>
+          {canViewPayments ? (
+            <button
+              onClick={() => navigate(`/finance/payments/new?bookingId=${booking.id}`)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary-900/20 transition-colors hover:bg-primary-800"
+            >
+              <CreditCard size={18} />
+              Add Payment
+            </button>
+          ) : null}
           {booking.status !== 'CANCELLED' ? (
             <button
               onClick={() => navigate(`/bookings/${booking.id}/amend`)}
@@ -693,13 +712,15 @@ export const BookingDetails: React.FC = () => {
               Cancel Booking
             </button>
           ) : null}
-          <button
-            onClick={() => navigate(`/finance/expenses/new?bookingId=${booking.id}`)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-900/20 transition-colors hover:bg-rose-700"
-          >
-            <ShoppingCart size={18} />
-            Add Expense
-          </button>
+          {canViewExpenses ? (
+            <button
+              onClick={() => navigate(`/finance/expenses/new?bookingId=${booking.id}`)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-900/20 transition-colors hover:bg-rose-700"
+            >
+              <ShoppingCart size={18} />
+              Add Expense
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -750,8 +771,8 @@ export const BookingDetails: React.FC = () => {
         <div className="space-y-6">
           <div className="inline-flex flex-wrap items-center gap-2 rounded-[1.4rem] border border-slate-200 bg-white p-2 shadow-sm">
             {[
-              { id: 'expenses', label: 'Expenses', icon: ShoppingCart },
-              { id: 'payments', label: 'Payments', icon: History },
+              ...(canViewExpenses ? [{ id: 'expenses', label: 'Expenses', icon: ShoppingCart }] : []),
+              ...(canViewPayments ? [{ id: 'payments', label: 'Payments', icon: History }] : []),
               { id: 'itinerary', label: 'Itinerary', icon: ListChecks },
               { id: 'travellers', label: 'Travellers', icon: Users },
               { id: 'timeline', label: 'Timeline', icon: History },

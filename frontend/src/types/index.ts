@@ -1,4 +1,7 @@
-export type UserRole = 'SUPER_ADMIN' | 'DIRECTOR' | 'OPERATIONS' | 'ACCOUNTS' | 'SALES';
+import type { PortalModuleKey } from '../lib/portalAccess';
+
+export type UserRole = 'SUPER_ADMIN' | 'DIRECTOR' | 'OPERATIONS' | 'ACCOUNTS' | 'SALES' | 'STAFF';
+export type UserStatus = 'active' | 'blocked' | 'revoked';
 
 export interface User {
   id: string;
@@ -6,6 +9,10 @@ export interface User {
   full_name: string;
   role: UserRole;
   phone?: string;
+  status: UserStatus;
+  portal_permissions: string[];
+  portal_modules: PortalModuleKey[];
+  is_management: boolean;
 }
 
 export interface Client {

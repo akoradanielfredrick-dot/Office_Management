@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, response, decorators, filters
+from rest_framework import viewsets, status, response, decorators, filters, permissions
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Payment, Receipt, Expense
@@ -11,7 +11,7 @@ import decimal
 from django.utils import timezone
 
 from django.http import FileResponse
-from accounts.permissions import IsFinanceUser, IsAuthenticatedReadOnlyOrFinanceWrite
+from accounts.permissions import HasPortalModuleAccess
 from .services import generate_receipt_pdf
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -58,7 +58,8 @@ def _recalculate_booking_paid_amount(booking):
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.filter(is_deleted=False).select_related('booking', 'booking__client', 'received_by', 'receipt').order_by('-created_at')
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("payments",)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['id', 'booking', 'method']
     search_fields = ['internal_reference', 'booking__reference_no', 'booking__client__full_name', 'txn_reference', 'receipt__receipt_no']
@@ -117,7 +118,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class ReceiptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Receipt.objects.all().order_by('-generated_at')
     serializer_class = ReceiptSerializer
-    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("payments",)
 
     @decorators.action(detail=True, methods=['get'])
     def download(self, request, pk=None):
@@ -128,7 +130,8 @@ class ReceiptViewSet(viewsets.ReadOnlyModelViewSet):
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.filter(is_deleted=False).order_by('-expense_date', '-created_at')
     serializer_class = ExpenseSerializer
-    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("expenses",)
     filterset_fields = ['id', 'booking', 'category', 'supplier']
     search_fields = ['internal_reference', 'description', 'booking__reference_no', 'supplier__name']
 
@@ -164,7 +167,8 @@ class AnalyticsViewSet(viewsets.ViewSet):
     """
     Financial Reporting & Aggregations Office Management System Phase 6.
     """
-    permission_classes = [IsFinanceUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("analytics",)
     
     @decorators.action(detail=False, methods=['get'])
     def dashboard_summary(self, request):

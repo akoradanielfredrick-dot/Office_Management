@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import { ensureCsrfCookie } from './lib/api';
+import type { PortalModuleKey } from './lib/portalAccess';
+import { HOME_MODULE_ORDER, PORTAL_MODULES } from './lib/portalAccess';
+import { api, ensureCsrfCookie } from './lib/api';
 import { LoginForm } from './features/auth/LoginForm';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { DashboardHome } from './features/dashboard/DashboardHome';
@@ -82,14 +84,119 @@ class FeatureErrorBoundary extends React.Component<FeatureErrorBoundaryProps, Fe
   }
 }
 
+const hasModuleAccess = (user: ReturnType<typeof useAuthStore.getState>['user'], moduleKey: PortalModuleKey): boolean => {
+  if (!user) {
+    return false;
+  }
+
+  if (user.is_management) {
+    return true;
+  }
+
+  return user.portal_permissions.includes(`${moduleKey}.view`);
+};
+
+const getAccessibleModulePaths = (user: ReturnType<typeof useAuthStore.getState>['user']): string[] => {
+  if (!user) {
+    return [];
+  }
+
+  const keys = user.is_management
+    ? HOME_MODULE_ORDER
+    : HOME_MODULE_ORDER.filter((moduleKey) => hasModuleAccess(user, moduleKey));
+
+  return keys
+    .map((moduleKey) => PORTAL_MODULES.find((module) => module.key === moduleKey)?.path || null)
+    .filter((path): path is string => Boolean(path));
+};
+
+const AccessWelcome: React.FC = () => (
+  <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Portal Access</p>
+    <h1 className="mt-3 text-2xl font-black text-slate-900">Welcome to the portal</h1>
+    <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500">
+      You currently do not have any modules assigned. Please contact your administrator for access.
+    </p>
+  </div>
+);
+
+const PortalLanding: React.FC = () => {
+  const { user } = useAuthStore();
+  const accessiblePaths = React.useMemo(() => getAccessibleModulePaths(user), [user]);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!accessiblePaths.length) {
+    return <AccessWelcome />;
+  }
+
+  if (hasModuleAccess(user, 'dashboard')) {
+    return <DashboardHome />;
+  }
+
+  return <Navigate to={accessiblePaths[0]} replace />;
+};
+
+const ModuleRoute: React.FC<{ module: PortalModuleKey; element: React.ReactElement }> = ({ module, element }) => {
+  const { user } = useAuthStore();
+  const accessiblePaths = React.useMemo(() => getAccessibleModulePaths(user), [user]);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (hasModuleAccess(user, module)) {
+    return element;
+  }
+
+  if (!accessiblePaths.length) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Navigate to={accessiblePaths[0]} replace />;
+};
+
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, syncUser, logout } = useAuthStore();
 
   React.useEffect(() => {
     void ensureCsrfCookie().catch(() => {
       // The app can still render if the backend is temporarily unavailable.
     });
   }, []);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const syncSession = async () => {
+      try {
+        const response = await api.get('/auth/me/');
+        if (!cancelled) {
+          syncUser(response.data.user);
+        }
+      } catch {
+        if (!cancelled) {
+          logout();
+        }
+      }
+    };
+
+    void syncSession();
+    const interval = window.setInterval(() => {
+      void syncSession();
+    }, 60000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [isAuthenticated, logout, syncUser]);
 
   return (
     <Router>
@@ -105,43 +212,48 @@ const App: React.FC = () => {
           path="/" 
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
         >
-          <Route index element={<DashboardHome />} />
-          <Route path="bookings" element={<BookingTable />} />
-          <Route path="bookings/new" element={<BookingForm />} />
-          <Route path="bookings/:id" element={<BookingDetails />} />
-          <Route path="bookings/:id/amend" element={<BookingAmendForm />} />
-          <Route path="catalog" element={<CatalogOverview />} />
-          <Route path="products" element={<ProductList />} />
-          <Route path="excursions" element={<ExcursionList />} />
-          <Route path="excursions/new" element={<ExcursionForm />} />
-          <Route path="excursions/:id/edit" element={<ExcursionForm />} />
-          <Route path="products/new" element={<ProductForm />} />
-          <Route path="products/:id/edit" element={<ProductForm />} />
-          <Route path="schedules" element={<ScheduleList />} />
-          <Route path="schedules/new" element={<ScheduleForm />} />
-          <Route path="schedules/:id/edit" element={<ScheduleForm />} />
-          <Route path="availability" element={<AvailabilityDashboard />} />
+          <Route index element={<PortalLanding />} />
+          <Route path="bookings" element={<ModuleRoute module="bookings" element={<BookingTable />} />} />
+          <Route path="bookings/new" element={<ModuleRoute module="bookings" element={<BookingForm />} />} />
+          <Route path="bookings/:id" element={<ModuleRoute module="bookings" element={<BookingDetails />} />} />
+          <Route path="bookings/:id/amend" element={<ModuleRoute module="bookings" element={<BookingAmendForm />} />} />
+          <Route path="catalog" element={<ModuleRoute module="catalog" element={<CatalogOverview />} />} />
+          <Route path="products" element={<ModuleRoute module="products" element={<ProductList />} />} />
+          <Route path="excursions" element={<ModuleRoute module="excursions" element={<ExcursionList />} />} />
+          <Route path="excursions/new" element={<ModuleRoute module="excursions" element={<ExcursionForm />} />} />
+          <Route path="excursions/:id/edit" element={<ModuleRoute module="excursions" element={<ExcursionForm />} />} />
+          <Route path="products/new" element={<ModuleRoute module="products" element={<ProductForm />} />} />
+          <Route path="products/:id/edit" element={<ModuleRoute module="products" element={<ProductForm />} />} />
+          <Route path="schedules" element={<ModuleRoute module="schedules" element={<ScheduleList />} />} />
+          <Route path="schedules/new" element={<ModuleRoute module="schedules" element={<ScheduleForm />} />} />
+          <Route path="schedules/:id/edit" element={<ModuleRoute module="schedules" element={<ScheduleForm />} />} />
+          <Route path="availability" element={<ModuleRoute module="availability" element={<AvailabilityDashboard />} />} />
           <Route
             path="integrations"
-            element={(
-              <FeatureErrorBoundary featureName="Integrations">
-                <IntegrationOpsDashboard />
-              </FeatureErrorBoundary>
-            )}
+            element={
+              <ModuleRoute
+                module="integrations"
+                element={(
+                  <FeatureErrorBoundary featureName="Integrations">
+                    <IntegrationOpsDashboard />
+                  </FeatureErrorBoundary>
+                )}
+              />
+            }
           />
-          <Route path="reservations" element={<ReservationList />} />
-          <Route path="reservations/new" element={<ReservationForm />} />
-          <Route path="reservations/:id" element={<ReservationDetails />} />
-          <Route path="finance/payments" element={<PaymentTable />} />
-          <Route path="finance/payments/new" element={<PaymentForm />} />
-          <Route path="finance/expenses" element={<ExpenseTable />} />
-          <Route path="finance/expenses/new" element={<ExpenseForm />} />
-          <Route path="analytics" element={<AnalyticsDashboard />} />
-          <Route path="analytics/profitability" element={<ProfitabilityReport />} />
-          <Route path="analytics/suppliers" element={<SupplierSpend />} />
-          <Route path="analytics/outstanding" element={<OutstandingBalances />} />
-          <Route path="clients" element={<ClientList />} />
-          <Route path="clients/new" element={<ClientForm />} />
+          <Route path="reservations" element={<ModuleRoute module="reservations" element={<ReservationList />} />} />
+          <Route path="reservations/new" element={<ModuleRoute module="reservations" element={<ReservationForm />} />} />
+          <Route path="reservations/:id" element={<ModuleRoute module="reservations" element={<ReservationDetails />} />} />
+          <Route path="finance/payments" element={<ModuleRoute module="payments" element={<PaymentTable />} />} />
+          <Route path="finance/payments/new" element={<ModuleRoute module="payments" element={<PaymentForm />} />} />
+          <Route path="finance/expenses" element={<ModuleRoute module="expenses" element={<ExpenseTable />} />} />
+          <Route path="finance/expenses/new" element={<ModuleRoute module="expenses" element={<ExpenseForm />} />} />
+          <Route path="analytics" element={<ModuleRoute module="analytics" element={<AnalyticsDashboard />} />} />
+          <Route path="analytics/profitability" element={<ModuleRoute module="analytics" element={<ProfitabilityReport />} />} />
+          <Route path="analytics/suppliers" element={<ModuleRoute module="analytics" element={<SupplierSpend />} />} />
+          <Route path="analytics/outstanding" element={<ModuleRoute module="analytics" element={<OutstandingBalances />} />} />
+          <Route path="clients" element={<ModuleRoute module="clients" element={<ClientList />} />} />
+          <Route path="clients/new" element={<ModuleRoute module="clients" element={<ClientForm />} />} />
         </Route>
         
         {/* Fallback */}

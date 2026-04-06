@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from rest_framework.test import APITestCase
 
 from .forms import SuperAdminAdminAuthenticationForm
 from .middleware import ADMIN_REAUTH_SESSION_KEY
-from .models import Role
+from .models import PortalModule, Role
 
 
 class AdminAccessConfirmTests(TestCase):
@@ -24,7 +25,8 @@ class AdminAccessConfirmTests(TestCase):
 
     def test_direct_admin_access_is_available_when_logged_in(self):
         response = self.client.get("/admin/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/confirm-access/", response.url)
 
     def test_confirm_access_with_password_sets_session_flag(self):
         response = self.client.post(
@@ -83,7 +85,8 @@ class AdminSiteAccessTests(TestCase):
     def test_admin_index_allows_director(self):
         self.client.force_login(self.director)
         response = self.client.get("/admin/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/confirm-access/", response.url)
 
     def test_director_can_confirm_access_and_enter_admin(self):
         self.client.force_login(self.director)
@@ -102,3 +105,64 @@ class AdminSiteAccessTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Incorrect password")
+
+
+class UserAccessControlApiTests(APITestCase):
+    def setUp(self):
+        self.operations_role = Role.objects.create(name="OPERATIONS")
+        self.user = get_user_model().objects.create_user(
+            email="staff@example.com",
+            password="StaffPass123!",
+            full_name="Staff User",
+            role=self.operations_role,
+        )
+        self.bookings_module = PortalModule.objects.get(key="bookings")
+        self.clients_module = PortalModule.objects.get(key="clients")
+        self.user.portal_modules.add(self.bookings_module)
+
+    def test_login_returns_status_and_assigned_permissions(self):
+        response = self.client.post(
+            reverse("api-login"),
+            {"email": self.user.email, "password": "StaffPass123!"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user"]["status"], "active")
+        self.assertEqual(response.data["user"]["portal_permissions"], ["bookings.view"])
+        self.assertEqual(response.data["user"]["portal_modules"], ["bookings"])
+
+    def test_blocked_user_cannot_log_in(self):
+        self.user.status = get_user_model().Status.BLOCKED
+        self.user.save()
+
+        response = self.client.post(
+            reverse("api-login"),
+            {"email": self.user.email, "password": "StaffPass123!"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "Your account has been blocked by an administrator.")
+
+    def test_revoked_user_cannot_log_in(self):
+        self.user.status = get_user_model().Status.REVOKED
+        self.user.save()
+
+        response = self.client.post(
+            reverse("api-login"),
+            {"email": self.user.email, "password": "StaffPass123!"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "Your access to the portal has been revoked.")
+
+    def test_authenticated_blocked_user_is_forcibly_logged_out(self):
+        self.client.force_login(self.user)
+        self.user.status = get_user_model().Status.BLOCKED
+        self.user.save()
+
+        response = self.client.get(reverse("api-me"))
+
+        self.assertIn(response.status_code, {401, 403, 400})

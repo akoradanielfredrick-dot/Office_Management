@@ -1,5 +1,6 @@
 from rest_framework import permissions, viewsets, filters
 from common.models import ActivityLog
+from accounts.permissions import HasPortalModuleAccess
 
 from .models import Client
 from .serializers import ClientSerializer
@@ -8,7 +9,8 @@ from .serializers import ClientSerializer
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.filter(is_deleted=False).order_by("-created_at")
     serializer_class = ClientSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("clients", "catalog", "bookings", "reservations")
     filter_backends = [filters.SearchFilter]
     filterset_fields = ["id"]
     search_fields = ["full_name", "email", "phone"]

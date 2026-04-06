@@ -19,6 +19,7 @@ import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { useAuthStore } from '../../store/authStore';
 import { api, formatMoney } from '../../lib/api';
+import type { PortalModuleKey } from '../../lib/portalAccess';
 
 interface DashboardStats {
   total_clients: number;
@@ -123,6 +124,7 @@ export const DashboardHome: React.FC = () => {
 
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
   const roleLabel = normalizeRoleLabel(user?.role);
+  const canAccessModule = (moduleKey: PortalModuleKey) => Boolean(user?.is_management || user?.portal_permissions.includes(`${moduleKey}.view`));
   const monthlyExpenseBreakdown = operatingCurrencies.map((currency) => ({
     currency,
     value: Number(stats?.expenses_this_month_by_currency?.[currency]) || 0,
@@ -181,6 +183,7 @@ export const DashboardHome: React.FC = () => {
 
   const quickActions = [
     {
+      module: 'bookings' as PortalModuleKey,
       label: 'View Bookings',
       description: 'Open module and continue workflow',
       icon: Calendar,
@@ -189,6 +192,7 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      module: 'products' as PortalModuleKey,
       label: 'Manage Products',
       description: 'Update tours, rates, and catalog data',
       icon: Boxes,
@@ -197,6 +201,7 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      module: 'catalog' as PortalModuleKey,
       label: 'Catalog View',
       description: 'See clients, products, and excursions together',
       icon: Boxes,
@@ -205,6 +210,7 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      module: 'schedules' as PortalModuleKey,
       label: 'Create Schedule',
       description: 'Publish departures and live capacity',
       icon: Clock3,
@@ -213,6 +219,7 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      module: 'availability' as PortalModuleKey,
       label: 'View Availability',
       description: 'See remaining, reserved, and confirmed space',
       icon: Activity,
@@ -237,6 +244,7 @@ export const DashboardHome: React.FC = () => {
       iconBg: 'bg-white/15',
     },
     {
+      module: 'payments' as PortalModuleKey,
       label: 'Record Payment',
       description: 'Open module and continue workflow',
       icon: Wallet,
@@ -252,7 +260,7 @@ export const DashboardHome: React.FC = () => {
       tone: 'bg-[#ffb120]',
       iconBg: 'bg-white/15',
     },
-  ];
+  ].filter((action) => canAccessModule(action.module));
 
   if (loading) {
     return (

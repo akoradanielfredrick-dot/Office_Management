@@ -9,9 +9,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .constants import MANAGEMENT_ROLE_NAMES, normalize_role_name
 from .forms import AdminAccessForm
 from .middleware import ADMIN_REAUTH_SESSION_KEY
-from .serializers import LoginSerializer
+from .models import User
+from .serializers import CurrentUserSerializer, LoginSerializer
 
 
 class LoginView(APIView):
@@ -24,26 +26,31 @@ class LoginView(APIView):
 
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        candidate_user = User.objects.filter(email__iexact=email).first()
         user = authenticate(request, email=email, password=password)
 
         if user is None:
+            if candidate_user and candidate_user.check_password(password):
+                if candidate_user.status == User.Status.BLOCKED:
+                    raise serializers.ValidationError({'detail': 'Your account has been blocked by an administrator.'})
+
+                if candidate_user.status == User.Status.REVOKED:
+                    raise serializers.ValidationError({'detail': 'Your access to the portal has been revoked.'})
+
             raise serializers.ValidationError({'detail': 'Invalid email or password. Please try again.'})
 
-        if not user.is_active:
+        if user.status == User.Status.BLOCKED:
+            raise serializers.ValidationError({'detail': 'Your account has been blocked by an administrator.'})
+
+        if user.status == User.Status.REVOKED:
+            raise serializers.ValidationError({'detail': 'Your access to the portal has been revoked.'})
+
+        if not user.is_active or user.status != User.Status.ACTIVE:
             raise serializers.ValidationError({'detail': 'This account is inactive.'})
 
         request.session.pop(ADMIN_REAUTH_SESSION_KEY, None)
         login(request, user)
-
-        role_name = user.role.name if user.role else None
-        return Response({
-            'user': {
-                'id': str(user.id),
-                'email': user.email,
-                'full_name': user.full_name,
-                'role': role_name,
-            }
-        }, status=status.HTTP_200_OK)
+        return Response({'user': CurrentUserSerializer(user).data}, status=status.HTTP_200_OK)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -64,12 +71,19 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"user": CurrentUserSerializer(request.user).data}, status=status.HTTP_200_OK)
+
+
 def admin_access_confirm(request):
     if not request.user.is_authenticated:
         return redirect(f"{reverse('admin:login')}?next=/admin/confirm-access/?next=/admin/")
 
-    role_name = (request.user.role.name if request.user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
-    if not request.user.is_staff or role_name not in {"SUPER_ADMIN", "DIRECTOR"}:
+    role_name = normalize_role_name(request.user.role.name if request.user.role else "")
+    if not request.user.is_staff or role_name not in MANAGEMENT_ROLE_NAMES:
         return redirect("admin:login")
 
     next_url = request.GET.get("next") or request.POST.get("next") or "/admin/"

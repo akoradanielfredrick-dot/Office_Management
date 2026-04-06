@@ -6,7 +6,7 @@ from rest_framework import decorators, permissions, response, status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.views import APIView
 
-from accounts.permissions import IsOperationsUser
+from accounts.permissions import HasPortalModuleAccess
 from common.models import ActivityLog
 
 from .filters import BookingFilter, ProductScheduleFilter, ReservationFilter
@@ -46,14 +46,13 @@ from .services import (
 class ExcursionViewSet(viewsets.ModelViewSet):
     queryset = Excursion.objects.filter(is_deleted=False).select_related("product").order_by("name")
     serializer_class = ExcursionSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("excursions", "catalog")
     filterset_fields = ["id", "location"]
     search_fields = ["name", "product__name", "location", "itinerary"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -87,7 +86,8 @@ class ExcursionViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related("participant_categories", "prices", "external_mappings").order_by("name")
     serializer_class = ProductSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("products", "catalog", "excursions", "schedules", "bookings", "reservations", "integrations")
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id", "category", "is_active", "pricing_mode", "slug"]
     search_fields = ["name", "product_code", "destination", "slug", "description"]
@@ -95,9 +95,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering = ["name"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -121,7 +119,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ProductScheduleViewSet(viewsets.ModelViewSet):
     queryset = ProductSchedule.objects.select_related("product").prefetch_related("category_availability__participant_category").order_by("start_at", "created_at")
     serializer_class = ProductScheduleSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("schedules", "availability", "bookings", "reservations")
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductScheduleFilter
@@ -130,9 +129,7 @@ class ProductScheduleViewSet(viewsets.ModelViewSet):
     ordering = ["start_at", "created_at"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve", "availability"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -195,7 +192,8 @@ class ProductScheduleViewSet(viewsets.ModelViewSet):
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.select_related("product", "schedule", "client").prefetch_related("participants").order_by("-created_at")
     serializer_class = ReservationSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("reservations",)
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ReservationFilter
@@ -204,9 +202,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve", "create", "convert_to_booking", "cancel"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     @decorators.action(detail=True, methods=["post"])
     def convert_to_booking(self, request, pk=None):
@@ -239,7 +235,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.filter(is_deleted=False).select_related("client", "product", "schedule", "reservation").prefetch_related("travellers", "participant_quantities", "audit_entries").order_by("-created_at")
     serializer_class = BookingSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("bookings", "payments", "expenses", "reservations")
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = BookingFilter
@@ -248,9 +245,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve", "create", "update", "partial_update", "cancel", "amend"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -294,7 +289,8 @@ class BookingViewSet(viewsets.ModelViewSet):
 class ExternalProductMappingViewSet(viewsets.ModelViewSet):
     queryset = ExternalProductMapping.objects.select_related("product", "participant_category").order_by("provider", "external_product_id")
     serializer_class = ExternalProductMappingSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("integrations",)
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["provider", "product", "participant_category", "is_active", "is_default"]
@@ -303,15 +299,14 @@ class ExternalProductMappingViewSet(viewsets.ModelViewSet):
     ordering = ["provider", "external_product_id"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
 
 class ApiIdempotencyRecordViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ApiIdempotencyRecord.objects.order_by("-last_seen_at")
     serializer_class = ApiIdempotencyRecordSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("integrations",)
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["provider", "event_type", "processing_status"]
@@ -320,7 +315,7 @@ class ApiIdempotencyRecordViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-last_seen_at"]
 
     def get_permissions(self):
-        return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
 
 class InboundBookingPayloadViewSet(viewsets.ModelViewSet):
@@ -329,7 +324,8 @@ class InboundBookingPayloadViewSet(viewsets.ModelViewSet):
         .order_by("-received_at")
     )
     serializer_class = InboundBookingPayloadSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("integrations",)
     pagination_class = OperationsPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["provider", "event_type", "processing_status", "product_mapping", "booking", "reservation"]
@@ -338,9 +334,7 @@ class InboundBookingPayloadViewSet(viewsets.ModelViewSet):
     ordering = ["-received_at"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve", "create", "process"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     @decorators.action(detail=True, methods=["post"])
     def process(self, request, pk=None):
@@ -354,14 +348,13 @@ class InboundBookingPayloadViewSet(viewsets.ModelViewSet):
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.filter(is_deleted=False).order_by("name")
     serializer_class = SupplierSerializer
-    permission_classes = [IsOperationsUser]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("expenses",)
     filterset_fields = ["id", "category"]
     search_fields = ["name", "category", "contact_person", "email", "phone", "address"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-        return [IsOperationsUser()]
+        return [permissions.IsAuthenticated(), HasPortalModuleAccess()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -530,7 +523,8 @@ class GetYourGuideProductDetailView(GetYourGuideSupplierAuthMixin, APIView):
 
 
 class GetYourGuideBootstrapMappingsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("integrations",)
 
     def post(self, request):
         serializer = GetYourGuideBootstrapMappingSerializer(data=request.data)
@@ -552,7 +546,8 @@ class GetYourGuideBootstrapMappingsView(APIView):
 
 
 class GetYourGuideSandboxRunView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPortalModuleAccess]
+    required_portal_modules = ("integrations",)
 
     def post(self, request):
         serializer = GetYourGuideSandboxRequestSerializer(data=request.data)

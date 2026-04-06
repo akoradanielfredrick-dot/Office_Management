@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
 const DEFAULT_BACKEND_ORIGIN = 'https://office-management-drab.vercel.app';
@@ -50,6 +51,29 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const code = error?.response?.data?.code;
+    const detail = error?.response?.data?.detail;
+    const shouldLogout =
+      status === 401
+      || code === 'account_blocked'
+      || code === 'account_revoked';
+
+    if (shouldLogout) {
+      useAuthStore.getState().logout();
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        const redirectReason = typeof detail === 'string' && detail ? `?message=${encodeURIComponent(detail)}` : '';
+        window.location.assign(`/login${redirectReason}`);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export const ensureCsrfCookie = async (): Promise<void> => {
   await api.get('/auth/csrf/');

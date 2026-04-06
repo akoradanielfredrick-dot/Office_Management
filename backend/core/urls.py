@@ -3,8 +3,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from types import MethodType
 from rest_framework.routers import DefaultRouter
+from accounts.constants import MANAGEMENT_ROLE_NAMES, normalize_role_name
 from accounts.forms import SuperAdminAdminAuthenticationForm
-from accounts.views import CsrfCookieView, LoginView, LogoutView, admin_access_confirm
+from accounts.views import CsrfCookieView, CurrentUserView, LoginView, LogoutView, admin_access_confirm
 from clients.views import ClientViewSet
 from operations.views import (
     ApiIdempotencyRecordViewSet,
@@ -36,8 +37,8 @@ def _management_has_permission(self, request):
     if not request.user.is_authenticated or not request.user.is_active:
         return False
 
-    role_name = (request.user.role.name if request.user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
-    return request.user.is_staff and role_name in {"SUPER_ADMIN", "DIRECTOR"}
+    role_name = normalize_role_name(request.user.role.name if request.user.role else "")
+    return request.user.is_staff and role_name in MANAGEMENT_ROLE_NAMES
 
 
 admin.site.has_permission = MethodType(_management_has_permission, admin.site)
@@ -73,5 +74,6 @@ urlpatterns = [
     path('api/auth/csrf/', CsrfCookieView.as_view(), name='api-csrf'),
     path('api/auth/login/', LoginView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
+    path('api/auth/me/', CurrentUserView.as_view(), name='api-me'),
     path('api/auth/', include('rest_framework.urls')),
 ]

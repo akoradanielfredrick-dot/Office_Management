@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from accounts.models import Role, User
+from accounts.models import PortalModule, Role, User
 from clients.models import Client
 from operations.models import Booking
 from finance.models import Payment
@@ -20,6 +20,8 @@ class AnalyticsViewSetTests(APITestCase):
             full_name='Finance User',
             role=self.role,
         )
+        analytics_module = PortalModule.objects.get(key='analytics')
+        self.user.portal_modules.add(analytics_module)
         self.client.force_authenticate(user=self.user)
         self.customer = Client.objects.create(
             full_name='Test Client',
@@ -87,6 +89,9 @@ class PaymentWorkflowTests(APITestCase):
             full_name='Payments User',
             role=self.role,
         )
+        self.payments_module = PortalModule.objects.get(key='payments')
+        self.expenses_module = PortalModule.objects.get(key='expenses')
+        self.user.portal_modules.add(self.payments_module, self.expenses_module)
         self.client.force_authenticate(user=self.user)
         self.customer = Client.objects.create(
             full_name='Finance Test Client',
@@ -227,6 +232,7 @@ class PaymentWorkflowTests(APITestCase):
             full_name='Operations Viewer',
             role=operations_role,
         )
+        operations_user.portal_modules.add(self.payments_module)
         Payment.objects.create(
             booking=self.booking,
             amount=Decimal('120.00'),
@@ -269,6 +275,7 @@ class PaymentWorkflowTests(APITestCase):
             full_name='Operations Expense Viewer',
             role=operations_role,
         )
+        operations_user.portal_modules.add(self.expenses_module)
         Expense.objects.create(
             booking=self.booking,
             amount=Decimal('75.00'),

@@ -3,15 +3,6 @@ import { useAuthStore } from '../../store/authStore';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
   LogOut,
-  LayoutDashboard,
-  Users,
-  Calendar,
-  Wallet,
-  BarChart3,
-  ShoppingCart,
-  Boxes,
-  Compass,
-  Clock3,
   ShieldAlert,
   Activity,
   ChevronRight,
@@ -23,6 +14,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { api, backendAdminConfirmUrl } from '../../lib/api';
+import { PORTAL_MODULES } from '../../lib/portalAccess';
 
 const mrangaLogo = '/mranga-brand.jpeg';
 
@@ -46,24 +38,19 @@ export const Dashboard: React.FC = () => {
   const [isSigningOut, setIsSigningOut] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  const navItems = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { label: 'Bookings', path: '/bookings', icon: Calendar },
-    { label: 'Catalog', path: '/catalog', icon: Boxes },
-    { label: 'Products', path: '/products', icon: Boxes },
-    { label: 'Excursions', path: '/excursions', icon: Compass },
-    { label: 'Schedules', path: '/schedules', icon: Clock3 },
-    { label: 'Availability', path: '/availability', icon: ShieldCheck },
-    { label: 'Integrations', path: '/integrations', icon: Activity },
-    { label: 'Reservations', path: '/reservations', icon: ShieldAlert },
-    { label: 'Payments', path: '/finance/payments', icon: Wallet },
-    { label: 'Expenses', path: '/finance/expenses', icon: ShoppingCart },
-    { label: 'Analytics', path: '/analytics', icon: BarChart3 },
-    { label: 'Clients', path: '/clients', icon: Users },
-  ];
-
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
   const roleLabel = normalizeRoleLabel(user?.role);
+  const navItems = React.useMemo(() => {
+    if (!user) {
+      return [];
+    }
+
+    if (user.is_management) {
+      return PORTAL_MODULES;
+    }
+
+    return PORTAL_MODULES.filter((item) => user.portal_permissions.includes(`${item.key}.view`));
+  }, [user]);
 
   const handleLogout = async () => {
     setIsSigningOut(true);
@@ -134,20 +121,25 @@ export const Dashboard: React.FC = () => {
             </nav>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <a
-                href={backendAdminConfirmUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#cfd6e0] bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
-              >
-                <ShieldCheck size={16} className="text-[#6a8240]" />
-                <span>Admin</span>
-              </a>
+              {user?.is_management ? (
+                <a
+                  href={backendAdminConfirmUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#cfd6e0] bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
+                >
+                  <ShieldCheck size={16} className="text-[#6a8240]" />
+                  <span>Admin</span>
+                </a>
+              ) : null}
 
               <button
                 onClick={handleLogout}
                 disabled={isSigningOut}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 disabled:opacity-70"
+                className={clsx(
+                  'inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 disabled:opacity-70',
+                  user?.is_management ? '' : 'sm:col-span-2',
+                )}
               >
                 <LogOut size={16} />
                 {isSigningOut ? 'Signing Out...' : 'Sign Out'}
@@ -247,16 +239,18 @@ export const Dashboard: React.FC = () => {
                 <p className="mt-1 text-[1.02rem] font-semibold text-slate-950">{roleLabel}</p>
               </div>
 
-              <a
-                href={backendAdminConfirmUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-[0.95rem] border border-[#cfd6e0] bg-white px-5 py-3 text-[1rem] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
-              >
-                <ShieldCheck size={17} className="text-[#6a8240]" />
-                <span>Admin</span>
-                <ExternalLink size={15} className="text-slate-400" />
-              </a>
+              {user?.is_management ? (
+                <a
+                  href={backendAdminConfirmUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-[0.95rem] border border-[#cfd6e0] bg-white px-5 py-3 text-[1rem] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                  <ShieldCheck size={17} className="text-[#6a8240]" />
+                  <span>Admin</span>
+                  <ExternalLink size={15} className="text-slate-400" />
+                </a>
+              ) : null}
 
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                 <UserRound size={18} />
@@ -270,7 +264,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#d8dee7] bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
+      <nav className={clsx('fixed bottom-0 left-0 right-0 z-40 border-t border-[#d8dee7] bg-white/95 px-2 py-2 backdrop-blur lg:hidden', !navItems.length ? 'hidden' : '')}>
         <div className="grid grid-cols-6 gap-1">
           {navItems.map((item) => (
             <NavLink
