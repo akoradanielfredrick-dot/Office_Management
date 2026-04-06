@@ -71,12 +71,8 @@ def generate_receipt_pdf(receipt):
     
     # --- Footer ---
     y -= 1.5 * inch
-    p.setFont("Helvetica-Oblique", 9)
-    p.drawString(0.5 * inch, y, "Notes: This is an official system-generated receipt. No signature required where stamped.")
-    
     p.setFont("Helvetica", 10)
     p.drawRightString(width - 0.5 * inch, y - 1 * inch, "Authorized Signature: _______________________")
-    p.drawRightString(width - 0.5 * inch, y - 1.2 * inch, f"Processed by: {receipt.payment.received_by.full_name if receipt.payment.received_by else 'Finance System'}")
 
     p.showPage()
     p.save()
