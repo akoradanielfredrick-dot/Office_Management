@@ -284,8 +284,18 @@ export const BookingDetails: React.FC = () => {
     const financialSummary = `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}`;
     const columnGap = 8;
     const columnCount = 4;
-    const columnWidth = (contentWidth - columnGap * (columnCount - 1)) / columnCount;
-    const availableHeight = pageHeight - topMargin - bottomMargin;
+    const layoutScale = 1;
+    const scaledColumnGap = columnGap * layoutScale;
+    const scaledColumnWidth = (contentWidth - scaledColumnGap * (columnCount - 1)) / columnCount;
+    const rowGap = 8 * layoutScale;
+    const boxRadius = 8 * layoutScale;
+    const labelFontSize = 8 * layoutScale;
+    const valueFontSize = 11 * layoutScale;
+    const innerPaddingX = 8 * layoutScale;
+    const labelTop = 14 * layoutScale;
+    const labelLineHeight = 8.5 * layoutScale;
+    const valueLineHeight = 11.5 * layoutScale;
+    const pageFloor = pageHeight - bottomMargin;
 
     const estimateFieldHeight = (width: number, label: string, value: string, minHeight: number, scale: number) => {
       const displayValue = value || 'Not provided';
@@ -303,87 +313,55 @@ export const BookingDetails: React.FC = () => {
       return Math.max(minHeight * scale, contentHeight);
     };
 
-    const estimateLayoutHeight = (scale: number) => {
-      const scaledColumnGap = columnGap * scale;
-      const scaledColumnWidth = (contentWidth - scaledColumnGap * (columnCount - 1)) / columnCount;
-      const twoColumnGap = 10 * scale;
-      const twoColumnWidth = (contentWidth - twoColumnGap) / 2;
+    const drawDocumentHeader = (variant: 'full' | 'compact') => {
+      if (variant === 'full') {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.setTextColor(31, 67, 38);
+        doc.text(companyName, left, y);
+        y += 22;
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('OFFICIAL BOOKING', left, y);
+        y += 18;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(companyAddress, left, y);
+        y += 16;
+        doc.text(companyPhones, left, y);
+        y += 16;
+        doc.text(companyEmail, left, y);
+        y += 22;
+        doc.setDrawColor(109, 129, 65);
+        doc.setLineWidth(1.2);
+        doc.line(left, y, right, y);
+        y += 18;
 
-      const headerHeight =
-        22 * scale +
-        22 * scale +
-        8 * scale +
-        18 * scale +
-        11 * scale +
-        16 * scale +
-        11 * scale +
-        16 * scale +
-        11 * scale +
-        22 * scale +
-        10 * scale +
-        24 * scale +
-        18 * scale;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(31, 67, 38);
+        doc.text('Structured Booking Summary', left, y);
+        y += 16;
+        return;
+      }
 
-      const rowHeights = [
-        [
-          { label: 'Booking Number', value: booking.reference_no },
-          { label: 'Client Name', value: booking.client_name },
-          { label: 'Client Email', value: booking.client_email || 'No email provided' },
-          { label: 'Client Phone', value: booking.client_phone || 'No phone provided' },
-        ],
-        [
-          { label: 'Product', value: productName },
-          { label: 'Product Category', value: booking.product_category_display || 'Not specified' },
-          { label: 'Travel Date', value: travelDate },
-          { label: 'End Date', value: endDate },
-        ],
-        [
-          { label: 'Duration', value: `${booking.number_of_days} day(s)` },
-          { label: 'Status', value: booking.status },
-          { label: 'Travellers', value: `${booking.num_adults} adult(s), ${booking.num_children} child(ren)` },
-          { label: 'Price per Adult', value: `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}` },
-        ],
-        [
-          { label: 'Price per Child', value: `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}` },
-          { label: 'Extra Charges', value: `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}` },
-          { label: 'Subtotal', value: `${booking.currency} ${toNumber(booking.subtotal).toLocaleString()}` },
-          { label: 'Discount', value: `${booking.currency} ${toNumber(booking.discount).toLocaleString()}` },
-        ],
-        [
-          { label: 'Total Cost', value: `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}` },
-          { label: 'Booking Validity', value: bookingValidity },
-          { label: 'Deposit Terms', value: depositTerms },
-          { label: 'Payment Channels', value: paymentChannels },
-        ],
-      ].map((fields, index) => {
-        const minHeight = index === 4 ? 72 : 62;
-        return Math.max(...fields.map((field) => estimateFieldHeight(scaledColumnWidth, field.label, field.value, minHeight, scale))) + 8 * scale;
-      });
-
-      const itineraryHeight = estimateFieldHeight(contentWidth, 'Itinerary', itinerary, 84, scale) + 8 * scale;
-      const generatedHeight =
-        Math.max(
-          estimateFieldHeight(twoColumnWidth, 'Generated From', generatedFrom, 58, scale),
-          estimateFieldHeight(twoColumnWidth, 'Generated On', generatedOn, 58, scale),
-        ) + 8 * scale;
-      const sectionBandsHeight = 4 * (26 * scale);
-
-      return headerHeight + sectionBandsHeight + rowHeights.reduce((sum, height) => sum + height, 0) + itineraryHeight + generatedHeight;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(31, 67, 38);
+      doc.text(companyName, left, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      const continuationLabel = `${booking.reference_no}  |  Official Booking`;
+      const continuationWidth = doc.getTextWidth(continuationLabel);
+      doc.text(continuationLabel, right - continuationWidth, y);
+      y += 16;
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.8);
+      doc.line(left, y, right, y);
+      y += 14;
     };
-
-    const rawScale = availableHeight / estimateLayoutHeight(1);
-    const layoutScale = Math.min(1, Math.max(0.74, rawScale));
-    const scaledColumnGap = columnGap * layoutScale;
-    const scaledColumnWidth = (contentWidth - scaledColumnGap * (columnCount - 1)) / columnCount;
-    const rowGap = 8 * layoutScale;
-    const boxRadius = 8 * layoutScale;
-    const labelFontSize = 8 * layoutScale;
-    const valueFontSize = 11 * layoutScale;
-    const innerPaddingX = 8 * layoutScale;
-    const labelTop = 14 * layoutScale;
-    const labelLineHeight = 8.5 * layoutScale;
-    const valueLineHeight = 11.5 * layoutScale;
-    const pageFloor = pageHeight - bottomMargin;
 
     const ensureSpace = (needed = 24) => {
       if (y + needed <= pageFloor) {
@@ -391,6 +369,7 @@ export const BookingDetails: React.FC = () => {
       }
       doc.addPage();
       y = topMargin;
+      drawDocumentHeader('compact');
     };
 
     const drawSectionBand = (title: string, detail?: string) => {
@@ -532,34 +511,7 @@ export const BookingDetails: React.FC = () => {
       y += rowHeight + rowGap;
     };
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22 * layoutScale);
-    doc.setTextColor(31, 67, 38);
-    doc.text(companyName, left, y);
-    y += 22 * layoutScale;
-    doc.setFontSize(8 * layoutScale);
-    doc.setTextColor(100, 116, 139);
-    doc.text('OFFICIAL BOOKING', left, y);
-    y += 18 * layoutScale;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10 * layoutScale);
-    doc.setTextColor(71, 85, 105);
-    doc.text(companyAddress, left, y);
-    y += 16 * layoutScale;
-    doc.text(companyPhones, left, y);
-    y += 16 * layoutScale;
-    doc.text(companyEmail, left, y);
-    y += 22 * layoutScale;
-    doc.setDrawColor(109, 129, 65);
-    doc.setLineWidth(1.2 * layoutScale);
-    doc.line(left, y, right, y);
-    y += 18 * layoutScale;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16 * layoutScale);
-    doc.setTextColor(31, 67, 38);
-    doc.text('Structured Booking Summary', left, y);
-    y += 16 * layoutScale;
+    drawDocumentHeader('full');
 
     drawSectionBand('Client Details', booking.reference_no);
     drawGridRow([
@@ -605,6 +557,21 @@ export const BookingDetails: React.FC = () => {
       { label: 'Generated From', value: generatedFrom },
       { label: 'Generated On', value: generatedOn },
     ], 58);
+
+    const totalPages = doc.getNumberOfPages();
+    for (let page = 1; page <= totalPages; page += 1) {
+      doc.setPage(page);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.8);
+      doc.line(left, pageHeight - 24, right, pageHeight - 24);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Booking reference: ${booking.reference_no}`, left, pageHeight - 10);
+      const pageLabel = `Page ${page} of ${totalPages}`;
+      const pageLabelWidth = doc.getTextWidth(pageLabel);
+      doc.text(pageLabel, right - pageLabelWidth, pageHeight - 10);
+    }
 
     doc.save(`${booking.reference_no.toLowerCase()}-booking.pdf`);
   };
