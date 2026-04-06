@@ -313,6 +313,50 @@ export const BookingDetails: React.FC = () => {
       return Math.max(minHeight * scale, contentHeight);
     };
 
+    const wrapTextSafely = (text: string, maxWidth: number) => {
+      const normalizedText = (text || 'Not provided').replace(/\r\n/g, '\n');
+      const paragraphs = normalizedText.split('\n');
+      const wrappedLines: string[] = [];
+
+      paragraphs.forEach((paragraph, paragraphIndex) => {
+        if (!paragraph.trim()) {
+          wrappedLines.push('');
+          return;
+        }
+
+        const softWrapped = doc.splitTextToSize(paragraph, maxWidth) as string[];
+
+        softWrapped.forEach((line) => {
+          const candidate = line || ' ';
+          if (doc.getTextWidth(candidate) <= maxWidth) {
+            wrappedLines.push(candidate);
+            return;
+          }
+
+          let segment = '';
+          for (const char of candidate) {
+            const nextSegment = `${segment}${char}`;
+            if (segment && doc.getTextWidth(nextSegment) > maxWidth) {
+              wrappedLines.push(segment);
+              segment = char;
+            } else {
+              segment = nextSegment;
+            }
+          }
+
+          if (segment) {
+            wrappedLines.push(segment);
+          }
+        });
+
+        if (paragraphIndex < paragraphs.length - 1) {
+          wrappedLines.push('');
+        }
+      });
+
+      return wrappedLines.length > 0 ? wrappedLines : ['Not provided'];
+    };
+
     const drawDocumentHeader = (variant: 'full' | 'compact') => {
       if (variant === 'full') {
         doc.setFont('helvetica', 'bold');
@@ -398,7 +442,7 @@ export const BookingDetails: React.FC = () => {
     const drawFieldBox = (x: number, top: number, width: number, label: string, value: string, minHeight = 62) => {
       const displayValue = value || 'Not provided';
       const labelLines = doc.splitTextToSize(label.toUpperCase(), width - innerPaddingX * 2);
-      const valueLines = doc.splitTextToSize(displayValue, width - innerPaddingX * 2);
+      const valueLines = wrapTextSafely(displayValue, width - innerPaddingX * 2);
       const valueTop = labelTop + labelLines.length * labelLineHeight + 8 * layoutScale;
       const contentHeight =
         labelTop +
@@ -443,8 +487,7 @@ export const BookingDetails: React.FC = () => {
 
     const drawFlowingFullWidthSection = (label: string, value: string, minHeight = 84) => {
       const displayValue = value || 'Not provided';
-      const normalizedValue = displayValue.replace(/\r\n/g, '\n');
-      const allValueLines = doc.splitTextToSize(normalizedValue, contentWidth - innerPaddingX * 2);
+      const allValueLines = wrapTextSafely(displayValue, contentWidth - innerPaddingX * 2);
       let remainingLines = [...allValueLines];
       let isContinuation = false;
 
