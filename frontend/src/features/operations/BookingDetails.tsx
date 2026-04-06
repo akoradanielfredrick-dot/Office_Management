@@ -389,11 +389,7 @@ export const BookingDetails: React.FC = () => {
     doc.setTextColor(31, 67, 38);
     doc.text('Structured Booking Summary', left, y);
     y += 16;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10.5);
-    doc.setTextColor(71, 85, 105);
-    doc.text('Grouped booking details laid out for professional printing and easy client review.', left, y);
-    y += 18;
+    y += 6;
 
     drawGridRow([
       { label: 'Booking Number', value: booking.reference_no },
