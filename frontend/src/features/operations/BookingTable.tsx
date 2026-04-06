@@ -110,39 +110,6 @@ export const BookingTable: React.FC = () => {
     [bookings]
   );
 
-  const matchesDateWindow = (booking: Booking) => {
-    if (dateWindowFilter === 'ALL') {
-      return true;
-    }
-
-    const rawDate = booking.travel_date || booking.start_date;
-    if (!rawDate) {
-      return false;
-    }
-
-    const tripDate = new Date(rawDate);
-    if (Number.isNaN(tripDate.getTime())) {
-      return false;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((tripDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    switch (dateWindowFilter) {
-      case 'TODAY':
-        return diffDays === 0;
-      case 'NEXT_7_DAYS':
-        return diffDays >= 0 && diffDays <= 7;
-      case 'NEXT_30_DAYS':
-        return diffDays >= 0 && diffDays <= 30;
-      case 'PAST':
-        return diffDays < 0;
-      default:
-        return true;
-    }
-  };
-
   const activeFilterCount = [
     statusFilter,
     paymentFilter,

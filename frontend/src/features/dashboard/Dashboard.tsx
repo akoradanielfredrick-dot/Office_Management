@@ -3,8 +3,6 @@ import { useAuthStore } from '../../store/authStore';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
   LogOut,
-  ShieldAlert,
-  Activity,
   ChevronRight,
   ShieldCheck,
   ExternalLink,

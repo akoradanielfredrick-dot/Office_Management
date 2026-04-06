@@ -106,7 +106,6 @@ const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | nu
 
 const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
-const readonlyInputClassName = `${inputClassName} bg-slate-50 text-slate-500`;
 const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
 export const ReservationForm: React.FC = () => {

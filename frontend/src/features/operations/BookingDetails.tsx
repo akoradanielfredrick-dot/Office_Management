@@ -163,6 +163,20 @@ export const BookingDetails: React.FC = () => {
     });
   }, [fetchData]);
 
+  const canViewPayments = Boolean(user?.is_management || user?.portal_permissions.includes('payments.view'));
+  const canViewExpenses = Boolean(user?.is_management || user?.portal_permissions.includes('expenses.view'));
+
+  React.useEffect(() => {
+    if (activeTab === 'payments' && !canViewPayments) {
+      setActiveTab(canViewExpenses ? 'expenses' : 'itinerary');
+      return;
+    }
+
+    if (activeTab === 'expenses' && !canViewExpenses) {
+      setActiveTab(canViewPayments ? 'payments' : 'itinerary');
+    }
+  }, [activeTab, canViewExpenses, canViewPayments]);
+
   if (loadError) {
     return (
       <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-sm font-semibold text-rose-600 shadow-sm">
@@ -178,8 +192,6 @@ export const BookingDetails: React.FC = () => {
   const bookingDisplayName =
     booking.product_name || booking.product_name_snapshot || booking.product_destination_snapshot || 'Custom Booking';
   const clientDisplayName = booking.customer_full_name || booking.client_name || 'Client not captured';
-  const canViewPayments = Boolean(user?.is_management || user?.portal_permissions.includes('payments.view'));
-  const canViewExpenses = Boolean(user?.is_management || user?.portal_permissions.includes('expenses.view'));
   const totalExpenses = expenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
   const paidAmount = toNumber(booking.paid_amount);
   const totalCost = toNumber(booking.total_cost);
@@ -211,17 +223,6 @@ export const BookingDetails: React.FC = () => {
       at: entry.timestamp || booking.created_at,
     })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
-
-  React.useEffect(() => {
-    if (activeTab === 'payments' && !canViewPayments) {
-      setActiveTab(canViewExpenses ? 'expenses' : 'itinerary');
-      return;
-    }
-
-    if (activeTab === 'expenses' && !canViewExpenses) {
-      setActiveTab(canViewPayments ? 'payments' : 'itinerary');
-    }
-  }, [activeTab, canViewExpenses, canViewPayments]);
 
   const getStatusTone = (status: string) => {
     switch (status) {

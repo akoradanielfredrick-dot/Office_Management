@@ -39,7 +39,7 @@ const getStatusTone = (status: unknown) => status === 'COMPLETED' || status === 
     : 'bg-slate-100 text-slate-700 ring-slate-200';
 
 export const IntegrationOpsDashboard: React.FC = () => {
-  const [loading, setLoading] = React.useState(true);
+  const [, setLoading] = React.useState(true);
   const [productsLoading, setProductsLoading] = React.useState(true);
   const [detailLoading, setDetailLoading] = React.useState(false);
   const [refreshNonce, setRefreshNonce] = React.useState(0);

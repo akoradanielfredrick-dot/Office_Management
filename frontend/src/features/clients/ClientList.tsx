@@ -8,7 +8,6 @@ import {
   Mail,
   Building2,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '../../lib/api';

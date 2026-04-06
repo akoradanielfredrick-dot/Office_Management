@@ -5,11 +5,11 @@ import {
   TrendingDown,
   DollarSign,
   PieChart,
-  BarChart3,
   Briefcase,
   AlertCircle,
   ChevronRight,
   Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
@@ -85,7 +85,6 @@ export const AnalyticsDashboard: React.FC = () => {
   const totalRevenue = revenueBreakdown.reduce((sum, item) => sum + item.value, 0);
   const totalExpenses = expenseBreakdown.reduce((sum, item) => sum + item.value, 0);
   const totalDirectCosts = directCostBreakdown.reduce((sum, item) => sum + item.value, 0);
-  const totalNetCashflow = netCashflowBreakdown.reduce((sum, item) => sum + item.value, 0);
   const indirectCostBreakdown = operatingCurrencies.map((currency, index) => ({
     currency,
     value: Math.max(expenseBreakdown[index].value - directCostBreakdown[index].value, 0),
@@ -259,7 +258,7 @@ const StatCard: React.FC<{
   label: string;
   items: Array<{ currency: string; value: number }>;
   trend: string;
-  icon: any;
+  icon: LucideIcon;
   color: 'emerald' | 'rose' | 'blue' | 'amber';
 }> = ({ label, items, trend, icon: Icon, color }) => (
   <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
@@ -306,7 +305,7 @@ const MetricBreakdown: React.FC<{
   </div>
 );
 
-const ReportLink: React.FC<{ label: string; description: string; icon: any; onClick: () => void }> = ({ label, description, icon: Icon, onClick }) => (
+const ReportLink: React.FC<{ label: string; description: string; icon: LucideIcon; onClick: () => void }> = ({ label, description, icon: Icon, onClick }) => (
   <button
     onClick={onClick}
     className="flex w-full items-center justify-between rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4 text-left transition-colors hover:bg-primary-50"

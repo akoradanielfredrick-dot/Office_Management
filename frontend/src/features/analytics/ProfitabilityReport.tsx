@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, PieChart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ReportToolbar } from './ReportToolbar';
 
@@ -47,8 +47,6 @@ export const ProfitabilityReport: React.FC = () => {
     fetchReport();
   }, []);
 
-  const totalRev = reportData.reduce((sum, d) => sum + Number(d.revenue), 0);
-  const totalCost = reportData.reduce((sum, d) => sum + Number(d.costs), 0);
   const avgMargin = reportData.length > 0 ? reportData.reduce((sum, d) => sum + Number(d.margin), 0) / reportData.length : 0;
   const totalsByCurrency = operatingCurrencies.map((currency) => ({
     currency,
