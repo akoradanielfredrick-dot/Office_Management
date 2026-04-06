@@ -125,12 +125,15 @@ export const DashboardHome: React.FC = () => {
   const firstName = user?.full_name?.split(' ')[0] ?? 'User';
   const roleLabel = normalizeRoleLabel(user?.role);
   const canAccessModule = (moduleKey: PortalModuleKey) => Boolean(user?.is_management || user?.portal_permissions.includes(`${moduleKey}.view`));
+  const canAccessBookings = canAccessModule('bookings');
+  const canAccessPayments = canAccessModule('payments');
+  const canAccessClients = canAccessModule('clients');
   const monthlyExpenseBreakdown = operatingCurrencies.map((currency) => ({
     currency,
     value: Number(stats?.expenses_this_month_by_currency?.[currency]) || 0,
   }));
-  const bookingActivity = activity.filter((item) => item.type === 'BOOKING');
-  const paymentActivity = activity.filter((item) => item.type === 'PAYMENT');
+  const bookingActivity = canAccessBookings ? activity.filter((item) => item.type === 'BOOKING') : [];
+  const paymentActivity = canAccessPayments ? activity.filter((item) => item.type === 'PAYMENT') : [];
   const bookingStatusSummary = [
     {
       label: 'Confirmed',
@@ -157,19 +160,19 @@ export const DashboardHome: React.FC = () => {
   const kpis = [
     {
       label: 'Clients',
-      value: stats?.total_clients ?? 0,
+      value: canAccessClients ? stats?.total_clients ?? 0 : 'Hidden',
       icon: Users,
       iconWrap: 'bg-[#eef4ff] text-[#2964ff]',
     },
     {
       label: 'Active Bookings',
-      value: stats?.active_bookings ?? 0,
+      value: canAccessBookings ? stats?.active_bookings ?? 0 : 'Hidden',
       icon: Calendar,
       iconWrap: 'bg-[#e9fbf2] text-[#17a86b]',
     },
     {
       label: 'Pending Payments',
-      value: stats?.pending_payments ?? 0,
+      value: canAccessPayments ? stats?.pending_payments ?? 0 : 'Hidden',
       icon: CreditCard,
       iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
     },
@@ -383,7 +386,8 @@ export const DashboardHome: React.FC = () => {
             ))}
           </div>
 
-          <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
+          {canAccessBookings || canAccessPayments ? (
+            <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">BOOKING DESK</p>
@@ -394,38 +398,45 @@ export const DashboardHome: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate('/bookings/new')}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#6d8141] px-4 py-2.5 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#566633]"
-                >
-                  <CirclePlus size={18} />
-                  New Booking
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/bookings')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#d8dee7] px-4 py-2.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-50"
-                >
-                  View All
-                  <ChevronRight size={18} />
-                </button>
+                {canAccessBookings ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/bookings/new')}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#6d8141] px-4 py-2.5 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#566633]"
+                    >
+                      <CirclePlus size={18} />
+                      New Booking
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/bookings')}
+                      className="inline-flex items-center gap-2 rounded-full border border-[#d8dee7] px-4 py-2.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      View All
+                      <ChevronRight size={18} />
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {bookingStatusSummary.map((item) => (
-                <div key={item.label} className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] px-4 py-4">
-                  <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
-                    {item.label}
-                  </span>
-                  <p className="mt-4 text-[2rem] font-semibold leading-none text-slate-950">{item.value}</p>
-                </div>
-              ))}
-            </div>
+            {canAccessBookings ? (
+              <div className="mt-6 grid gap-3 md:grid-cols-3">
+                {bookingStatusSummary.map((item) => (
+                  <div key={item.label} className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] px-4 py-4">
+                    <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
+                      {item.label}
+                    </span>
+                    <p className="mt-4 text-[2rem] font-semibold leading-none text-slate-950">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
-            <div className="mt-6 grid gap-4 xl:grid-cols-[1.2fr_0.9fr]">
-              <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fcfdfc] p-4">
+            <div className={clsx('mt-6 grid gap-4', canAccessBookings && canAccessPayments ? 'xl:grid-cols-[1.2fr_0.9fr]' : 'xl:grid-cols-1')}>
+              {canAccessBookings ? (
+                <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fcfdfc] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">RECENT BOOKINGS</p>
@@ -475,8 +486,10 @@ export const DashboardHome: React.FC = () => {
                   )}
                 </div>
               </div>
+              ) : null}
 
-              <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] p-4">
+              {canAccessPayments ? (
+                <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">FOLLOW-UP</p>
@@ -526,8 +539,18 @@ export const DashboardHome: React.FC = () => {
                   )}
                 </div>
               </div>
+              ) : null}
             </div>
           </div>
+          ) : (
+            <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
+              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">WORKSPACE</p>
+              <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Dashboard overview</h3>
+              <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-slate-500">
+                Your account is active, but booking and finance modules have not been assigned yet. Contact your administrator if you need those work areas added to your portal.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
