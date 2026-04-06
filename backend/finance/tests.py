@@ -8,6 +8,7 @@ from accounts.models import Role, User
 from clients.models import Client
 from operations.models import Booking
 from finance.models import Payment
+from finance.models import Expense
 
 
 class AnalyticsViewSetTests(APITestCase):
@@ -257,5 +258,55 @@ class PaymentWorkflowTests(APITestCase):
 
         self.client.force_authenticate(user=operations_user)
         response = self.client.post(reverse('payment-list'), self._payment_payload(txn_reference='TXN-NO-CREATE'), format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_non_finance_user_can_view_expense_list(self):
+        operations_role = Role.objects.create(name='OPERATIONS')
+        operations_user = User.objects.create_user(
+            email='ops-expense@example.com',
+            password='testpass123',
+            full_name='Operations Expense Viewer',
+            role=operations_role,
+        )
+        Expense.objects.create(
+            booking=self.booking,
+            amount=Decimal('75.00'),
+            currency='USD',
+            category='TRANSPORT',
+            expense_date='2026-04-06',
+            description='Transfer fee',
+            recorded_by=self.user,
+        )
+
+        self.client.force_authenticate(user=operations_user)
+        response = self.client.get(reverse('expense-list'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['description'], 'Transfer fee')
+
+    def test_non_finance_user_cannot_create_expense(self):
+        operations_role = Role.objects.create(name='OPERATIONS')
+        operations_user = User.objects.create_user(
+            email='ops-expense-create@example.com',
+            password='testpass123',
+            full_name='Operations No Expense Create',
+            role=operations_role,
+        )
+
+        self.client.force_authenticate(user=operations_user)
+        response = self.client.post(
+            reverse('expense-list'),
+            {
+                'booking': str(self.booking.id),
+                'amount': '55.00',
+                'currency': 'USD',
+                'category': 'TRANSPORT',
+                'expense_date': '2026-04-06',
+                'description': 'Taxi',
+            },
+            format='json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

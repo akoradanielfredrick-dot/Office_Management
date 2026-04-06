@@ -128,7 +128,7 @@ class ReceiptViewSet(viewsets.ReadOnlyModelViewSet):
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.filter(is_deleted=False).order_by('-expense_date', '-created_at')
     serializer_class = ExpenseSerializer
-    permission_classes = [IsFinanceUser]
+    permission_classes = [IsAuthenticatedReadOnlyOrFinanceWrite]
     filterset_fields = ['id', 'booking', 'category', 'supplier']
     search_fields = ['internal_reference', 'description', 'booking__reference_no', 'supplier__name']
 
