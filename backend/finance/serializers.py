@@ -3,7 +3,7 @@ from .models import Payment, Receipt, Expense
 from operations.models import Booking
 from decimal import Decimal
 
-ALLOWED_FINANCE_CURRENCIES = {"USD", "EUR", "GBP"}
+ALLOWED_FINANCE_CURRENCIES = {"USD", "EUR", "GBP", "KES"}
 
 class ReceiptSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,6 +26,13 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['internal_reference', 'created_at']
 
+    @staticmethod
+    def _amount_in_booking_currency(*, booking, amount, currency, exchange_rate):
+        amount_in_booking_currency = Decimal(amount)
+        if currency != booking.currency:
+            amount_in_booking_currency = Decimal(amount) * Decimal(exchange_rate)
+        return amount_in_booking_currency
+
     def validate(self, attrs):
         booking = attrs.get('booking') or getattr(self.instance, 'booking', None)
         amount = attrs.get('amount')
@@ -35,22 +42,35 @@ class PaymentSerializer(serializers.ModelSerializer):
 
         if currency and currency not in ALLOWED_FINANCE_CURRENCIES:
             raise serializers.ValidationError({
-                'currency': "Only USD, EUR, and GBP are allowed for payments."
+                'currency': "Only USD, EUR, GBP, and KES are allowed for payments."
             })
 
         if not booking or amount is None or exchange_rate is None:
             return attrs
 
-        amount_in_booking_currency = Decimal(amount)
-        if currency != booking.currency:
-            amount_in_booking_currency = Decimal(amount) * Decimal(exchange_rate)
+        amount_in_booking_currency = self._amount_in_booking_currency(
+            booking=booking,
+            amount=amount,
+            currency=currency,
+            exchange_rate=exchange_rate,
+        )
 
-        if payment_type == 'DEPOSIT':
-            minimum_deposit = Decimal(booking.total_cost) * Decimal('0.50')
-            if amount_in_booking_currency < minimum_deposit:
-                raise serializers.ValidationError({
-                    'amount': f"Deposit payments must be at least 50% of the booking total ({booking.currency} {minimum_deposit:,.2f})."
-                })
+        existing_paid_amount = Decimal(booking.paid_amount or 0)
+        if self.instance and self.instance.booking_id == booking.id and not self.instance.is_deleted:
+            existing_paid_amount -= self._amount_in_booking_currency(
+                booking=booking,
+                amount=self.instance.amount,
+                currency=self.instance.currency,
+                exchange_rate=self.instance.exchange_rate,
+            )
+
+        projected_paid_amount = existing_paid_amount + amount_in_booking_currency
+
+        if projected_paid_amount > Decimal(booking.total_cost):
+            remaining_balance = max(Decimal(booking.total_cost) - existing_paid_amount, Decimal('0.00'))
+            raise serializers.ValidationError({
+                'amount': f"Payment exceeds the remaining booking balance. Remaining due is {booking.currency} {remaining_balance:,.2f}."
+            })
 
         return attrs
 
@@ -72,5 +92,5 @@ class ExpenseSerializer(serializers.ModelSerializer):
 
     def validate_currency(self, value):
         if value not in ALLOWED_FINANCE_CURRENCIES:
-            raise serializers.ValidationError("Only USD, EUR, and GBP are allowed for expenses.")
+            raise serializers.ValidationError("Only USD, EUR, GBP, and KES are allowed for expenses.")
         return value

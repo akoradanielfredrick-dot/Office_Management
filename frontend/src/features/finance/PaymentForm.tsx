@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Save,
@@ -64,12 +65,12 @@ export const PaymentForm: React.FC = () => {
   const [bookings, setBookings] = useState<BookingOption[]>([]);
   const [submitError, setSubmitError] = useState('');
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<PaymentFormValues>({
+  const { register, handleSubmit, watch, setValue, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       booking: bookingIdFromUrl || '',
       amount: 0,
-      currency: 'USD',
+      currency: 'KES',
       exchange_rate: 1,
       payment_type: 'DEPOSIT',
       payment_date: new Date().toISOString().split('T')[0],
@@ -82,12 +83,26 @@ export const PaymentForm: React.FC = () => {
   const selectedBookingId = watch('booking');
   const selectedBooking = bookings.find((b) => b.id === selectedBookingId);
   const selectedPaymentType = watch('payment_type');
+  const selectedCurrency = watch('currency');
+  const enteredAmount = watch('amount');
+  const enteredExchangeRate = watch('exchange_rate');
 
   useEffect(() => {
     if (selectedBooking?.currency) {
       setValue('currency', selectedBooking.currency);
+      setValue('exchange_rate', 1);
     }
   }, [selectedBooking, setValue]);
+
+  useEffect(() => {
+    if (!selectedBooking?.currency) {
+      return;
+    }
+
+    if (selectedCurrency === selectedBooking.currency && toNumber(enteredExchangeRate) !== 1) {
+      setValue('exchange_rate', 1);
+    }
+  }, [enteredExchangeRate, selectedBooking, selectedCurrency, setValue]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -103,6 +118,7 @@ export const PaymentForm: React.FC = () => {
 
   const onSubmit = async (data: PaymentFormValues) => {
     setSubmitError('');
+    clearErrors();
 
     try {
       await api.post('/finance/payments/', {
@@ -114,13 +130,51 @@ export const PaymentForm: React.FC = () => {
       navigate('/finance/payments');
     } catch (error) {
       console.error('Failed to record payment:', error);
+      if (axios.isAxiosError(error) && error.response?.data && typeof error.response.data === 'object') {
+        const payload = error.response.data as Record<string, unknown>;
+        const fieldEntries = Object.entries(payload).filter(([, value]) => Array.isArray(value) || typeof value === 'string');
+
+        fieldEntries.forEach(([field, value]) => {
+          const message = Array.isArray(value) ? String(value[0] ?? '') : String(value);
+          if (
+            field === 'booking'
+            || field === 'amount'
+            || field === 'currency'
+            || field === 'exchange_rate'
+            || field === 'payment_type'
+            || field === 'method'
+            || field === 'payment_date'
+            || field === 'txn_reference'
+            || field === 'notes'
+          ) {
+            setError(field as keyof PaymentFormValues, { type: 'server', message });
+          }
+        });
+
+        const detail = payload.detail;
+        if (typeof detail === 'string' && detail.trim()) {
+          setSubmitError(detail);
+          return;
+        }
+
+        const firstFieldMessage = fieldEntries.length
+          ? (Array.isArray(fieldEntries[0][1]) ? String((fieldEntries[0][1] as unknown[])[0] ?? '') : String(fieldEntries[0][1]))
+          : '';
+        if (firstFieldMessage) {
+          setSubmitError(firstFieldMessage);
+          return;
+        }
+      }
+
       setSubmitError('Unable to record the payment right now. Please confirm the booking and transaction fields, then try again.');
     }
   };
 
-  const balance = selectedBooking ? toNumber(selectedBooking.total_cost) - toNumber(selectedBooking.paid_amount) : 0;
-  const minimumDeposit = selectedBooking ? toNumber(selectedBooking.total_cost) * 0.5 : 0;
-  const depositHintCurrency = selectedBooking?.currency || 'USD';
+  const balance = selectedBooking ? Math.max(toNumber(selectedBooking.total_cost) - toNumber(selectedBooking.paid_amount), 0) : 0;
+  const convertedIncomingAmount = selectedBooking
+    ? (selectedCurrency === selectedBooking.currency ? toNumber(enteredAmount) : toNumber(enteredAmount) * toNumber(enteredExchangeRate || 1))
+    : 0;
+  const projectedBalance = Math.max(balance - convertedIncomingAmount, 0);
   const inputClassName = 'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
   const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
@@ -195,18 +249,21 @@ export const PaymentForm: React.FC = () => {
                     <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input type="date" {...register('payment_date')} className={`${inputClassName} pl-11`} />
                   </div>
+                  {errors.payment_date && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.payment_date.message}</p>}
                 </div>
 
                 <div>
                   <label className={labelClassName}>Currency</label>
                   <div className="relative">
                     <select {...register('currency')} className={`${inputClassName} appearance-none pr-12`}>
+                      <option value="KES">KES - Kenya Shilling</option>
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
                       <option value="GBP">GBP - Pound Sterling</option>
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   </div>
+                  {errors.currency && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.currency.message}</p>}
                 </div>
 
                 <div>
@@ -220,6 +277,14 @@ export const PaymentForm: React.FC = () => {
                       className={`${inputClassName} pl-11`}
                     />
                   </div>
+                  {selectedBooking ? (
+                    <p className="mt-2 text-xs font-semibold text-slate-500">
+                      {selectedCurrency === selectedBooking.currency
+                        ? 'Same currency as booking. Exchange rate locked to 1.'
+                        : `Converted into ${selectedBooking.currency} before updating booking balance.`}
+                    </p>
+                  ) : null}
+                  {errors.exchange_rate && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.exchange_rate.message}</p>}
                 </div>
               </div>
             </section>
@@ -248,7 +313,7 @@ export const PaymentForm: React.FC = () => {
                   </div>
                   {selectedPaymentType === 'DEPOSIT' && selectedBooking ? (
                     <p className="mt-2 text-xs font-semibold text-amber-600">
-                      Deposit must be at least 50% of the booking total: {depositHintCurrency} {minimumDeposit.toLocaleString()}.
+                      Deposits are flexible. Enter any amount the client is paying now, as long as it does not exceed the remaining balance.
                     </p>
                   ) : null}
                 </div>
@@ -265,11 +330,13 @@ export const PaymentForm: React.FC = () => {
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   </div>
+                  {errors.method && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.method.message}</p>}
                 </div>
 
                 <div>
                   <label className={labelClassName}>Transaction Reference</label>
                   <input type="text" {...register('txn_reference')} className={inputClassName} placeholder="e.g. QRC1234567" />
+                  {errors.txn_reference && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.txn_reference.message}</p>}
                 </div>
 
                 <div className="md:col-span-2">
@@ -279,6 +346,7 @@ export const PaymentForm: React.FC = () => {
                     className="min-h-[130px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
                     placeholder="Add narration, reconciliation notes, or any internal context for this transaction..."
                   />
+                  {errors.notes && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.notes.message}</p>}
                 </div>
               </div>
             </section>
@@ -327,17 +395,30 @@ export const PaymentForm: React.FC = () => {
 
                     {selectedPaymentType === 'DEPOSIT' ? (
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Minimum Deposit</p>
-                        <p className="mt-2 text-2xl font-black text-[#c27b10]">
-                          {selectedBooking.currency} {minimumDeposit.toLocaleString()}
+                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Deposit Mode</p>
+                        <p className="mt-2 text-base font-black text-[#c27b10]">
+                          Flexible partial payment
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-[#5e7d5d]">
+                          Record whatever amount the client pays now. The remaining balance will stay open for later collection.
                         </p>
                       </div>
                     ) : null}
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Incoming Payment In Booking Currency</p>
+                      <p className="mt-2 text-2xl font-black text-[#234126]">
+                        {selectedBooking.currency} {convertedIncomingAmount.toLocaleString()}
+                      </p>
+                    </div>
 
                     <div className="border-t border-[#c8dfc0] pt-5">
                       <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Balance Due</p>
                       <p className="mt-2 text-3xl font-black text-[#9d3f4b]">
                         {selectedBooking.currency} {balance.toLocaleString()}
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-[#5e7d5d]">
+                        Projected balance after this payment: {selectedBooking.currency} {projectedBalance.toLocaleString()}
                       </p>
                     </div>
                   </div>

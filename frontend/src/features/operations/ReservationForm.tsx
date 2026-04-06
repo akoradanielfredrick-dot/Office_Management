@@ -74,7 +74,7 @@ interface AvailabilitySnapshot {
   can_sell_requested_quantity: boolean;
 }
 
-const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 const resolveSelectableCurrencies = (product?: ProductOption): string[] => {
   const currencies = Array.from(
@@ -89,7 +89,7 @@ const resolvePreferredCurrency = (product?: ProductOption): string => {
   if (product?.default_currency && allowedCurrencies.includes(product.default_currency)) {
     return product.default_currency;
   }
-  return allowedCurrencies[0] || 'USD';
+  return allowedCurrencies[0] || 'KES';
 };
 
 const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
@@ -142,7 +142,7 @@ export const ReservationForm: React.FC = () => {
       infant_price: 0,
       notes: '',
       internal_comments: '',
-      currency: 'USD',
+      currency: 'KES',
     },
   });
 

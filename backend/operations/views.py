@@ -1,6 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
+import base64
+
+from django.conf import settings
 from rest_framework import decorators, permissions, response, status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.views import APIView
 
 from accounts.permissions import IsOperationsUser
 from common.models import ActivityLog
@@ -13,6 +17,11 @@ from .serializers import (
     BookingSerializer,
     ExcursionSerializer,
     ExternalProductMappingSerializer,
+    GetYourGuideBootstrapMappingSerializer,
+    GetYourGuideProductDetailSerializer,
+    GetYourGuideProductListItemSerializer,
+    GetYourGuideSandboxRequestSerializer,
+    GetYourGuideSandboxResponseSerializer,
     InboundBookingPayloadProcessSerializer,
     InboundBookingPayloadSerializer,
     ProductScheduleSerializer,
@@ -20,7 +29,18 @@ from .serializers import (
     ReservationSerializer,
     SupplierSerializer,
 )
-from .services import amend_booking, cancel_booking, cancel_reservation, convert_reservation_to_booking, expire_stale_reservations
+from .services import (
+    amend_booking,
+    bootstrap_getyourguide_mapping,
+    build_getyourguide_product_detail,
+    build_getyourguide_product_list,
+    cancel_booking,
+    cancel_reservation,
+    convert_reservation_to_booking,
+    expire_stale_reservations,
+    process_getyourguide_booking_payload,
+    run_getyourguide_sandbox_request,
+)
 
 
 class ExcursionViewSet(viewsets.ModelViewSet):
@@ -275,8 +295,12 @@ class ExternalProductMappingViewSet(viewsets.ModelViewSet):
     queryset = ExternalProductMapping.objects.select_related("product", "participant_category").order_by("provider", "external_product_id")
     serializer_class = ExternalProductMappingSerializer
     permission_classes = [IsOperationsUser]
+    pagination_class = OperationsPageNumberPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["provider", "product", "participant_category", "is_active", "is_default"]
     search_fields = ["external_product_id", "external_option_id", "external_rate_id", "external_product_name", "product__name"]
+    ordering_fields = ["provider", "external_product_id", "created_at", "updated_at"]
+    ordering = ["provider", "external_product_id"]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -366,3 +390,188 @@ class SupplierViewSet(viewsets.ModelViewSet):
             table_name="Supplier",
             record_id=instance.id,
         )
+
+
+class GetYourGuideBookingIngestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def _basic_auth_valid(self, request):
+        configured_username = (settings.GETYOURGUIDE_BASIC_AUTH_USERNAME or "").strip()
+        configured_password = settings.GETYOURGUIDE_BASIC_AUTH_PASSWORD or ""
+        authorization = request.headers.get("Authorization", "")
+        if not configured_username or not configured_password or not authorization.startswith("Basic "):
+            return False
+
+        try:
+            encoded_credentials = authorization.split(" ", 1)[1].strip()
+            decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+            username, password = decoded_credentials.split(":", 1)
+        except (ValueError, UnicodeDecodeError, base64.binascii.Error):
+            return False
+
+        return username == configured_username and password == configured_password
+
+    def post(self, request):
+        token = (request.headers.get("X-Integration-Key") or "").strip()
+        configured_token = (settings.GETYOURGUIDE_INGEST_TOKEN or "").strip()
+        is_authenticated_staff = bool(request.user and request.user.is_authenticated)
+        token_valid = bool(configured_token and token == configured_token)
+        basic_auth_valid = self._basic_auth_valid(request)
+
+        if not is_authenticated_staff and not token_valid and not basic_auth_valid:
+            return response.Response(
+                {"detail": "A valid integration key, HTTP Basic Auth credential, or authenticated session is required."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not isinstance(request.data, dict):
+            return response.Response(
+                {"detail": "Expected a JSON object payload."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            result = process_getyourguide_booking_payload(
+                payload=request.data,
+                request_headers=dict(request.headers),
+                source_endpoint=request.path,
+                user=request.user if is_authenticated_staff else None,
+            )
+        except ValueError as exc:
+            return response.Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload_record = result["payload_record"]
+        booking = result["booking"]
+        response_status = status.HTTP_201_CREATED if result["created"] and result["status"] == "processed" else (
+            status.HTTP_202_ACCEPTED if result["status"] == "failed" else status.HTTP_200_OK
+        )
+        return response.Response(
+            {
+                "status": result["status"],
+                "booking_id": str(booking.id) if booking else None,
+                "booking_reference": booking.reference_no if booking else None,
+                "payload_id": str(payload_record.id),
+                "payload_status": payload_record.processing_status,
+                "message": payload_record.error_message or payload_record.processing_notes or "GetYourGuide payload received.",
+            },
+            status=response_status,
+        )
+
+
+class GetYourGuideSupplierAuthMixin:
+    def _basic_auth_valid(self, request):
+        configured_username = (settings.GETYOURGUIDE_BASIC_AUTH_USERNAME or "").strip()
+        configured_password = settings.GETYOURGUIDE_BASIC_AUTH_PASSWORD or ""
+        authorization = request.headers.get("Authorization", "")
+        if not configured_username or not configured_password or not authorization.startswith("Basic "):
+            return False
+
+        try:
+            encoded_credentials = authorization.split(" ", 1)[1].strip()
+            decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+            username, password = decoded_credentials.split(":", 1)
+        except (ValueError, UnicodeDecodeError, base64.binascii.Error):
+            return False
+
+        return username == configured_username and password == configured_password
+
+    def is_supplier_request_authorized(self, request):
+        configured_token = (settings.GETYOURGUIDE_SUPPLIER_TOKEN or "").strip()
+        request_token = (
+            request.headers.get("X-Integration-Key")
+            or request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+        )
+        if request.user and request.user.is_authenticated:
+            return True
+        if self._basic_auth_valid(request):
+            return True
+        return bool(configured_token and request_token and request_token == configured_token)
+
+    def ensure_supplier_authorized(self, request):
+        if self.is_supplier_request_authorized(request):
+            return None
+        return response.Response(
+            {"detail": "A valid GetYourGuide supplier token, HTTP Basic Auth credential, or authenticated session is required."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class GetYourGuideProductListView(GetYourGuideSupplierAuthMixin, APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        unauthorized = self.ensure_supplier_authorized(request)
+        if unauthorized:
+            return unauthorized
+
+        payload = build_getyourguide_product_list()
+        serializer = GetYourGuideProductListItemSerializer(payload, many=True)
+        return response.Response({"results": serializer.data, "count": len(serializer.data)})
+
+
+class GetYourGuideProductDetailView(GetYourGuideSupplierAuthMixin, APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, product_reference):
+        unauthorized = self.ensure_supplier_authorized(request)
+        if unauthorized:
+            return unauthorized
+
+        try:
+            payload = build_getyourguide_product_detail(
+                product_reference=product_reference,
+                supplier_id=settings.GETYOURGUIDE_SUPPLIER_ID,
+            )
+        except ValueError as exc:
+            return response.Response({"detail": str(exc)}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = GetYourGuideProductDetailSerializer(payload)
+        return response.Response(serializer.data)
+
+
+class GetYourGuideBootstrapMappingsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = GetYourGuideBootstrapMappingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            mappings = bootstrap_getyourguide_mapping(
+                product_id=serializer.validated_data.get("product_id"),
+                external_product_id=serializer.validated_data.get("external_product_id", ""),
+                external_option_id=serializer.validated_data.get("external_option_id", ""),
+                default_currency=serializer.validated_data.get("default_currency", ""),
+                user=request.user,
+            )
+        except ValueError as exc:
+            return response.Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        output = ExternalProductMappingSerializer(mappings, many=True, context={"request": request})
+        return response.Response({"count": len(output.data), "results": output.data}, status=status.HTTP_201_CREATED)
+
+
+class GetYourGuideSandboxRunView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = GetYourGuideSandboxRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = run_getyourguide_sandbox_request(
+                endpoint=serializer.validated_data["endpoint"],
+                method=serializer.validated_data.get("method", "POST"),
+                payload=serializer.validated_data.get("payload") or {},
+                query_params=serializer.validated_data.get("query_params") or {},
+                path_suffix=serializer.validated_data.get("path_suffix", ""),
+                base_url=settings.GETYOURGUIDE_SANDBOX_BASE_URL,
+                basic_auth_username=settings.GETYOURGUIDE_BASIC_AUTH_USERNAME,
+                basic_auth_password=settings.GETYOURGUIDE_BASIC_AUTH_PASSWORD,
+                user=request.user,
+            )
+        except ValueError as exc:
+            return response.Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        output = GetYourGuideSandboxResponseSerializer(result)
+        return response.Response(output.data, status=status.HTTP_200_OK)

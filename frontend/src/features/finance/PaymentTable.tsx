@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from '../operations/listTypes';
 
 interface Payment {
   id: string;
@@ -30,26 +31,85 @@ interface Payment {
   receipt?: { id: string };
 }
 
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
+
 export const PaymentTable: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [tableError, setTableError] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [methodFilter, setMethodFilter] = useState(searchParams.get('method') || 'ALL');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState(searchParams.get('type') || 'ALL');
+  const [currencyFilter, setCurrencyFilter] = useState(searchParams.get('currency') || 'ALL');
 
   useEffect(() => {
     const fetchPayments = async () => {
       const response = await api.get('/finance/payments/');
-      setPayments(response.data);
+      setPayments(extractResults<Payment>(response.data));
     };
 
     fetchPayments().catch((error) => {
       console.error('Failed to load payments:', error);
       setPayments([]);
+      setTableError('Payments could not be loaded right now.');
     });
   }, []);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams();
+    if (searchTerm.trim()) {
+      nextParams.set('search', searchTerm.trim());
+    }
+    if (methodFilter !== 'ALL') {
+      nextParams.set('method', methodFilter);
+    }
+    if (paymentTypeFilter !== 'ALL') {
+      nextParams.set('type', paymentTypeFilter);
+    }
+    if (currencyFilter !== 'ALL') {
+      nextParams.set('currency', currencyFilter);
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [currencyFilter, methodFilter, paymentTypeFilter, searchTerm, setSearchParams]);
+
+  const filteredPayments = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return payments.filter((payment) => {
+      const matchesSearch = !normalizedSearch || [
+        payment.internal_reference,
+        payment.booking_ref,
+        payment.recorder_name,
+        payment.method,
+        payment.payment_type,
+        payment.payment_type_display,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+
+      const matchesMethod = methodFilter === 'ALL' || payment.method === methodFilter;
+      const matchesPaymentType = paymentTypeFilter === 'ALL' || payment.payment_type === paymentTypeFilter;
+      const matchesCurrency = currencyFilter === 'ALL' || payment.currency === currencyFilter;
+
+      return matchesSearch && matchesMethod && matchesPaymentType && matchesCurrency;
+    });
+  }, [currencyFilter, methodFilter, paymentTypeFilter, payments, searchTerm]);
 
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const monthToDatePayments = payments.filter((payment) => new Date(payment.payment_date) >= monthStart);
+  const monthToDatePayments = filteredPayments.filter((payment) => new Date(payment.payment_date) >= monthStart);
   const mtdBreakdown = monthToDatePayments.reduce(
     (summary, payment) => {
       const amount = toNumber(payment.amount);
@@ -61,10 +121,12 @@ export const PaymentTable: React.FC = () => {
         summary.eur += amount;
       } else if (currency === 'GBP') {
         summary.gbp += amount;
+      } else if (currency === 'KES') {
+        summary.kes += amount;
       }
       return summary;
     },
-    { usd: 0, eur: 0, gbp: 0 }
+    { usd: 0, eur: 0, gbp: 0, kes: 0 }
   );
 
   const getMethodIcon = (method: string) => {
@@ -109,6 +171,10 @@ export const PaymentTable: React.FC = () => {
           <p className="mt-2 text-3xl font-black text-slate-900">USD {mtdBreakdown.usd.toLocaleString()}</p>
           <div className="mt-4 grid gap-2 text-xs font-semibold text-slate-500">
             <div className="flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 ring-1 ring-primary-100">
+              <span>KES Recorded</span>
+              <span className="font-black text-slate-700">KES {mtdBreakdown.kes.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 ring-1 ring-primary-100">
               <span>USD Recorded</span>
               <span className="font-black text-slate-700">USD {mtdBreakdown.usd.toLocaleString()}</span>
             </div>
@@ -131,7 +197,7 @@ export const PaymentTable: React.FC = () => {
             <ReceiptText size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Receipts Generated</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">{payments.length}</p>
+          <p className="mt-2 text-3xl font-black text-slate-900">{filteredPayments.length}</p>
         </div>
 
         <div className="rounded-[1.8rem] border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
@@ -143,6 +209,12 @@ export const PaymentTable: React.FC = () => {
         </div>
       </section>
 
+      {tableError ? (
+        <div className="rounded-[1.6rem] border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
+          {tableError}
+        </div>
+      ) : null}
+
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -151,14 +223,70 @@ export const PaymentTable: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search by payment reference, booking, or client..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
               />
             </div>
 
-            <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
-              <Filter size={17} />
-              Filters
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <select
+                value={methodFilter}
+                onChange={(event) => setMethodFilter(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm outline-none transition-colors hover:bg-slate-50 focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+              >
+                <option value="ALL">All Methods</option>
+                <option value="MPESA">MPesa</option>
+                <option value="BANK">Bank Transfer</option>
+                <option value="CASH">Cash</option>
+                <option value="CARD">Card</option>
+                <option value="CHEQUE">Cheque</option>
+                <option value="OTHER">Other</option>
+              </select>
+
+              <select
+                value={paymentTypeFilter}
+                onChange={(event) => setPaymentTypeFilter(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm outline-none transition-colors hover:bg-slate-50 focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+              >
+                <option value="ALL">All Types</option>
+                <option value="DEPOSIT">Deposit</option>
+                <option value="BALANCE">Balance Payment</option>
+                <option value="FULL">Full Payment</option>
+              </select>
+
+              <select
+                value={currencyFilter}
+                onChange={(event) => setCurrencyFilter(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm outline-none transition-colors hover:bg-slate-50 focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+              >
+                <option value="ALL">All Currencies</option>
+                <option value="KES">KES</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setMethodFilter('ALL');
+                  setPaymentTypeFilter('ALL');
+                  setCurrencyFilter('ALL');
+                }}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                <Filter size={17} />
+                Reset Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <Filter size={14} />
+              Showing {filteredPayments.length} of {payments.length} payments
+            </div>
           </div>
         </div>
 
@@ -176,7 +304,7 @@ export const PaymentTable: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {payments.map((p) => (
+              {filteredPayments.map((p) => (
                 <tr key={p.id} className="group transition-colors hover:bg-slate-50/80">
                   <td className="px-6 py-5">
                     <div>
@@ -238,8 +366,18 @@ export const PaymentTable: React.FC = () => {
                       </button>
                       <button
                         onClick={async () => {
-                          await api.delete(`/finance/payments/${p.id}/`);
-                          setPayments((current) => current.filter((payment) => payment.id !== p.id));
+                          if (!window.confirm(`Void payment ${p.internal_reference}? This will remove it from the booking's paid balance.`)) {
+                            return;
+                          }
+
+                          try {
+                            setTableError('');
+                            await api.delete(`/finance/payments/${p.id}/`);
+                            setPayments((current) => current.filter((payment) => payment.id !== p.id));
+                          } catch (error) {
+                            console.error('Failed to void payment:', error);
+                            setTableError('The payment could not be voided right now.');
+                          }
                         }}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
                       >
@@ -250,6 +388,18 @@ export const PaymentTable: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {!filteredPayments.length ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-14 text-center">
+                    <div className="space-y-2">
+                      <p className="text-base font-black text-slate-700">No payments match this view.</p>
+                      <p className="text-sm font-medium text-slate-500">
+                        Adjust the search or filters, or record a new payment to populate the ledger.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

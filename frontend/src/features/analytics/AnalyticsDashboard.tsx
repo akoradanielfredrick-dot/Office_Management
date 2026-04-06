@@ -34,14 +34,14 @@ const fallbackStats: Stats = {
   direct_costs: 310000,
   net_cashflow: 755000,
   total_outstanding: 1150000,
-  revenue_by_currency: { USD: 0, EUR: 0, GBP: 0 },
-  expenses_by_currency: { USD: 0, EUR: 0, GBP: 0 },
-  direct_costs_by_currency: { USD: 0, EUR: 0, GBP: 0 },
-  net_cashflow_by_currency: { USD: 0, EUR: 0, GBP: 0 },
-  outstanding_by_currency: { USD: 0, EUR: 0, GBP: 0 },
+  revenue_by_currency: { KES: 0, USD: 0, EUR: 0, GBP: 0 },
+  expenses_by_currency: { KES: 0, USD: 0, EUR: 0, GBP: 0 },
+  direct_costs_by_currency: { KES: 0, USD: 0, EUR: 0, GBP: 0 },
+  net_cashflow_by_currency: { KES: 0, USD: 0, EUR: 0, GBP: 0 },
+  outstanding_by_currency: { KES: 0, USD: 0, EUR: 0, GBP: 0 },
 };
 
-const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 const getCurrencyBreakdown = (values?: Record<string, string | number>) =>
   operatingCurrencies.map((currency) => ({
@@ -159,10 +159,10 @@ export const AnalyticsDashboard: React.FC = () => {
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Revenue" items={revenueBreakdown} trend="USD/EUR/GBP mix" icon={TrendingUp} color="emerald" />
-        <StatCard label="Total Expenses" items={expenseBreakdown} trend="USD/EUR/GBP mix" icon={TrendingDown} color="rose" />
-        <StatCard label="Net Cashflow" items={netCashflowBreakdown} trend="USD/EUR/GBP mix" icon={DollarSign} color="blue" />
-        <StatCard label="Pending Collections" items={outstandingBreakdown} trend="USD/EUR/GBP mix" icon={AlertCircle} color="amber" />
+        <StatCard label="Total Revenue" items={revenueBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingUp} color="emerald" />
+        <StatCard label="Total Expenses" items={expenseBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingDown} color="rose" />
+        <StatCard label="Net Cashflow" items={netCashflowBreakdown} trend="KES/USD/EUR/GBP mix" icon={DollarSign} color="blue" />
+        <StatCard label="Pending Collections" items={outstandingBreakdown} trend="KES/USD/EUR/GBP mix" icon={AlertCircle} color="amber" />
       </section>
 
       <section className="grid gap-8 xl:grid-cols-[1.6fr_0.9fr]">

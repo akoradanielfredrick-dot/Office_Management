@@ -1,7 +1,9 @@
+import base64
 from datetime import timedelta
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -353,6 +355,47 @@ class InventoryFlowTests(TestCase):
         self.assertEqual(response.data["results"][0]["status"], "CANCELLED")
         self.assertEqual(response.data["results"][0]["refund_status"], "PENDING")
 
+    def test_booking_create_allows_missing_schedule(self):
+        response = self.api_client.post(
+            "/api/operations/bookings/",
+            {
+                "client": str(self.client_record.id),
+                "product": str(self.product.id),
+                "schedule": None,
+                "customer_full_name": self.client_record.full_name,
+                "customer_email": self.client_record.email,
+                "customer_phone": self.client_record.phone,
+                "travel_date": str(timezone.localdate()),
+                "number_of_days": 1,
+                "extra_charges": "0.00",
+                "discount": "0.00",
+                "itinerary": "Manual office booking",
+                "booking_validity": "",
+                "deposit_terms": "",
+                "payment_channels": "",
+                "notes": "",
+                "internal_notes": "",
+                "supplier_notes": "",
+                "currency": "KES",
+                "status": "CONFIRMED",
+                "source": "MANUAL_OFFICE",
+                "participant_quantities": [
+                    {
+                        "participant_category": str(self.adult_category.id),
+                        "category_code": "ADULT",
+                        "category_label": "Adult",
+                        "quantity": 2,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["schedule"], None)
+        self.assertEqual(str(response.data["product"]), str(self.product.id))
+
     def test_reservation_list_supports_server_side_filters_and_pagination(self):
         create_reservation(
             data={
@@ -440,6 +483,20 @@ class InventoryFlowTests(TestCase):
         self.assertEqual(response.data["count"], 2)
         self.assertTrue(all(item["status"] == "AVAILABLE" for item in response.data["results"]))
 
+    def test_product_mappings_list_supports_pagination_for_integrations_dashboard(self):
+        response = self.api_client.get(
+            "/api/operations/product-mappings/",
+            {
+                "page": 1,
+                "page_size": 10,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.data)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["external_product_id"], "gyg-product-100")
+
     def test_register_inbound_payload_tracks_idempotency_and_duplicates(self):
         first_payload, first_record, first_duplicate = register_inbound_booking_payload(
             provider=IntegrationProvider.GET_YOUR_GUIDE,
@@ -520,3 +577,329 @@ class InventoryFlowTests(TestCase):
         self.assertEqual(processed_payload.processing_status, InboundBookingPayload.ProcessingStatus.PROCESSED)
         self.assertIsNotNone(processed_payload.processed_at)
         self.assertEqual(processed_payload.idempotency_record.processing_status, "COMPLETED")
+
+    def test_getyourguide_ingest_endpoint_creates_booking_and_logs_payload(self):
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/bookings/ingest/",
+            {
+                "event_type": "BOOKING_CREATE",
+                "booking_reference": "GYG-REF-300",
+                "product_id": "gyg-product-100",
+                "option_id": "gyg-option-1",
+                "rate_id": "adult-standard",
+                "travel_date": self.schedule.start_at.date().isoformat(),
+                "customer": {
+                    "full_name": "John GetYourGuide",
+                    "email": "john.gyg@example.com",
+                    "phone": "+254711222333",
+                },
+                "participants": [
+                    {
+                        "category_code": "ADULT",
+                        "quantity": 2,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["status"], "processed")
+
+        booking = ProductSchedule.objects.get(id=self.schedule.id).bookings.get(external_booking_reference="GYG-REF-300")
+        self.assertEqual(booking.integration_provider, IntegrationProvider.GET_YOUR_GUIDE)
+        self.assertEqual(booking.source, "OTA")
+        self.assertEqual(booking.num_adults, 2)
+
+        payload = InboundBookingPayload.objects.get(external_booking_reference="GYG-REF-300")
+        self.assertEqual(payload.processing_status, InboundBookingPayload.ProcessingStatus.PROCESSED)
+        self.assertEqual(payload.booking_id, booking.id)
+
+    def test_getyourguide_ingest_endpoint_updates_existing_booking(self):
+        booking = create_booking(
+            data={
+                "client": self.client_record.id,
+                "schedule": self.schedule.id,
+                "status": "CONFIRMED",
+                "source": "OTA",
+                "integration_provider": IntegrationProvider.GET_YOUR_GUIDE,
+                "external_booking_reference": "GYG-REF-301",
+                "currency": "KES",
+                "number_of_days": 1,
+                "travel_date": self.schedule.start_at.date(),
+                "participants": [
+                    {
+                        "participant_category": self.adult_category.id,
+                        "category_code": "ADULT",
+                        "category_label": "Adult",
+                        "quantity": 1,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            user=self.user,
+        )
+
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/bookings/ingest/",
+            {
+                "event_type": "BOOKING_UPDATE",
+                "booking_reference": "GYG-REF-301",
+                "product_id": "gyg-product-100",
+                "option_id": "gyg-option-1",
+                "rate_id": "adult-standard",
+                "schedule_id": str(self.second_schedule.id),
+                "travel_date": self.second_schedule.start_at.date().isoformat(),
+                "customer": {
+                    "full_name": "Updated GetYourGuide",
+                    "email": "updated.gyg@example.com",
+                    "phone": "+254733000111",
+                },
+                "participants": [
+                    {
+                        "category_code": "ADULT",
+                        "quantity": 3,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "processed")
+
+        booking.refresh_from_db()
+        self.schedule.refresh_from_db()
+        self.second_schedule.refresh_from_db()
+        self.assertEqual(str(booking.schedule_id), str(self.second_schedule.id))
+        self.assertEqual(booking.num_adults, 3)
+        self.assertEqual(booking.customer_full_name, "Updated GetYourGuide")
+        self.assertEqual(booking.customer_email, "updated.gyg@example.com")
+        self.assertEqual(self.schedule.confirmed_count, 0)
+        self.assertEqual(self.second_schedule.confirmed_count, 3)
+
+        payload = InboundBookingPayload.objects.get(external_booking_reference="GYG-REF-301", event_type=IntegrationEventType.BOOKING_UPDATE)
+        self.assertEqual(payload.processing_status, InboundBookingPayload.ProcessingStatus.PROCESSED)
+        self.assertEqual(payload.booking_id, booking.id)
+
+    def test_getyourguide_ingest_endpoint_cancels_existing_booking(self):
+        booking = create_booking(
+            data={
+                "client": self.client_record.id,
+                "schedule": self.schedule.id,
+                "status": "CONFIRMED",
+                "source": "OTA",
+                "integration_provider": IntegrationProvider.GET_YOUR_GUIDE,
+                "external_booking_reference": "GYG-REF-302",
+                "currency": "KES",
+                "number_of_days": 1,
+                "travel_date": self.schedule.start_at.date(),
+                "participants": [
+                    {
+                        "participant_category": self.adult_category.id,
+                        "category_code": "ADULT",
+                        "category_label": "Adult",
+                        "quantity": 2,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            user=self.user,
+        )
+
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/bookings/ingest/",
+            {
+                "event_type": "BOOKING_CANCEL",
+                "booking_reference": "GYG-REF-302",
+                "reason": "Traveller cancelled on partner side",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "processed")
+
+        booking.refresh_from_db()
+        self.schedule.refresh_from_db()
+        self.assertEqual(booking.status, "CANCELLED")
+        self.assertEqual(booking.cancelled_by_type, "SYSTEM")
+        self.assertEqual(self.schedule.confirmed_count, 0)
+        self.assertEqual(self.schedule.remaining_capacity, 10)
+
+        payload = InboundBookingPayload.objects.get(external_booking_reference="GYG-REF-302", event_type=IntegrationEventType.BOOKING_CANCEL)
+        self.assertEqual(payload.processing_status, InboundBookingPayload.ProcessingStatus.PROCESSED)
+        self.assertEqual(payload.booking_id, booking.id)
+
+    def test_getyourguide_product_list_endpoint_returns_catalog_rows(self):
+        response = self.api_client.get("/api/operations/integrations/get-your-guide/products/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(response.data["count"], 1)
+        target_row = next((item for item in response.data["results"] if item["product_id"] == "gyg-product-100"), None)
+        self.assertIsNotNone(target_row)
+        self.assertTrue(target_row["has_default_mapping"])
+
+    def test_getyourguide_product_detail_endpoint_returns_rates_and_schedules(self):
+        response = self.api_client.get("/api/operations/integrations/get-your-guide/products/gyg-product-100/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["product_id"], "gyg-product-100")
+        self.assertEqual(response.data["internal_product_id"], str(self.product.id))
+        self.assertTrue(len(response.data["options"]) >= 1)
+        self.assertTrue(len(response.data["schedules"]) >= 1)
+
+    def test_getyourguide_bootstrap_endpoint_creates_default_mapping_rows(self):
+        unmapped_product = Product.objects.create(
+            name="Watamu Marine Park",
+            slug="watamu-marine-park",
+            category=Product.Category.ACTIVITY,
+            pricing_mode=Product.PricingMode.PER_PERSON,
+            destination="Watamu",
+            default_currency="USD",
+        )
+        adult_category = ProductParticipantCategory.objects.create(
+            product=unmapped_product,
+            code=ProductParticipantCategory.Code.ADULT,
+            label="Adult",
+        )
+        unmapped_product.prices.create(
+            participant_category=adult_category,
+            rate_name="STANDARD",
+            currency="USD",
+            amount="45.00",
+        )
+
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/mappings/bootstrap/",
+            {
+                "product_id": str(unmapped_product.id),
+                "external_product_id": "gyg-watamu-200",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["count"], 2)
+        self.assertTrue(
+            ExternalProductMapping.objects.filter(
+                provider=IntegrationProvider.GET_YOUR_GUIDE,
+                product=unmapped_product,
+                external_product_id="gyg-watamu-200",
+            ).exists()
+        )
+
+    @override_settings(
+        GETYOURGUIDE_BASIC_AUTH_USERNAME="MrangaTourandSafarisLimited",
+        GETYOURGUIDE_BASIC_AUTH_PASSWORD="74553fc3767d10b551d78950d9l7a63f",
+    )
+    def test_getyourguide_ingest_endpoint_accepts_http_basic_auth(self):
+        client = APIClient()
+        credentials = base64.b64encode(b"MrangaTourandSafarisLimited:74553fc3767d10b551d78950d9l7a63f").decode("utf-8")
+
+        response = client.post(
+            "/api/operations/integrations/get-your-guide/bookings/ingest/",
+            {
+                "event_type": "BOOKING_CREATE",
+                "booking_reference": "GYG-REF-BASIC-1",
+                "product_id": "gyg-product-100",
+                "option_id": "gyg-option-1",
+                "rate_id": "adult-standard",
+                "travel_date": self.schedule.start_at.date().isoformat(),
+                "customer": {
+                    "full_name": "Basic Auth Traveller",
+                    "email": "basic.auth@example.com",
+                    "phone": "+254700111222",
+                },
+                "participants": [
+                    {
+                        "category_code": "ADULT",
+                        "quantity": 1,
+                        "unit_price": "5000.00",
+                    }
+                ],
+            },
+            format="json",
+            HTTP_AUTHORIZATION=f"Basic {credentials}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["status"], "processed")
+
+    @override_settings(
+        GETYOURGUIDE_BASIC_AUTH_USERNAME="MrangaTourandSafarisLimited",
+        GETYOURGUIDE_BASIC_AUTH_PASSWORD="74553fc3767d10b551d78950d9l7a63f",
+    )
+    def test_getyourguide_product_list_endpoint_accepts_http_basic_auth(self):
+        client = APIClient()
+        credentials = base64.b64encode(b"MrangaTourandSafarisLimited:74553fc3767d10b551d78950d9l7a63f").decode("utf-8")
+
+        response = client.get(
+            "/api/operations/integrations/get-your-guide/products/",
+            HTTP_AUTHORIZATION=f"Basic {credentials}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(response.data["count"], 1)
+
+    @override_settings(
+        GETYOURGUIDE_SANDBOX_BASE_URL="https://supplier-api.getyourguide.com/sandbox/1",
+        GETYOURGUIDE_BASIC_AUTH_USERNAME="MrangaTourandSafarisLimited",
+        GETYOURGUIDE_BASIC_AUTH_PASSWORD="74553fc3767d10b551d78950d9l7a63f",
+    )
+    @patch("operations.services.urllib_request.urlopen")
+    def test_getyourguide_sandbox_runner_posts_payload(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"status":"ok"}'
+        mock_response.getcode.return_value = 200
+        mock_response.headers.items.return_value = [("Content-Type", "application/json")]
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/sandbox/run/",
+            {
+                "endpoint": "notify-availability-update",
+                "method": "POST",
+                "payload": {"productId": "gyg-product-100", "availability": []},
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status_code"], 200)
+        self.assertEqual(response.data["endpoint"], "notify-availability-update")
+        self.assertEqual(response.data["response_body"]["status"], "ok")
+        request_arg = mock_urlopen.call_args[0][0]
+        self.assertEqual(request_arg.full_url, "https://supplier-api.getyourguide.com/sandbox/1/notify-availability-update")
+        self.assertEqual(request_arg.get_method(), "POST")
+
+    @override_settings(
+        GETYOURGUIDE_SANDBOX_BASE_URL="https://supplier-api.getyourguide.com/sandbox/1",
+        GETYOURGUIDE_BASIC_AUTH_USERNAME="MrangaTourandSafarisLimited",
+        GETYOURGUIDE_BASIC_AUTH_PASSWORD="74553fc3767d10b551d78950d9l7a63f",
+    )
+    @patch("operations.services.urllib_request.urlopen")
+    def test_getyourguide_sandbox_runner_supports_get_with_path_suffix(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"items":[]}'
+        mock_response.getcode.return_value = 200
+        mock_response.headers.items.return_value = [("Content-Type", "application/json")]
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        response = self.api_client.post(
+            "/api/operations/integrations/get-your-guide/sandbox/run/",
+            {
+                "endpoint": "deals",
+                "method": "GET",
+                "path_suffix": "abc-123",
+                "query_params": {"supplierId": "mranga"},
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        request_arg = mock_urlopen.call_args[0][0]
+        self.assertEqual(request_arg.full_url, "https://supplier-api.getyourguide.com/sandbox/1/deals/abc-123?supplierId=mranga")
+        self.assertEqual(request_arg.get_method(), "GET")

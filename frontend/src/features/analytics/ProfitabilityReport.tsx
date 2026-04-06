@@ -21,7 +21,7 @@ const fallbackData: ProfitData[] = [
   { id: '2', ref: 'BKG-2026-0012', client: 'Acme Corp', product: 'Amboseli Executive Trip', currency: 'EUR', revenue: 320000, costs: 240000, profit: 80000, margin: 25 },
 ];
 
-const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 export const ProfitabilityReport: React.FC = () => {
   const navigate = useNavigate();
@@ -52,8 +52,8 @@ export const ProfitabilityReport: React.FC = () => {
   const avgMargin = reportData.length > 0 ? reportData.reduce((sum, d) => sum + Number(d.margin), 0) / reportData.length : 0;
   const totalsByCurrency = operatingCurrencies.map((currency) => ({
     currency,
-    revenue: reportData.filter((item) => (item.currency || 'USD') === currency).reduce((sum, item) => sum + Number(item.revenue), 0),
-    costs: reportData.filter((item) => (item.currency || 'USD') === currency).reduce((sum, item) => sum + Number(item.costs), 0),
+    revenue: reportData.filter((item) => (item.currency || 'KES') === currency).reduce((sum, item) => sum + Number(item.revenue), 0),
+    costs: reportData.filter((item) => (item.currency || 'KES') === currency).reduce((sum, item) => sum + Number(item.costs), 0),
   }));
 
   if (loading) return <div className="p-8 text-center text-slate-400">Analyzing tour margins...</div>;
@@ -103,9 +103,9 @@ export const ProfitabilityReport: React.FC = () => {
                     <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{p.client}</p>
                     {p.product && <p className="mt-1 text-xs font-medium text-primary-700">{p.product}</p>}
                   </td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{p.currency || 'USD'} {Number(p.revenue).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{p.currency || 'USD'} {Number(p.costs).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{p.currency || 'USD'} {Number(p.profit).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{p.currency || 'KES'} {Number(p.revenue).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{p.currency || 'KES'} {Number(p.costs).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{p.currency || 'KES'} {Number(p.profit).toLocaleString()}</td>
                   <td className="px-6 py-5 text-center">
                     <span className={clsx(
                       'inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1',

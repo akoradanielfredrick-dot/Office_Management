@@ -20,7 +20,7 @@ import type { PaginatedResponse } from './listTypes';
 const bookingSchema = z.object({
   client: z.string().uuid('Please select a client'),
   product: z.string().uuid('Please select a product'),
-  schedule: z.string().uuid('Please select a schedule'),
+  schedule: z.string().uuid('Please select a schedule').optional().or(z.literal('')),
   customer_full_name: z.string().min(2, 'Customer name is required'),
   customer_email: z.string().email('Please enter a valid email').optional().or(z.literal('')),
   customer_phone: z.string().optional(),
@@ -99,7 +99,7 @@ interface ScheduleOption {
   notes?: string;
 }
 
-const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 const resolveSelectableCurrencies = (product?: ProductOption): string[] => {
   const currencies = Array.from(
@@ -114,7 +114,7 @@ const resolvePreferredCurrency = (product?: ProductOption): string => {
   if (product?.default_currency && allowedCurrencies.includes(product.default_currency)) {
     return product.default_currency;
   }
-  return allowedCurrencies[0] || 'USD';
+  return allowedCurrencies[0] || 'KES';
 };
 
 const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
@@ -173,7 +173,7 @@ export const BookingForm: React.FC = () => {
       notes: '',
       internal_notes: '',
       supplier_notes: '',
-      currency: 'USD',
+      currency: 'KES',
       status: 'CONFIRMED',
       source: 'MANUAL_OFFICE',
     },
@@ -298,7 +298,7 @@ export const BookingForm: React.FC = () => {
       const response = await api.post('/operations/bookings/', {
         client: data.client,
         product: data.product,
-        schedule: data.schedule,
+        schedule: data.schedule || null,
         customer_full_name: data.customer_full_name,
         customer_email: data.customer_email || null,
         customer_phone: data.customer_phone || '',
@@ -335,7 +335,7 @@ export const BookingForm: React.FC = () => {
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900">Create Structured Booking</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-              Create a confirmed booking against a live product schedule so availability, payment tracking, and future OTA/API flows stay aligned.
+              Create a confirmed booking with or without a live product schedule so office-led bookings stay flexible while scheduled departures remain inventory-safe.
             </p>
           </div>
         </div>
@@ -420,7 +420,7 @@ export const BookingForm: React.FC = () => {
                 <label className={labelClassName}>Schedule</label>
                 <div className="relative">
                   <select {...register('schedule')} className={`${inputClassName} appearance-none pr-12`}>
-                    <option value="">-- Choose Schedule --</option>
+                    <option value="">-- No Schedule / Open Booking --</option>
                     {filteredSchedules.map((schedule) => (
                       <option key={schedule.id} value={schedule.id}>
                         {schedule.schedule_code} {schedule.start_at ? `| ${schedule.start_at.slice(0, 16).replace('T', ' ')}` : ''} {`| ${schedule.remaining_capacity} left`}
@@ -430,6 +430,9 @@ export const BookingForm: React.FC = () => {
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 </div>
                 {errors.schedule && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.schedule.message}</p>}
+                <p className="mt-2 text-xs font-semibold text-slate-500">
+                  Leave this blank for a manual booking that is not tied to a specific departure schedule.
+                </p>
               </div>
 
               <div>

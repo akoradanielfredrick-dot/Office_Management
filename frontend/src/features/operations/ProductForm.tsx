@@ -22,7 +22,7 @@ type ProductValues = z.infer<typeof productSchema>;
 interface PriceValues {
   id?: string;
   participant_category?: string | null;
-  currency: 'USD' | 'EUR' | 'GBP';
+  currency: 'KES' | 'USD' | 'EUR' | 'GBP';
   amount: number;
   rate_name: string;
 }
@@ -41,7 +41,7 @@ interface ProductResponse extends ProductValues {
 const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
-const standardCurrencies: PriceValues['currency'][] = ['USD', 'EUR', 'GBP'];
+const standardCurrencies: PriceValues['currency'][] = ['KES', 'USD', 'EUR', 'GBP'];
 
 const buildStandardPrices = (
   incomingPrices?: ProductResponse['prices']
@@ -169,7 +169,7 @@ export const ProductForm: React.FC = () => {
   const onSubmit = async (data: ProductValues) => {
     setSubmitError('');
 
-    const defaultCurrency = prices.find((price) => price.amount > 0)?.currency || 'USD';
+    const defaultCurrency = prices.find((price) => price.amount > 0)?.currency || 'KES';
 
     const payload = {
       ...data,
@@ -299,14 +299,14 @@ export const ProductForm: React.FC = () => {
           <div>
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Product Rates</p>
-              <h2 className="mt-1 text-2xl font-black text-slate-900">Three-Currency Rates</h2>
+              <h2 className="mt-1 text-2xl font-black text-slate-900">Four-Currency Rates</h2>
               <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
-                Record the standard selling rate in the three operating currencies only: `USD`, `EUR`, and `GBP`.
+                Record the standard selling rate in the operating currencies: `KES`, `USD`, `EUR`, and `GBP`.
               </p>
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {prices.map((price, index) => (
               <div key={price.currency} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
                 <div>

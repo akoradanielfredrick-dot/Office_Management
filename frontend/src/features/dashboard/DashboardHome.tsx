@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
+  CirclePlus,
   Wallet,
   ShoppingCart,
   ChevronRight,
@@ -12,6 +13,7 @@ import {
   Users,
   Activity,
   Boxes,
+  type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -38,7 +40,7 @@ interface ActivityItem {
   currency?: string;
 }
 
-const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 const normalizeRoleLabel = (role: unknown): string => {
   if (typeof role === 'string' && role.trim()) {
@@ -56,7 +58,7 @@ const normalizeRoleLabel = (role: unknown): string => {
 };
 
 const activityPresentation: Record<ActivityItem['type'], {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   iconWrap: string;
   destination: (item: ActivityItem) => string;
 }> = {
@@ -70,6 +72,30 @@ const activityPresentation: Record<ActivityItem['type'], {
     iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
     destination: (item) => item.booking_id ? `/bookings/${item.booking_id}` : '/finance/payments',
   },
+};
+
+const statusToneMap: Record<string, string> = {
+  CONFIRMED: 'bg-[#e9fbf2] text-[#148454]',
+  PENDING: 'bg-[#fff5db] text-[#a56a00]',
+  ONGOING: 'bg-[#e8f1ff] text-[#295ed8]',
+  COMPLETED: 'bg-slate-100 text-slate-600',
+  CANCELLED: 'bg-[#ffecef] text-[#c53b5a]',
+  FAILED: 'bg-[#ffecef] text-[#c53b5a]',
+  AMENDED: 'bg-[#f1ebff] text-[#6f49c6]',
+  RECEIVED: 'bg-[#fff1e8] text-[#cc541c]',
+};
+
+const formatActivityDate = (value: string): string => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Date unavailable';
+  }
+
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 
 export const DashboardHome: React.FC = () => {
@@ -101,6 +127,25 @@ export const DashboardHome: React.FC = () => {
     currency,
     value: Number(stats?.expenses_this_month_by_currency?.[currency]) || 0,
   }));
+  const bookingActivity = activity.filter((item) => item.type === 'BOOKING');
+  const paymentActivity = activity.filter((item) => item.type === 'PAYMENT');
+  const bookingStatusSummary = [
+    {
+      label: 'Confirmed',
+      value: stats?.active_bookings ?? 0,
+      tone: 'bg-[#e9fbf2] text-[#148454]',
+    },
+    {
+      label: 'Awaiting payment',
+      value: stats?.pending_payments ?? 0,
+      tone: 'bg-[#fff5db] text-[#a56a00]',
+    },
+    {
+      label: 'Recently created',
+      value: bookingActivity.length,
+      tone: 'bg-[#e8f1ff] text-[#295ed8]',
+    },
+  ];
   const todayLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -331,63 +376,148 @@ export const DashboardHome: React.FC = () => {
           </div>
 
           <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">OPERATIONS FEED</p>
-                <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Recent Activity</h3>
+                <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">BOOKING DESK</p>
+                <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Bookings at a glance</h3>
+                <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-slate-500">
+                  Keep the office team focused on fresh reservations, payment follow-up, and the next booking action without leaving the dashboard.
+                </p>
               </div>
-              <button
-                onClick={() => navigate('/bookings')}
-                className="inline-flex items-center gap-2 text-[1rem] font-medium text-[#6d8141] transition-colors hover:text-[#52632f]"
-              >
-                View All
-                <ChevronRight size={18} />
-              </button>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/bookings/new')}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#6d8141] px-4 py-2.5 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#566633]"
+                >
+                  <CirclePlus size={18} />
+                  New Booking
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/bookings')}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#d8dee7] px-4 py-2.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  View All
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
 
-            <div className="mt-6">
-              {activity.length > 0 ? (
-                <div className="space-y-3">
-                  {activity.map((item) => (
-                    (() => {
-                      const presentation = activityPresentation[item.type];
-                      if (!presentation) {
-                        return null;
-                      }
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              {bookingStatusSummary.map((item) => (
+                <div key={item.label} className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] px-4 py-4">
+                  <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
+                    {item.label}
+                  </span>
+                  <p className="mt-4 text-[2rem] font-semibold leading-none text-slate-950">{item.value}</p>
+                </div>
+              ))}
+            </div>
 
-                      return (
+            <div className="mt-6 grid gap-4 xl:grid-cols-[1.2fr_0.9fr]">
+              <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fcfdfc] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">RECENT BOOKINGS</p>
+                    <p className="mt-2 text-[1.2rem] font-semibold text-slate-950">Newest reservations</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.78rem] font-medium text-slate-500">
+                    {bookingActivity.length} items
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {bookingActivity.length > 0 ? bookingActivity.map((item) => (
                     <button
                       key={`${item.type}-${item.id}`}
                       type="button"
-                      onClick={() => navigate(presentation.destination(item))}
-                      className="flex w-full items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#d6dde8] hover:bg-slate-50"
+                      onClick={() => navigate(`/bookings/${item.id}`)}
+                      className="flex w-full items-start gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#cfd9e6] hover:bg-slate-50"
                     >
-                      <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
-                        {React.createElement(presentation.icon, { size: 20 })}
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e9fbf2] text-[#17a86b]">
+                        <Calendar size={20} />
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[1rem] font-semibold text-slate-950">{item.title}</p>
-                        <p className="truncate text-[0.98rem] text-slate-500">{item.subtitle}</p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-[1rem] font-semibold text-slate-950">{formatMoney(item.currency || 'USD', item.amount)}</p>
-                        <p className="text-[0.92rem] text-slate-500">{new Date(item.date).toLocaleDateString()}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-[1rem] font-semibold text-slate-950">{item.title}</p>
+                          <span className={clsx(
+                            'rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em]',
+                            statusToneMap[item.status] || 'bg-slate-100 text-slate-600'
+                          )}>
+                            {item.status.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="mt-2 truncate text-[0.96rem] text-slate-500">{item.subtitle}</p>
+                        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem] text-slate-500">
+                          <span>{formatMoney(item.currency || 'USD', item.amount)}</span>
+                          <span>{formatActivityDate(item.date)}</span>
+                        </div>
                       </div>
                     </button>
-                      );
-                    })()
-                  ))}
+                  )) : (
+                    <div className="rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-10 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <Clock3 size={22} />
+                      </div>
+                      <p className="mt-4 text-[1.1rem] font-medium text-slate-700">No recent bookings yet</p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-10 text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                    <Clock3 size={22} />
+              </div>
+
+              <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">FOLLOW-UP</p>
+                    <p className="mt-2 text-[1.2rem] font-semibold text-slate-950">Payments tied to bookings</p>
                   </div>
-                  <p className="mt-4 text-[1.1rem] font-medium text-slate-700">No recent activity yet</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/finance/payments')}
+                    className="text-[0.92rem] font-medium text-[#6d8141] transition-colors hover:text-[#52632f]"
+                  >
+                    Open payments
+                  </button>
                 </div>
-              )}
+
+                <div className="mt-4 space-y-3">
+                  {paymentActivity.length > 0 ? paymentActivity.map((item) => {
+                    const presentation = activityPresentation[item.type];
+                    return (
+                      <button
+                        key={`${item.type}-${item.id}`}
+                        type="button"
+                        onClick={() => navigate(presentation.destination(item))}
+                        className="flex w-full items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#cfd9e6] hover:bg-slate-50"
+                      >
+                        <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
+                          {React.createElement(presentation.icon, { size: 20 })}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[0.98rem] font-semibold text-slate-950">{item.title}</p>
+                          <p className="mt-1 truncate text-[0.92rem] text-slate-500">{item.subtitle}</p>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="text-[0.95rem] font-semibold text-slate-950">{formatMoney(item.currency || 'USD', item.amount)}</p>
+                          <p className="mt-1 text-[0.82rem] text-slate-500">{formatActivityDate(item.date)}</p>
+                        </div>
+                      </button>
+                    );
+                  }) : (
+                    <div className="rounded-[1rem] border border-dashed border-[#d8dee7] bg-white px-4 py-10 text-center">
+                      <p className="text-[1rem] font-medium text-slate-700">No booking payments have landed yet</p>
+                      <p className="mt-2 text-[0.92rem] text-slate-500">
+                        Payment activity will appear here as soon as receipts start coming in.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

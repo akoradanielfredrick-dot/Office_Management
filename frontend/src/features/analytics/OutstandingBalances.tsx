@@ -37,7 +37,7 @@ export const OutstandingBalances: React.FC = () => {
     fetchDebt();
   }, []);
 
-  const operatingCurrencies = ['USD', 'EUR', 'GBP'] as const;
+  const operatingCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
   const totalDebtByCurrency = operatingCurrencies.map((currency) => ({
     currency,
     value: debtData

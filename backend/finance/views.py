@@ -15,7 +15,7 @@ from accounts.permissions import IsFinanceUser
 from .services import generate_receipt_pdf
 
 
-ALLOWED_ANALYTICS_CURRENCIES = ("USD", "EUR", "GBP")
+ALLOWED_ANALYTICS_CURRENCIES = ("USD", "EUR", "GBP", "KES")
 
 
 def _empty_currency_totals():
@@ -34,6 +34,26 @@ def _normalize_currency_totals(rows, currency_key='currency', total_key='total')
 def _serialize_currency_totals(totals):
     return {currency: totals.get(currency, decimal.Decimal(0)) for currency in ALLOWED_ANALYTICS_CURRENCIES}
 
+
+def _positive_outstanding_queryset():
+    return Booking.objects.filter(is_deleted=False, total_cost__gt=F('paid_amount'))
+
+
+def _payment_amount_in_booking_currency(payment, booking):
+    if payment.currency == booking.currency:
+        return payment.amount
+    return payment.amount * payment.exchange_rate
+
+
+def _recalculate_booking_paid_amount(booking):
+    active_payments = booking.payments.filter(is_deleted=False)
+    recalculated_total = decimal.Decimal(0)
+    for payment in active_payments:
+        recalculated_total += _payment_amount_in_booking_currency(payment, booking)
+    booking.paid_amount = recalculated_total
+    booking.save(update_fields=['paid_amount', 'updated_at'])
+    return booking
+
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.filter(is_deleted=False).order_by('-created_at')
     serializer_class = PaymentSerializer
@@ -43,24 +63,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         with transaction.atomic():
-            # 1. Save the Payment
             payment = serializer.save(received_by=self.request.user)
-            
-            # 2. Automatically generate a Receipt
+
             Receipt.objects.create(
                 payment=payment,
                 narration=f"{payment.get_payment_type_display()} for Booking {payment.booking.reference_no}"
             )
-            
-            # 3. Update Booking Balance (Cached)
-            booking = payment.booking
-            # Convert payment amount to booking currency base using exchange_rate
-            # (Assuming Booking.currency is the 'base' for that booking's debt)
-            payment_in_base = payment.amount * payment.exchange_rate
-            booking.paid_amount += payment_in_base
-            booking.save()
-            
-            # 4. Log Activity
+
+            booking = _recalculate_booking_paid_amount(payment.booking)
+
             ActivityLog.objects.create(
                 user=self.request.user,
                 action=f"Recorded Payment {payment.internal_reference} ({payment.amount} {payment.currency}) for Booking {booking.reference_no}",
@@ -68,18 +79,32 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 record_id=payment.id
             )
 
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            original_booking = serializer.instance.booking
+            payment = serializer.save()
+
+            _recalculate_booking_paid_amount(original_booking)
+            if payment.booking_id != original_booking.id:
+                _recalculate_booking_paid_amount(payment.booking)
+            else:
+                _recalculate_booking_paid_amount(payment.booking)
+
+            ActivityLog.objects.create(
+                user=self.request.user,
+                action=f"Updated Payment {payment.internal_reference} for Booking {payment.booking.reference_no}",
+                table_name="Payment",
+                record_id=payment.id
+            )
+
     def perform_destroy(self, instance):
         with transaction.atomic():
-            # Reverse the balance update
             booking = instance.booking
-            payment_in_base = instance.amount * instance.exchange_rate
-            booking.paid_amount -= payment_in_base
-            booking.save()
-            
-            # Soft delete
             instance.is_deleted = True
             instance.save()
-            
+
+            _recalculate_booking_paid_amount(booking)
+
             ActivityLog.objects.create(
                 user=self.request.user,
                 action=f"Voided Payment {instance.internal_reference} for Booking {booking.reference_no}",
@@ -171,12 +196,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
             .annotate(total=Coalesce(Sum('amount', output_field=DecimalField()), decimal.Decimal(0)))
         )
 
-        # 4. Total Outstanding (Difference between total cost and paid amount)
-        total_outstanding = Booking.objects.filter(is_deleted=False).aggregate(
+        # 4. Total Outstanding (only positive receivables that are still owed)
+        outstanding_bookings = _positive_outstanding_queryset()
+        total_outstanding = outstanding_bookings.aggregate(
             total=Coalesce(Sum(F('total_cost') - F('paid_amount'), output_field=DecimalField()), decimal.Decimal(0))
         )['total']
         outstanding_by_currency = _normalize_currency_totals(
-            Booking.objects.filter(is_deleted=False, currency__in=ALLOWED_ANALYTICS_CURRENCIES)
+            outstanding_bookings.filter(currency__in=ALLOWED_ANALYTICS_CURRENCIES)
             .values('currency')
             .annotate(total=Coalesce(Sum(F('total_cost') - F('paid_amount'), output_field=DecimalField()), decimal.Decimal(0)))
         )
@@ -246,7 +272,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
     @decorators.action(detail=False, methods=['get'])
     def outstanding(self, request):
         today = timezone.localdate()
-        bookings = Booking.objects.filter(is_deleted=False).filter(total_cost__gt=F('paid_amount')).order_by('-created_at')
+        bookings = _positive_outstanding_queryset().order_by('-created_at')
 
         results = []
         for booking in bookings:

@@ -32,6 +32,56 @@ import { ReservationForm } from './features/operations/ReservationForm';
 import { ReservationDetails } from './features/operations/ReservationDetails';
 import { BookingAmendForm } from './features/operations/BookingAmendForm';
 
+type FeatureErrorBoundaryProps = {
+  children: React.ReactNode;
+  featureName: string;
+};
+
+type FeatureErrorBoundaryState = {
+  hasError: boolean;
+  errorMessage: string;
+};
+
+class FeatureErrorBoundary extends React.Component<FeatureErrorBoundaryProps, FeatureErrorBoundaryState> {
+  constructor(props: FeatureErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      errorMessage: '',
+    };
+  }
+
+  static getDerivedStateFromError(error: Error): FeatureErrorBoundaryState {
+    return {
+      hasError: true,
+      errorMessage: error.message || 'An unexpected error occurred.',
+    };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`Unhandled error while rendering ${this.props.featureName}:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-[2rem] border border-rose-200 bg-white p-8 shadow-sm">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-rose-400">Feature Error</p>
+          <h1 className="mt-3 text-2xl font-black text-slate-900">{this.props.featureName} could not load</h1>
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-600">
+            The page hit a frontend error while rendering. Refresh the page first. If it keeps happening, share the message below and we can fix the exact failing branch.
+          </p>
+          <pre className="mt-5 overflow-x-auto rounded-[1.4rem] border border-rose-100 bg-rose-50 px-4 py-4 text-sm font-semibold text-rose-700">
+            {this.state.errorMessage}
+          </pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
 
@@ -71,7 +121,14 @@ const App: React.FC = () => {
           <Route path="schedules/new" element={<ScheduleForm />} />
           <Route path="schedules/:id/edit" element={<ScheduleForm />} />
           <Route path="availability" element={<AvailabilityDashboard />} />
-          <Route path="integrations" element={<IntegrationOpsDashboard />} />
+          <Route
+            path="integrations"
+            element={(
+              <FeatureErrorBoundary featureName="Integrations">
+                <IntegrationOpsDashboard />
+              </FeatureErrorBoundary>
+            )}
+          />
           <Route path="reservations" element={<ReservationList />} />
           <Route path="reservations/new" element={<ReservationForm />} />
           <Route path="reservations/:id" element={<ReservationDetails />} />

@@ -19,6 +19,7 @@ import {
 import { clsx } from 'clsx';
 import { jsPDF } from 'jspdf';
 import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
+import type { PaginatedResponse } from './listTypes';
 
 interface BookingPayment {
   id: string;
@@ -37,6 +38,18 @@ interface BookingExpense {
   amount: number | string;
   supplier_name?: string;
 }
+
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
 
 interface BookingDetailRecord {
   id: string;
@@ -132,8 +145,8 @@ export const BookingDetails: React.FC = () => {
 
     setLoadError('');
     setBooking(bookingResponse.data);
-    setPayments(paymentsResponse.data);
-    setExpenses(expensesResponse.data);
+    setPayments(extractResults<BookingPayment>(paymentsResponse.data));
+    setExpenses(extractResults<BookingExpense>(expensesResponse.data));
   }, [id]);
 
   React.useEffect(() => {

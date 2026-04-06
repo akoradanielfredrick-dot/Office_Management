@@ -386,6 +386,11 @@ class BookingAuditEntrySerializer(serializers.ModelSerializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), required=False, allow_null=True)
+    schedule = serializers.PrimaryKeyRelatedField(queryset=ProductSchedule.objects.all(), required=False, allow_null=True)
+    reservation = serializers.PrimaryKeyRelatedField(queryset=Reservation.objects.all(), required=False, allow_null=True)
+    integration_provider = serializers.CharField(required=False, allow_blank=True, default="")
+    external_booking_reference = serializers.CharField(required=False, allow_blank=True, default="")
     travellers = BookingTravellerSerializer(many=True, required=False)
     participant_quantities = BookingParticipantSerializer(many=True, required=False)
     audit_entries = BookingAuditEntrySerializer(many=True, read_only=True)
@@ -478,6 +483,16 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "customer_email": {"required": False, "allow_null": True, "allow_blank": True},
+            "customer_phone": {"required": False, "allow_null": True, "allow_blank": True},
+            "booking_validity": {"required": False, "allow_blank": True},
+            "deposit_terms": {"required": False, "allow_blank": True},
+            "payment_channels": {"required": False, "allow_blank": True},
+            "notes": {"required": False, "allow_blank": True},
+            "internal_notes": {"required": False, "allow_blank": True},
+            "supplier_notes": {"required": False, "allow_blank": True},
+        }
 
     def get_product_category_display(self, obj):
         if obj.product:
@@ -495,8 +510,6 @@ class BookingSerializer(serializers.ModelSerializer):
         travellers_data = validated_data.pop("travellers", [])
         participant_quantities = validated_data.pop("participant_quantities", [])
         request = self.context.get("request")
-        if not validated_data.get("schedule"):
-            raise serializers.ValidationError({"schedule": "A schedule is required for new bookings."})
         try:
             booking = create_booking(
                 data={
@@ -632,3 +645,89 @@ class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
         fields = ["id", "name", "category", "contact_person", "email", "phone", "address", "notes", "created_at", "updated_at"]
+
+
+class GetYourGuideProductRateSerializer(serializers.Serializer):
+    rate_id = serializers.CharField()
+    rate_name = serializers.CharField()
+    category_code = serializers.CharField()
+    category_label = serializers.CharField()
+    currency = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+class GetYourGuideProductOptionSerializer(serializers.Serializer):
+    option_id = serializers.CharField()
+    title = serializers.CharField()
+    is_default = serializers.BooleanField()
+    default_currency = serializers.CharField(allow_blank=True)
+    rates = GetYourGuideProductRateSerializer(many=True)
+
+
+class GetYourGuideProductListItemSerializer(serializers.Serializer):
+    product_id = serializers.CharField()
+    internal_product_id = serializers.UUIDField()
+    name = serializers.CharField()
+    destination = serializers.CharField(allow_blank=True)
+    category = serializers.CharField()
+    default_currency = serializers.CharField()
+    is_active = serializers.BooleanField()
+    has_default_mapping = serializers.BooleanField()
+    available_schedule_count = serializers.IntegerField()
+
+
+class GetYourGuideProductDetailSerializer(serializers.Serializer):
+    supplier_id = serializers.CharField(allow_blank=True)
+    product_id = serializers.CharField()
+    internal_product_id = serializers.UUIDField()
+    name = serializers.CharField()
+    description = serializers.CharField(allow_blank=True)
+    destination = serializers.CharField(allow_blank=True)
+    category = serializers.CharField()
+    default_currency = serializers.CharField()
+    duration_text = serializers.CharField(allow_blank=True)
+    booking_cutoff_minutes = serializers.IntegerField()
+    options = GetYourGuideProductOptionSerializer(many=True)
+    schedules = serializers.ListField(child=serializers.DictField(), allow_empty=True)
+
+
+class GetYourGuideBootstrapMappingSerializer(serializers.Serializer):
+    product_id = serializers.UUIDField(required=False)
+    external_product_id = serializers.CharField(required=False, allow_blank=True)
+    external_option_id = serializers.CharField(required=False, allow_blank=True)
+    default_currency = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if not attrs.get("product_id") and not attrs.get("external_product_id"):
+            raise serializers.ValidationError("Provide either product_id or external_product_id.")
+        return attrs
+
+
+class GetYourGuideSandboxRequestSerializer(serializers.Serializer):
+    ENDPOINT_CHOICES = (
+        ("notify-availability-update", "Notify Availability Update"),
+        ("notify-availability-update-with-price", "Notify Availability Update With Price"),
+        ("deals", "Deals Over API"),
+        ("suppliers", "Supplier Registration Over API"),
+    )
+    METHOD_CHOICES = (
+        ("GET", "GET"),
+        ("POST", "POST"),
+        ("DELETE", "DELETE"),
+    )
+
+    endpoint = serializers.ChoiceField(choices=ENDPOINT_CHOICES)
+    method = serializers.ChoiceField(choices=METHOD_CHOICES, default="POST")
+    payload = serializers.JSONField(required=False)
+    query_params = serializers.DictField(child=serializers.CharField(), required=False)
+    path_suffix = serializers.CharField(required=False, allow_blank=True)
+
+
+class GetYourGuideSandboxResponseSerializer(serializers.Serializer):
+    endpoint = serializers.CharField()
+    method = serializers.CharField()
+    request_url = serializers.CharField()
+    status_code = serializers.IntegerField()
+    response_headers = serializers.DictField(child=serializers.CharField())
+    response_body = serializers.JSONField(required=False)
+    response_text = serializers.CharField(required=False, allow_blank=True)

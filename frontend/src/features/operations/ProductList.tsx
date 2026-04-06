@@ -23,7 +23,7 @@ interface ProductRecord {
   prices: ProductPrice[];
 }
 
-const displayedCurrencies = ['USD', 'EUR', 'GBP'] as const;
+const displayedCurrencies = ['KES', 'USD', 'EUR', 'GBP'] as const;
 
 export const ProductList: React.FC = () => {
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ export const ProductList: React.FC = () => {
             <Globe2 size={22} />
           </div>
           <p className="mt-5 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Required Currencies</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">3</p>
+          <p className="mt-2 text-3xl font-black text-slate-900">4</p>
         </div>
       </section>
 

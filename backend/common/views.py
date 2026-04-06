@@ -9,7 +9,7 @@ from django.db.models.functions import Coalesce
 from django.db.models import DecimalField
 
 
-OPERATING_CURRENCIES = ("USD", "EUR", "GBP")
+OPERATING_CURRENCIES = ("USD", "EUR", "GBP", "KES")
 
 
 def _currency_totals(queryset, amount_field):
@@ -68,7 +68,7 @@ class DashboardViewSet(viewsets.ViewSet):
                 'date': b.created_at,
                 'status': b.status,
                 'amount': b.total_cost,
-                'currency': b.currency or 'USD',
+                'currency': b.currency or 'KES',
             })
         for p in recent_payments:
             activity.append({
@@ -80,7 +80,7 @@ class DashboardViewSet(viewsets.ViewSet):
                 'date': p.created_at,
                 'status': 'RECEIVED',
                 'amount': p.amount,
-                'currency': p.currency or 'USD',
+                'currency': p.currency or 'KES',
             })
             
         # Sort combined activity and take top 5
