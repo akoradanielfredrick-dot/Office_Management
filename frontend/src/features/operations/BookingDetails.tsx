@@ -269,127 +269,219 @@ export const BookingDetails: React.FC = () => {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const left = 48;
-    const right = pageWidth - 48;
+    const left = 36;
+    const right = pageWidth - 36;
     const contentWidth = right - left;
-    let y = 54;
+    const topMargin = 36;
+    const bottomMargin = 36;
+    let y = topMargin;
     const companyName = 'MRANGA TOURS & SAFARI LTD.';
     const companyAddress = 'Arman Complex, opposite Diani Sea Lodge, Diani, Kenya';
     const companyPhones = '+254 116 837982 / +41 79 400 28 81';
     const companyEmail = 'info@mrangatoursandsafaris.com';
     const generatedFrom = 'Office Management Portal';
     const generatedOn = new Date().toLocaleString();
-    const columnGap = 10;
+    const columnGap = 8;
     const columnCount = 4;
     const columnWidth = (contentWidth - columnGap * (columnCount - 1)) / columnCount;
+    const availableHeight = pageHeight - topMargin - bottomMargin;
+
+    const estimateFieldHeight = (width: number, label: string, value: string, minHeight: number, scale: number) => {
+      const displayValue = value || 'Not provided';
+      const innerWidth = width - 16 * scale;
+      const labelFontSize = 8 * scale;
+      const valueFontSize = 11 * scale;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(labelFontSize);
+      const labelLines = doc.splitTextToSize(label.toUpperCase(), innerWidth);
+      doc.setFontSize(valueFontSize);
+      const valueLines = doc.splitTextToSize(displayValue, innerWidth);
+      const contentHeight = 14 * scale + labelLines.length * 8 * scale + 6 * scale + valueLines.length * 11 * scale + 14 * scale;
+      return Math.max(minHeight * scale, contentHeight);
+    };
+
+    const estimateLayoutHeight = (scale: number) => {
+      const scaledColumnGap = columnGap * scale;
+      const scaledColumnWidth = (contentWidth - scaledColumnGap * (columnCount - 1)) / columnCount;
+      const twoColumnGap = 10 * scale;
+      const twoColumnWidth = (contentWidth - twoColumnGap) / 2;
+
+      const headerHeight =
+        10 * scale +
+        12 * scale +
+        22 * scale +
+        12 * scale +
+        11 * scale +
+        11 * scale +
+        11 * scale +
+        18 * scale +
+        10 * scale +
+        14 * scale;
+
+      const rowHeights = [
+        [
+          { label: 'Booking Number', value: booking.reference_no },
+          { label: 'Client Name', value: booking.client_name },
+          { label: 'Client Email', value: booking.client_email || 'No email provided' },
+          { label: 'Client Phone', value: booking.client_phone || 'No phone provided' },
+        ],
+        [
+          { label: 'Product', value: productName },
+          { label: 'Product Category', value: booking.product_category_display || 'Not specified' },
+          { label: 'Travel Date', value: travelDate },
+          { label: 'End Date', value: endDate },
+        ],
+        [
+          { label: 'Duration', value: `${booking.number_of_days} day(s)` },
+          { label: 'Status', value: booking.status },
+          { label: 'Travellers', value: `${booking.num_adults} adult(s), ${booking.num_children} child(ren)` },
+          { label: 'Price per Adult', value: `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}` },
+        ],
+        [
+          { label: 'Price per Child', value: `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}` },
+          { label: 'Extra Charges', value: `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}` },
+          { label: 'Subtotal', value: `${booking.currency} ${toNumber(booking.subtotal).toLocaleString()}` },
+          { label: 'Discount', value: `${booking.currency} ${toNumber(booking.discount).toLocaleString()}` },
+        ],
+        [
+          { label: 'Total Cost', value: `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}` },
+          { label: 'Booking Validity', value: bookingValidity },
+          { label: 'Deposit Terms', value: depositTerms },
+          { label: 'Payment Channels', value: paymentChannels },
+        ],
+      ].map((fields, index) => {
+        const minHeight = index === 4 ? 72 : 62;
+        return Math.max(...fields.map((field) => estimateFieldHeight(scaledColumnWidth, field.label, field.value, minHeight, scale))) + 8 * scale;
+      });
+
+      const itineraryHeight = estimateFieldHeight(contentWidth, 'Itinerary', itinerary, 84, scale) + 8 * scale;
+      const generatedHeight =
+        Math.max(
+          estimateFieldHeight(twoColumnWidth, 'Generated From', generatedFrom, 58, scale),
+          estimateFieldHeight(twoColumnWidth, 'Generated On', generatedOn, 58, scale),
+        ) + 8 * scale;
+
+      return headerHeight + rowHeights.reduce((sum, height) => sum + height, 0) + itineraryHeight + generatedHeight;
+    };
+
+    const rawScale = availableHeight / estimateLayoutHeight(1);
+    const layoutScale = Math.min(1, Math.max(0.74, rawScale));
+    const scaledColumnGap = columnGap * layoutScale;
+    const scaledColumnWidth = (contentWidth - scaledColumnGap * (columnCount - 1)) / columnCount;
+    const rowGap = 8 * layoutScale;
+    const boxRadius = 8 * layoutScale;
+    const labelFontSize = 8 * layoutScale;
+    const valueFontSize = 11 * layoutScale;
+    const innerPaddingX = 8 * layoutScale;
+    const labelTop = 14 * layoutScale;
+    const valueTop = 32 * layoutScale;
+    const pageFloor = pageHeight - bottomMargin;
 
     const ensureSpace = (needed = 24) => {
-      if (y + needed <= pageHeight - 48) {
+      if (y + needed <= pageFloor) {
         return;
       }
       doc.addPage();
-      y = 54;
+      y = topMargin;
     };
 
-    const drawFieldBox = (x: number, top: number, width: number, label: string, value: string, minHeight = 72) => {
+    const drawFieldBox = (x: number, top: number, width: number, label: string, value: string, minHeight = 62) => {
       const displayValue = value || 'Not provided';
-      const labelLines = doc.splitTextToSize(label.toUpperCase(), width - 20);
-      const valueLines = doc.splitTextToSize(displayValue, width - 20);
-      const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
-      const boxHeight = Math.max(minHeight, contentHeight);
+      const labelLines = doc.splitTextToSize(label.toUpperCase(), width - innerPaddingX * 2);
+      const valueLines = doc.splitTextToSize(displayValue, width - innerPaddingX * 2);
+      const contentHeight =
+        labelTop +
+        labelLines.length * 8 * layoutScale +
+        6 * layoutScale +
+        valueLines.length * 11 * layoutScale +
+        12 * layoutScale;
+      const boxHeight = Math.max(minHeight * layoutScale, contentHeight);
 
       doc.setDrawColor(203, 213, 225);
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(x, top, width, boxHeight, 10, 10, 'FD');
+      doc.roundedRect(x, top, width, boxHeight, boxRadius, boxRadius, 'FD');
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
+      doc.setFontSize(labelFontSize);
       doc.setTextColor(100, 116, 139);
-      doc.text(labelLines, x + 10, top + 16);
+      doc.text(labelLines, x + innerPaddingX, top + labelTop);
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11.5);
+      doc.setFontSize(valueFontSize);
       doc.setTextColor(15, 23, 42);
-      doc.text(valueLines, x + 10, top + 38);
+      doc.text(valueLines, x + innerPaddingX, top + valueTop);
 
       return boxHeight;
     };
 
-    const drawGridRow = (fields: Array<{ label: string; value: string }>, minHeight = 72) => {
+    const drawGridRow = (fields: Array<{ label: string; value: string }>, minHeight = 62) => {
       const estimatedHeights = fields.map((field) => {
-        const labelLines = doc.splitTextToSize(field.label.toUpperCase(), columnWidth - 20);
-        const valueLines = doc.splitTextToSize(field.value || 'Not provided', columnWidth - 20);
-        const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
-        return Math.max(minHeight, contentHeight);
+        return estimateFieldHeight(scaledColumnWidth, field.label, field.value, minHeight, layoutScale);
       });
 
       const rowHeight = Math.max(...estimatedHeights);
-      ensureSpace(rowHeight + 4);
+      ensureSpace(rowHeight + rowGap);
 
       fields.forEach((field, index) => {
-        const x = left + index * (columnWidth + columnGap);
-        drawFieldBox(x, y, columnWidth, field.label, field.value, rowHeight);
+        const x = left + index * (scaledColumnWidth + scaledColumnGap);
+        drawFieldBox(x, y, scaledColumnWidth, field.label, field.value, rowHeight / layoutScale);
       });
 
-      y += rowHeight + 12;
+      y += rowHeight + rowGap;
     };
 
-    const drawFullWidthSection = (label: string, value: string, minHeight = 110) => {
-      ensureSpace(minHeight + 4);
+    const drawFullWidthSection = (label: string, value: string, minHeight = 84) => {
+      ensureSpace(minHeight * layoutScale + rowGap);
       const actualHeight = drawFieldBox(left, y, contentWidth, label, value, minHeight);
-      y += actualHeight + 12;
+      y += actualHeight + rowGap;
     };
 
-    const drawTwoColumnRow = (fields: Array<{ label: string; value: string }>, minHeight = 72) => {
-      const twoColumnGap = 12;
+    const drawTwoColumnRow = (fields: Array<{ label: string; value: string }>, minHeight = 58) => {
+      const twoColumnGap = 10 * layoutScale;
       const twoColumnWidth = (contentWidth - twoColumnGap) / 2;
       const estimatedHeights = fields.map((field) => {
-        const labelLines = doc.splitTextToSize(field.label.toUpperCase(), twoColumnWidth - 20);
-        const valueLines = doc.splitTextToSize(field.value || 'Not provided', twoColumnWidth - 20);
-        const contentHeight = 18 + labelLines.length * 9 + 10 + valueLines.length * 13 + 18;
-        return Math.max(minHeight, contentHeight);
+        return estimateFieldHeight(twoColumnWidth, field.label, field.value, minHeight, layoutScale);
       });
 
       const rowHeight = Math.max(...estimatedHeights);
-      ensureSpace(rowHeight + 4);
+      ensureSpace(rowHeight + rowGap);
 
       fields.forEach((field, index) => {
         const x = left + index * (twoColumnWidth + twoColumnGap);
-        drawFieldBox(x, y, twoColumnWidth, field.label, field.value, rowHeight);
+        drawFieldBox(x, y, twoColumnWidth, field.label, field.value, rowHeight / layoutScale);
       });
 
-      y += rowHeight + 12;
+      y += rowHeight + rowGap;
     };
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
+    doc.setFontSize(9 * layoutScale);
     doc.setTextColor(100, 116, 139);
     doc.text('OFFICIAL BOOKING', left, y);
-    y += 18;
-    doc.setFontSize(22);
+    y += 12 * layoutScale;
+    doc.setFontSize(22 * layoutScale);
     doc.setTextColor(31, 67, 38);
     doc.text(companyName, left, y);
-    y += 18;
+    y += 16 * layoutScale;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10 * layoutScale);
     doc.setTextColor(71, 85, 105);
     doc.text(companyAddress, left, y);
-    y += 15;
+    y += 12 * layoutScale;
     doc.text(companyPhones, left, y);
-    y += 15;
+    y += 12 * layoutScale;
     doc.text(companyEmail, left, y);
-    y += 24;
+    y += 18 * layoutScale;
     doc.setDrawColor(109, 129, 65);
-    doc.setLineWidth(1.5);
+    doc.setLineWidth(1.2 * layoutScale);
     doc.line(left, y, right, y);
-    y += 20;
+    y += 10 * layoutScale;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(17);
+    doc.setFontSize(16 * layoutScale);
     doc.setTextColor(31, 67, 38);
     doc.text('Structured Booking Summary', left, y);
-    y += 16;
-    y += 6;
+    y += 14 * layoutScale;
 
     drawGridRow([
       { label: 'Booking Number', value: booking.reference_no },
@@ -424,13 +516,13 @@ export const BookingDetails: React.FC = () => {
       { label: 'Booking Validity', value: bookingValidity },
       { label: 'Deposit Terms', value: depositTerms },
       { label: 'Payment Channels', value: paymentChannels },
-    ], 84);
+    ], 72);
 
-    drawFullWidthSection('Itinerary', itinerary, 140);
+    drawFullWidthSection('Itinerary', itinerary, 84);
     drawTwoColumnRow([
       { label: 'Generated From', value: generatedFrom },
       { label: 'Generated On', value: generatedOn },
-    ], 76);
+    ], 58);
 
     doc.save(`${booking.reference_no.toLowerCase()}-booking.pdf`);
   };
