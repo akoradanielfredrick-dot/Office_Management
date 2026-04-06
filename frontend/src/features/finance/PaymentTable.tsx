@@ -20,6 +20,7 @@ interface Payment {
   booking: string;
   internal_reference: string;
   booking_ref: string;
+  client_name?: string;
   amount: number | string;
   currency: string;
   exchange_rate: number | string;
@@ -29,6 +30,7 @@ interface Payment {
   payment_date: string;
   recorder_name: string;
   receipt?: { id: string };
+  receipt_no?: string;
 }
 
 const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
@@ -52,6 +54,21 @@ export const PaymentTable: React.FC = () => {
   const [methodFilter, setMethodFilter] = useState(searchParams.get('method') || 'ALL');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState(searchParams.get('type') || 'ALL');
   const [currencyFilter, setCurrencyFilter] = useState(searchParams.get('currency') || 'ALL');
+
+  const formatPaymentDate = (value: string) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return parsed.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -90,10 +107,12 @@ export const PaymentTable: React.FC = () => {
       const matchesSearch = !normalizedSearch || [
         payment.internal_reference,
         payment.booking_ref,
+        payment.client_name,
         payment.recorder_name,
         payment.method,
         payment.payment_type,
         payment.payment_type_display,
+        payment.receipt_no,
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalizedSearch));
@@ -188,7 +207,7 @@ export const PaymentTable: React.FC = () => {
             </div>
           </div>
           <p className="mt-4 text-xs font-medium leading-5 text-slate-500">
-            Collections are shown in the three operating currencies only: USD, EUR, and GBP.
+            Collections are grouped by operating currency so reconciliation stays clear across KES, USD, EUR, and GBP.
           </p>
         </div>
 
@@ -309,7 +328,14 @@ export const PaymentTable: React.FC = () => {
                   <td className="px-6 py-5">
                     <div>
                       <p className="font-black text-slate-900">{p.internal_reference}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-400">{p.booking_ref}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">
+                        {p.booking_ref}{p.client_name ? ` | ${p.client_name}` : ''}
+                      </p>
+                      {p.receipt_no ? (
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                          Receipt {p.receipt_no}
+                        </p>
+                      ) : null}
                     </div>
                   </td>
 
@@ -330,12 +356,15 @@ export const PaymentTable: React.FC = () => {
                     <p className="text-lg font-black text-slate-900">
                       {p.currency} {toNumber(p.amount).toLocaleString()}
                     </p>
+                    {toNumber(p.exchange_rate) !== 1 ? (
+                      <p className="mt-1 text-xs font-medium text-slate-500">FX rate {toNumber(p.exchange_rate).toLocaleString()}</p>
+                    ) : null}
                   </td>
 
                   <td className="px-6 py-5">
                     <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
                       <Calendar size={15} className="text-slate-400" />
-                      {p.payment_date}
+                      {formatPaymentDate(p.payment_date)}
                     </div>
                   </td>
 

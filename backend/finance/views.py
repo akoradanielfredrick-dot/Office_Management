@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, response, decorators
+from rest_framework import viewsets, status, response, decorators, filters
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Payment, Receipt, Expense
@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.http import FileResponse
 from accounts.permissions import IsFinanceUser
 from .services import generate_receipt_pdf
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 ALLOWED_ANALYTICS_CURRENCIES = ("USD", "EUR", "GBP", "KES")
@@ -55,11 +56,12 @@ def _recalculate_booking_paid_amount(booking):
     return booking
 
 class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.filter(is_deleted=False).order_by('-created_at')
+    queryset = Payment.objects.filter(is_deleted=False).select_related('booking', 'booking__client', 'received_by', 'receipt').order_by('-created_at')
     serializer_class = PaymentSerializer
     permission_classes = [IsFinanceUser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['id', 'booking', 'method']
-    search_fields = ['internal_reference', 'booking__reference_no', 'booking__client__full_name', 'txn_reference']
+    search_fields = ['internal_reference', 'booking__reference_no', 'booking__client__full_name', 'txn_reference', 'receipt__receipt_no']
 
     def perform_create(self, serializer):
         with transaction.atomic():

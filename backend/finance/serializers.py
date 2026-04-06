@@ -13,16 +13,18 @@ class ReceiptSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     receipt = ReceiptSerializer(read_only=True)
     booking_ref = serializers.CharField(source='booking.reference_no', read_only=True)
+    client_name = serializers.CharField(source='booking.client.full_name', read_only=True)
     recorder_name = serializers.CharField(source='received_by.full_name', read_only=True)
     payment_type_display = serializers.CharField(source='get_payment_type_display', read_only=True)
+    receipt_no = serializers.CharField(source='receipt.receipt_no', read_only=True, allow_null=True)
 
     class Meta:
         model = Payment
         fields = [
-            'id', 'booking', 'booking_ref', 'internal_reference', 
+            'id', 'booking', 'booking_ref', 'client_name', 'internal_reference',
             'amount', 'currency', 'exchange_rate', 'payment_type', 'payment_type_display', 'method', 
-            'payment_date', 'txn_reference', 'notes', 
-            'recorder_name', 'receipt', 'created_at'
+            'payment_date', 'txn_reference', 'notes',
+            'recorder_name', 'receipt', 'receipt_no', 'created_at'
         ]
         read_only_fields = ['internal_reference', 'created_at']
 

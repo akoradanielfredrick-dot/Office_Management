@@ -171,10 +171,13 @@ export const PaymentForm: React.FC = () => {
   };
 
   const balance = selectedBooking ? Math.max(toNumber(selectedBooking.total_cost) - toNumber(selectedBooking.paid_amount), 0) : 0;
+  const isSameCurrency = selectedBooking ? selectedCurrency === selectedBooking.currency : true;
   const convertedIncomingAmount = selectedBooking
-    ? (selectedCurrency === selectedBooking.currency ? toNumber(enteredAmount) : toNumber(enteredAmount) * toNumber(enteredExchangeRate || 1))
+    ? (isSameCurrency ? toNumber(enteredAmount) : toNumber(enteredAmount) * toNumber(enteredExchangeRate || 1))
     : 0;
   const projectedBalance = Math.max(balance - convertedIncomingAmount, 0);
+  const wouldOverpay = Boolean(selectedBooking) && convertedIncomingAmount > balance;
+  const bookingIsSettled = Boolean(selectedBooking) && balance <= 0;
   const inputClassName = 'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
   const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
 
@@ -220,12 +223,19 @@ export const PaymentForm: React.FC = () => {
                     <select {...register('booking')} className={`${inputClassName} appearance-none pr-12`}>
                       <option value="">-- Choose a Booking --</option>
                       {bookings.map((b) => (
-                        <option key={b.id} value={b.id}>{b.reference_no} - {b.client_name}</option>
+                        <option key={b.id} value={b.id}>
+                          {b.reference_no} - {b.client_name} ({b.currency} {Math.max(toNumber(b.total_cost) - toNumber(b.paid_amount), 0).toLocaleString()} due)
+                        </option>
                       ))}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   </div>
                   {errors.booking && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.booking.message}</p>}
+                  {selectedBooking ? (
+                    <p className="mt-2 text-xs font-semibold text-slate-500">
+                      {selectedBooking.client_name || 'Client'} | {selectedBooking.reference_no} | {selectedBooking.currency} {balance.toLocaleString()} still due
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -241,6 +251,21 @@ export const PaymentForm: React.FC = () => {
                     />
                   </div>
                   {errors.amount && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.amount.message}</p>}
+                  {selectedBooking ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue('currency', selectedBooking.currency);
+                          setValue('exchange_rate', 1);
+                          setValue('amount', balance);
+                        }}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-slate-600 transition-colors hover:bg-slate-50"
+                      >
+                        Use Balance Due
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div>
@@ -275,11 +300,12 @@ export const PaymentForm: React.FC = () => {
                       step="0.0001"
                       {...register('exchange_rate', { valueAsNumber: true })}
                       className={`${inputClassName} pl-11`}
+                      disabled={isSameCurrency}
                     />
                   </div>
                   {selectedBooking ? (
                     <p className="mt-2 text-xs font-semibold text-slate-500">
-                      {selectedCurrency === selectedBooking.currency
+                      {isSameCurrency
                         ? 'Same currency as booking. Exchange rate locked to 1.'
                         : `Converted into ${selectedBooking.currency} before updating booking balance.`}
                     </p>
@@ -314,6 +340,11 @@ export const PaymentForm: React.FC = () => {
                   {selectedPaymentType === 'DEPOSIT' && selectedBooking ? (
                     <p className="mt-2 text-xs font-semibold text-amber-600">
                       Deposits are flexible. Enter any amount the client is paying now, as long as it does not exceed the remaining balance.
+                    </p>
+                  ) : null}
+                  {selectedPaymentType === 'FULL' && selectedBooking ? (
+                    <p className="mt-2 text-xs font-semibold text-sky-600">
+                      Full payment should normally clear the booking balance in one go.
                     </p>
                   ) : null}
                 </div>
@@ -373,6 +404,13 @@ export const PaymentForm: React.FC = () => {
                     </div>
 
                     <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Client</p>
+                      <p className="mt-2 text-lg font-black text-[#234126]">
+                        {selectedBooking.client_name || 'Client not captured'}
+                      </p>
+                    </div>
+
+                    <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6b8f65]">Travel Date</p>
                       <p className="mt-2 text-lg font-black text-[#234126]">
                         {selectedBooking.travel_date || selectedBooking.start_date || 'TBD'}
@@ -420,6 +458,16 @@ export const PaymentForm: React.FC = () => {
                       <p className="mt-3 text-sm font-semibold text-[#5e7d5d]">
                         Projected balance after this payment: {selectedBooking.currency} {projectedBalance.toLocaleString()}
                       </p>
+                      {wouldOverpay ? (
+                        <p className="mt-3 text-sm font-semibold text-rose-700">
+                          This amount is higher than the remaining balance. Reduce it before recording the payment.
+                        </p>
+                      ) : null}
+                      {bookingIsSettled ? (
+                        <p className="mt-3 text-sm font-semibold text-emerald-700">
+                          This booking is already fully settled.
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 ) : (
@@ -432,7 +480,7 @@ export const PaymentForm: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || bookingIsSettled || wouldOverpay}
               className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-primary-700 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-primary-900/20 transition-colors hover:bg-primary-800 disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Save size={19} />
