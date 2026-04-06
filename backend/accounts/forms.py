@@ -28,7 +28,7 @@ class AdminAccessForm(forms.Form):
 class SuperAdminAdminAuthenticationForm(AuthenticationForm):
     error_messages = {
         **AuthenticationForm.error_messages,
-        "super_admin_only": "ONLY ACCESSIBLE BY SUPER ADMIN.",
+        "management_only": "ONLY ACCESSIBLE BY SUPER ADMIN OR DIRECTOR.",
     }
 
     def __init__(self, request=None, *args, **kwargs):
@@ -52,8 +52,8 @@ class SuperAdminAdminAuthenticationForm(AuthenticationForm):
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
         role_name = (user.role.name if user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
-        if role_name != "SUPER_ADMIN":
+        if role_name not in {"SUPER_ADMIN", "DIRECTOR"}:
             raise forms.ValidationError(
-                self.error_messages["super_admin_only"],
-                code="super_admin_only",
+                self.error_messages["management_only"],
+                code="management_only",
             )

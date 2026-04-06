@@ -64,16 +64,14 @@ class AdminSiteAccessTests(TestCase):
             request=None,
             data={"username": self.director.email, "password": self.director_password},
         )
-        self.assertFalse(form.is_valid())
-        self.assertIn("ONLY ACCESSIBLE BY SUPER ADMIN.", form.non_field_errors())
+        self.assertTrue(form.is_valid())
 
-    def test_admin_login_page_shows_warning_for_non_super_admin(self):
+    def test_admin_login_page_allows_director(self):
         response = self.client.post(
             reverse("admin:login"),
             {"username": self.director.email, "password": self.director_password},
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "ONLY ACCESSIBLE BY SUPER ADMIN.")
+        self.assertEqual(response.status_code, 302)
 
     def test_admin_login_page_allows_super_admin(self):
         response = self.client.post(
@@ -82,13 +80,19 @@ class AdminSiteAccessTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
-    def test_admin_index_redirects_non_super_admin_to_login(self):
+    def test_admin_index_allows_director(self):
         self.client.force_login(self.director)
         response = self.client.get("/admin/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_director_can_confirm_access_and_enter_admin(self):
+        self.client.force_login(self.director)
+        response = self.client.post(
+            reverse("admin-access-confirm"),
+            {"password": self.director_password, "next": "/admin/"},
+        )
         self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("admin:login"), response.url)
-        session = self.client.session
-        self.assertIsNone(session.get(ADMIN_REAUTH_SESSION_KEY))
+        self.assertEqual(response.url, "/admin/")
 
     def test_invalid_password_keeps_admin_locked(self):
         self.client.force_login(self.super_admin)

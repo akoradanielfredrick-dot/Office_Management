@@ -32,15 +32,15 @@ admin.site.site_url = '/'
 admin.site.login_form = SuperAdminAdminAuthenticationForm
 
 
-def _super_admin_has_permission(self, request):
+def _management_has_permission(self, request):
     if not request.user.is_authenticated or not request.user.is_active:
         return False
 
     role_name = (request.user.role.name if request.user.role else "").strip().upper().replace("-", "_").replace(" ", "_")
-    return request.user.is_staff and role_name == "SUPER_ADMIN"
+    return request.user.is_staff and role_name in {"SUPER_ADMIN", "DIRECTOR"}
 
 
-admin.site.has_permission = MethodType(_super_admin_has_permission, admin.site)
+admin.site.has_permission = MethodType(_management_has_permission, admin.site)
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
