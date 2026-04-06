@@ -1,4 +1,4 @@
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, filters
 from common.models import ActivityLog
 
 from .models import Client
@@ -9,6 +9,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.filter(is_deleted=False).order_by("-created_at")
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
     filterset_fields = ["id"]
     search_fields = ["full_name", "email", "phone"]
 

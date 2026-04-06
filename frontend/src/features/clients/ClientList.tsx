@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '../../lib/api';
+import type { PaginatedResponse } from '../operations/listTypes';
 
 interface ClientRecord {
   id: string;
@@ -21,21 +22,36 @@ interface ClientRecord {
   address?: string;
 }
 
+const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | null): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+};
+
 export const ClientList: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = React.useState<ClientRecord[]>([]);
+  const [loadError, setLoadError] = React.useState('');
   const focusedClientId = searchParams.get('clientId');
 
   React.useEffect(() => {
     const fetchClients = async () => {
       const response = await api.get('/clients/');
-      setClients(response.data);
+      setLoadError('');
+      setClients(extractResults<ClientRecord>(response.data));
     };
 
     fetchClients().catch((error) => {
       console.error('Failed to load clients:', error);
       setClients([]);
+      setLoadError('Client records could not be loaded right now.');
     });
   }, []);
 
@@ -132,6 +148,19 @@ export const ClientList: React.FC = () => {
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        {loadError ? (
+          <div className="mb-6 flex flex-col gap-3 rounded-[1.4rem] border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm font-semibold">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-black text-rose-700 transition-colors hover:bg-rose-100"
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
+
         {focusedClientId ? (
           <div className="mb-6 flex flex-col gap-3 rounded-[1.4rem] border border-sky-200 bg-sky-50 px-5 py-4 text-sky-900 md:flex-row md:items-center md:justify-between">
             <div>

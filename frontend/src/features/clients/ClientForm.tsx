@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import axios from 'axios';
 import { Building2, Mail, MapPin, Phone, Save, UserRound, X } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -53,6 +54,25 @@ export const ClientForm: React.FC = () => {
       navigate('/clients');
     } catch (error) {
       console.error('Failed to save client:', error);
+      if (axios.isAxiosError(error) && error.response?.data && typeof error.response.data === 'object') {
+        const payload = error.response.data as Record<string, unknown>;
+        const detail = payload.detail;
+        if (typeof detail === 'string' && detail.trim()) {
+          setSubmitError(detail);
+          return;
+        }
+
+        const firstFieldMessage = Object.values(payload).find((value) => Array.isArray(value) || typeof value === 'string');
+        if (Array.isArray(firstFieldMessage)) {
+          setSubmitError(String(firstFieldMessage[0] ?? ''));
+          return;
+        }
+        if (typeof firstFieldMessage === 'string' && firstFieldMessage.trim()) {
+          setSubmitError(firstFieldMessage);
+          return;
+        }
+      }
+
       setSubmitError('Unable to save this client right now. Please confirm the details and try again.');
     }
   };
