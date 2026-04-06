@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://office-management-b3r3.vercel.app/api/$1"
+      "destination": "https://office-management-drab.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",
