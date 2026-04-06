@@ -281,6 +281,7 @@ export const BookingDetails: React.FC = () => {
     const companyEmail = 'info@mrangatoursandsafaris.com';
     const generatedFrom = 'Office Management Portal';
     const generatedOn = new Date().toLocaleString();
+    const financialSummary = `${booking.currency} ${toNumber(booking.total_cost).toLocaleString()}`;
     const columnGap = 8;
     const columnCount = 4;
     const columnWidth = (contentWidth - columnGap * (columnCount - 1)) / columnCount;
@@ -364,8 +365,9 @@ export const BookingDetails: React.FC = () => {
           estimateFieldHeight(twoColumnWidth, 'Generated From', generatedFrom, 58, scale),
           estimateFieldHeight(twoColumnWidth, 'Generated On', generatedOn, 58, scale),
         ) + 8 * scale;
+      const sectionBandsHeight = 4 * (26 * scale);
 
-      return headerHeight + rowHeights.reduce((sum, height) => sum + height, 0) + itineraryHeight + generatedHeight;
+      return headerHeight + sectionBandsHeight + rowHeights.reduce((sum, height) => sum + height, 0) + itineraryHeight + generatedHeight;
     };
 
     const rawScale = availableHeight / estimateLayoutHeight(1);
@@ -388,6 +390,29 @@ export const BookingDetails: React.FC = () => {
       }
       doc.addPage();
       y = topMargin;
+    };
+
+    const drawSectionBand = (title: string, detail?: string) => {
+      const bandHeight = 18 * layoutScale;
+      const totalHeight = bandHeight + 8 * layoutScale;
+      ensureSpace(totalHeight);
+
+      doc.setFillColor(245, 248, 241);
+      doc.roundedRect(left, y, contentWidth, bandHeight, 6 * layoutScale, 6 * layoutScale, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9 * layoutScale);
+      doc.setTextColor(31, 67, 38);
+      doc.text(title.toUpperCase(), left + 10 * layoutScale, y + 12 * layoutScale);
+
+      if (detail) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8 * layoutScale);
+        doc.setTextColor(100, 116, 139);
+        const detailWidth = doc.getTextWidth(detail);
+        doc.text(detail, right - detailWidth - 10 * layoutScale, y + 12 * layoutScale);
+      }
+
+      y += totalHeight;
     };
 
     const drawFieldBox = (x: number, top: number, width: number, label: string, value: string, minHeight = 62) => {
@@ -489,6 +514,7 @@ export const BookingDetails: React.FC = () => {
     doc.text('Structured Booking Summary', left, y);
     y += 16 * layoutScale;
 
+    drawSectionBand('Client Details', booking.reference_no);
     drawGridRow([
       { label: 'Booking Number', value: booking.reference_no },
       { label: 'Client Name', value: booking.client_name },
@@ -496,6 +522,7 @@ export const BookingDetails: React.FC = () => {
       { label: 'Client Phone', value: booking.client_phone || 'No phone provided' },
     ]);
 
+    drawSectionBand('Travel Details', productName);
     drawGridRow([
       { label: 'Product', value: productName },
       { label: 'Product Category', value: booking.product_category_display || 'Not specified' },
@@ -510,6 +537,7 @@ export const BookingDetails: React.FC = () => {
       { label: 'Price per Adult', value: `${booking.currency} ${toNumber(booking.price_per_adult).toLocaleString()}` },
     ]);
 
+    drawSectionBand('Financial Summary', financialSummary);
     drawGridRow([
       { label: 'Price per Child', value: `${booking.currency} ${toNumber(booking.price_per_child).toLocaleString()}` },
       { label: 'Extra Charges', value: `${booking.currency} ${toNumber(booking.extra_charges).toLocaleString()}` },
@@ -524,6 +552,7 @@ export const BookingDetails: React.FC = () => {
       { label: 'Payment Channels', value: paymentChannels },
     ], 72);
 
+    drawSectionBand('Notes & Issuance');
     drawFullWidthSection('Itinerary', itinerary, 84);
     drawTwoColumnRow([
       { label: 'Generated From', value: generatedFrom },
