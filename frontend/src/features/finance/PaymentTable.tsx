@@ -73,6 +73,7 @@ export const PaymentTable: React.FC = () => {
   useEffect(() => {
     const fetchPayments = async () => {
       const response = await api.get('/finance/payments/');
+      setTableError('');
       setPayments(extractResults<Payment>(response.data));
     };
 

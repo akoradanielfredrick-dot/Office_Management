@@ -22,7 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { api, backendAdminUrl } from '../../lib/api';
+import { api, backendAdminConfirmUrl } from '../../lib/api';
 
 const mrangaLogo = '/mranga-brand.jpeg';
 
@@ -135,7 +135,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="grid gap-2 sm:grid-cols-2">
               <a
-                href={backendAdminUrl}
+                href={backendAdminConfirmUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#cfd6e0] bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
@@ -248,7 +248,7 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <a
-                href={backendAdminUrl}
+                href={backendAdminConfirmUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-[0.95rem] border border-[#cfd6e0] bg-white px-5 py-3 text-[1rem] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"

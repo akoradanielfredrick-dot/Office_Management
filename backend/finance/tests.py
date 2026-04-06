@@ -193,3 +193,27 @@ class PaymentWorkflowTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.booking.refresh_from_db()
         self.assertEqual(self.booking.paid_amount, Decimal('5000.00'))
+
+    def test_payment_list_includes_booking_context_even_without_receipt(self):
+        payment = Payment.objects.create(
+            booking=self.booking,
+            amount=Decimal('120.00'),
+            currency='USD',
+            exchange_rate=Decimal('1.0000'),
+            payment_type='DEPOSIT',
+            method='MPESA',
+            payment_date='2026-04-06T00:00:00Z',
+            txn_reference='TXN-NO-RECEIPT',
+            notes='Legacy imported payment',
+            received_by=self.user,
+        )
+
+        response = self.client.get(reverse('payment-list'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(str(response.data[0]['id']), str(payment.id))
+        self.assertEqual(response.data[0]['booking_ref'], self.booking.reference_no)
+        self.assertEqual(response.data[0]['client_name'], self.customer.full_name)
+        self.assertIsNone(response.data[0]['receipt'])
+        self.assertIsNone(response.data[0]['receipt_no'])
