@@ -8,7 +8,6 @@ import {
   Briefcase,
   AlertCircle,
   ChevronRight,
-  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -118,12 +117,7 @@ export const AnalyticsDashboard: React.FC = () => {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.9),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_58%)]" />
           <div className="relative flex h-full flex-col justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-white/85 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)] backdrop-blur-sm">
-                <Sparkles size={12} />
-                Financial Intelligence
-              </div>
-
-              <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-[var(--color-primary-strong)]">Executive Analytics</h1>
+              <h1 className="text-[2.85rem] font-semibold tracking-tight text-[var(--color-primary-strong)]">Executive Analytics</h1>
               <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-[var(--color-text-secondary)]">
                 Review performance, cash position, risk exposure, and profitability across the office in one decision-ready workspace.
               </p>
