@@ -71,7 +71,7 @@ export const ProfitabilityReport: React.FC = () => {
     );
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Analyzing tour margins...</div>;
+  if (loading) return <div className="p-8 text-center text-[var(--color-text-muted)]">Analyzing tour margins...</div>;
 
   return (
     <div className="space-y-8">
@@ -79,30 +79,30 @@ export const ProfitabilityReport: React.FC = () => {
         <div className="flex items-start gap-4">
           <button
             onClick={() => navigate('/analytics')}
-            className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+            className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] shadow-[0_12px_24px_-20px_rgba(111,130,5,0.24)] transition-colors hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Detailed Analytics</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Booking Profitability</h1>
-            <p className="mt-2 text-sm font-medium text-slate-500">Gross margin analysis and performance comparison across active tours.</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Detailed Analytics</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--color-primary-strong)]">Booking Profitability</h1>
+            <p className="mt-2 text-sm font-medium text-[var(--color-text-secondary)]">Gross margin analysis and performance comparison across active tours.</p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-5 md:grid-cols-3">
-        <MetricCard label="Avg. Portfolio Margin" value={`${avgMargin.toFixed(1)}%`} tone="emerald" />
-        <MetricCard label="Total Realized Revenue" value={totalsByCurrency.map((item) => `${item.currency} ${item.revenue.toLocaleString()}`).join(' | ')} tone="blue" />
-        <MetricCard label="Total Direct Costs" value={totalsByCurrency.map((item) => `${item.currency} ${item.costs.toLocaleString()}`).join(' | ')} tone="rose" />
+        <MetricCard label="Avg. Portfolio Margin" value={`${avgMargin.toFixed(1)}%`} tone="primary" />
+        <MetricCard label="Total Realized Revenue" value={totalsByCurrency.map((item) => `${item.currency} ${item.revenue.toLocaleString()}`).join(' | ')} tone="accent" />
+        <MetricCard label="Total Direct Costs" value={totalsByCurrency.map((item) => `${item.currency} ${item.costs.toLocaleString()}`).join(' | ')} tone="danger" />
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-white shadow-[0_16px_36px_-30px_rgba(111,130,5,0.28)]">
         <ReportToolbar placeholder="Filter by booking or client..." onSearch={() => {}} onDateChange={() => {}} onExport={handleExport} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead className="bg-white">
-              <tr className="border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+              <tr className="border-b border-[var(--color-border)] text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]">
                 <th className="px-6 py-4">Booking Details</th>
                 <th className="px-6 py-4 text-right">Revenue</th>
                 <th className="px-6 py-4 text-right">Costs</th>
@@ -110,22 +110,22 @@ export const ProfitabilityReport: React.FC = () => {
                 <th className="px-6 py-4 text-center">Margin Analysis</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {reportData.map((p) => (
-                <tr key={p.id} className="transition-colors hover:bg-slate-50/80">
+                <tr key={p.id} className="transition-colors hover:bg-[var(--color-primary-tint)]">
                   <td className="px-6 py-5">
-                    <p className="font-black text-slate-900">{p.ref}</p>
-                    <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{p.client}</p>
-                    {p.product && <p className="mt-1 text-xs font-medium text-primary-700">{p.product}</p>}
+                    <p className="font-black text-[var(--color-text-primary)]">{p.ref}</p>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">{p.client}</p>
+                    {p.product && <p className="mt-1 text-xs font-medium text-[var(--color-primary)]">{p.product}</p>}
                   </td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{p.currency || 'KES'} {Number(p.revenue).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-[var(--color-text-primary)]">{p.currency || 'KES'} {Number(p.revenue).toLocaleString()}</td>
                   <td className="px-6 py-5 text-right text-sm font-black text-rose-600">-{p.currency || 'KES'} {Number(p.costs).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-emerald-600">+{p.currency || 'KES'} {Number(p.profit).toLocaleString()}</td>
+                  <td className="px-6 py-5 text-right text-sm font-black text-[var(--color-primary)]">+{p.currency || 'KES'} {Number(p.profit).toLocaleString()}</td>
                   <td className="px-6 py-5 text-center">
                     <span className={clsx(
                       'inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ring-1',
-                      p.margin >= 25 ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' :
-                      p.margin >= 10 ? 'bg-amber-100 text-amber-700 ring-amber-200' :
+                      p.margin >= 25 ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)] ring-[var(--color-border-strong)]' :
+                      p.margin >= 10 ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)] ring-[var(--color-accent)]/20' :
                       'bg-rose-100 text-rose-700 ring-rose-200'
                     )}>
                       {Number(p.margin).toFixed(1)}% {p.margin >= 25 ? 'High' : p.margin >= 10 ? 'Fair' : 'Low'}
@@ -141,14 +141,14 @@ export const ProfitabilityReport: React.FC = () => {
   );
 };
 
-const MetricCard: React.FC<{ label: string; value: string; tone: 'emerald' | 'blue' | 'rose' }> = ({ label, value, tone }) => (
+const MetricCard: React.FC<{ label: string; value: string; tone: 'primary' | 'accent' | 'danger' }> = ({ label, value, tone }) => (
   <div className={clsx(
-    'rounded-[1.8rem] border bg-white p-5 shadow-sm',
-    tone === 'emerald' && 'border-emerald-100',
-    tone === 'blue' && 'border-sky-100',
-    tone === 'rose' && 'border-rose-100'
+    'rounded-[1.8rem] border bg-white p-5 shadow-[0_16px_32px_-28px_rgba(111,130,5,0.22)]',
+    tone === 'primary' && 'border-[var(--color-border)]',
+    tone === 'accent' && 'border-[var(--color-accent)]/25',
+    tone === 'danger' && 'border-rose-100'
   )}>
-    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">{label}</p>
-    <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
+    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">{label}</p>
+    <p className="mt-3 text-3xl font-black text-[var(--color-primary-strong)]">{value}</p>
   </div>
 );

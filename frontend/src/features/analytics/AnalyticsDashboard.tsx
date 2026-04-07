@@ -75,7 +75,7 @@ export const AnalyticsDashboard: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-400">Synchronizing financial intelligence...</div>;
+    return <div className="p-8 text-center text-[var(--color-text-muted)]">Synchronizing financial intelligence...</div>;
   }
 
   const revenueBreakdown = getCurrencyBreakdown(stats?.revenue_by_currency);
@@ -91,6 +91,7 @@ export const AnalyticsDashboard: React.FC = () => {
     value: Math.max(expenseBreakdown[index].value - directCostBreakdown[index].value, 0),
   }));
   const totalIndirectCosts = indirectCostBreakdown.reduce((sum, item) => sum + item.value, 0);
+
   const handleExport = () => {
     downloadCsvFile(
       'analytics-dashboard-summary.csv',
@@ -112,42 +113,33 @@ export const AnalyticsDashboard: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[1.45rem] border border-[#c9def7] bg-[linear-gradient(135deg,#eef7ff_0%,#dceeff_52%,#cfe5fb_100%)] px-8 py-8 text-slate-950 shadow-[0_18px_36px_-24px_rgba(74,120,168,0.35)]"
+          className="relative overflow-hidden rounded-[1.45rem] border border-[var(--color-border)] bg-[linear-gradient(135deg,var(--color-primary-soft)_0%,#f3f6e8_45%,var(--color-accent-soft)_100%)] px-8 py-8 text-[var(--color-text-primary)] shadow-[0_20px_38px_-28px_rgba(111,130,5,0.36)]"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.92),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_58%)]" />
-          <div className="flex h-full flex-col justify-between gap-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.9),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.24),transparent_58%)]" />
+          <div className="relative flex h-full flex-col justify-between gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#b9d7f4] bg-white/75 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[#3f6b94] backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-white/85 px-4 py-2 text-[0.82rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)] backdrop-blur-sm">
                 <Sparkles size={12} />
                 Financial Intelligence
               </div>
 
-              <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-slate-950">Executive Analytics</h1>
-              <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-slate-700">
+              <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-[var(--color-primary-strong)]">Executive Analytics</h1>
+              <p className="mt-3 max-w-2xl text-[1.02rem] font-medium leading-8 text-[var(--color-text-secondary)]">
                 Review performance, cash position, risk exposure, and profitability across the office in one decision-ready workspace.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
-                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Revenue</p>
-                <MetricBreakdown items={revenueBreakdown} />
-              </div>
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
-                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Net Cashflow</p>
-                <MetricBreakdown items={netCashflowBreakdown} />
-              </div>
-              <div className="rounded-[1rem] border border-white/70 bg-white/62 px-5 py-4 shadow-[0_12px_24px_-20px_rgba(93,129,173,0.55)] backdrop-blur-sm">
-                <p className="text-[0.85rem] uppercase tracking-[0.05em] text-slate-500">Collections Risk</p>
-                <MetricBreakdown items={outstandingBreakdown} />
-              </div>
+              <OverviewCard label="Revenue" items={revenueBreakdown} />
+              <OverviewCard label="Net Cashflow" items={netCashflowBreakdown} />
+              <OverviewCard label="Collections Risk" items={outstandingBreakdown} />
             </div>
           </div>
         </motion.div>
 
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Analysis Paths</p>
-          <h2 className="mt-2 text-2xl font-black text-slate-900">Open Detailed Reports</h2>
+        <div className="brand-panel p-6">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Analysis Paths</p>
+          <h2 className="mt-2 text-2xl font-black text-[var(--color-primary-strong)]">Open Detailed Reports</h2>
 
           <div className="mt-6 space-y-3">
             <ReportLink
@@ -173,14 +165,14 @@ export const AnalyticsDashboard: React.FC = () => {
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Revenue" items={revenueBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingUp} color="emerald" />
-        <StatCard label="Total Expenses" items={expenseBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingDown} color="rose" />
-        <StatCard label="Net Cashflow" items={netCashflowBreakdown} trend="KES/USD/EUR/GBP mix" icon={DollarSign} color="blue" />
-        <StatCard label="Pending Collections" items={outstandingBreakdown} trend="KES/USD/EUR/GBP mix" icon={AlertCircle} color="amber" />
+        <StatCard label="Total Revenue" items={revenueBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingUp} tone="primary" />
+        <StatCard label="Total Expenses" items={expenseBreakdown} trend="KES/USD/EUR/GBP mix" icon={TrendingDown} tone="danger" />
+        <StatCard label="Net Cashflow" items={netCashflowBreakdown} trend="KES/USD/EUR/GBP mix" icon={DollarSign} tone="accent" />
+        <StatCard label="Pending Collections" items={outstandingBreakdown} trend="KES/USD/EUR/GBP mix" icon={AlertCircle} tone="accent-soft" />
       </section>
 
       <section className="grid gap-8 xl:grid-cols-[1.6fr_0.9fr]">
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-white shadow-[0_16px_36px_-30px_rgba(111,130,5,0.28)]">
           <ReportToolbar
             placeholder="Search financial summaries..."
             onSearch={() => {}}
@@ -191,28 +183,28 @@ export const AnalyticsDashboard: React.FC = () => {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Relative Performance</p>
-                <h3 className="mt-2 text-2xl font-black text-slate-900">Revenue vs Expense Pattern</h3>
+                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Relative Performance</p>
+                <h3 className="mt-2 text-2xl font-black text-[var(--color-primary-strong)]">Revenue vs Expense Pattern</h3>
               </div>
-              <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <div className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--color-primary)]">
                 Dynamic Scale
               </div>
             </div>
 
-            <div className="mt-8 flex h-72 items-end justify-between gap-4 border-b border-slate-100 pb-4">
+            <div className="mt-8 flex h-72 items-end justify-between gap-4 border-b border-[var(--color-border)] pb-4">
               {[0.58, 0.74, 0.66, 0.92, 0.78, 1.0].map((scale, i) => (
                 <div key={i} className="flex flex-1 flex-col items-center gap-3">
                   <div className="flex h-full w-full items-end justify-center gap-2">
                     <div
-                      className="w-5 rounded-t-2xl bg-emerald-400/85 shadow-lg shadow-emerald-500/10"
+                      className="w-5 rounded-t-2xl bg-[var(--color-primary)] shadow-lg shadow-[rgba(111,130,5,0.15)]"
                       style={{ height: `${(totalRevenue / (totalRevenue + totalExpenses || 1)) * 100 * scale}%` }}
                     />
                     <div
-                      className="w-5 rounded-t-2xl bg-rose-400/85 shadow-lg shadow-rose-500/10"
+                      className="w-5 rounded-t-2xl bg-[var(--color-accent)] shadow-lg shadow-[rgba(255,162,3,0.18)]"
                       style={{ height: `${(totalExpenses / (totalRevenue + totalExpenses || 1)) * 100 * scale}%` }}
                     />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                  <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                     M-{5 - i}
                   </span>
                 </div>
@@ -220,44 +212,36 @@ export const AnalyticsDashboard: React.FC = () => {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-5">
-              <Legend label="Realized Revenue" color="bg-emerald-400" />
-              <Legend label="Operating Expenses" color="bg-rose-400" />
+              <Legend label="Realized Revenue" color="bg-[var(--color-primary)]" />
+              <Legend label="Operating Expenses" color="bg-[var(--color-accent)]" />
             </div>
           </div>
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-[1.8rem] border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Direct Variable Costs</p>
-            <MetricBreakdown items={directCostBreakdown} compact />
-            <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-rose-500" style={{ width: `${(totalDirectCosts / (totalExpenses || 1)) * 100}%` }} />
-            </div>
-            <p className="mt-3 text-xs font-semibold text-slate-500">
-              {(totalDirectCosts / (totalExpenses || 1) * 100).toFixed(1)}% of total outflows
-            </p>
-          </div>
+          <InsightCard
+            label="Direct Variable Costs"
+            items={directCostBreakdown}
+            barColor="bg-[var(--color-accent)]"
+            percentage={(totalDirectCosts / (totalExpenses || 1)) * 100}
+          />
 
-          <div className="rounded-[1.8rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Indirect & Fixed Costs</p>
-            <MetricBreakdown items={indirectCostBreakdown} compact />
-            <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-slate-500" style={{ width: `${(totalIndirectCosts / (totalExpenses || 1)) * 100}%` }} />
-            </div>
-            <p className="mt-3 text-xs font-semibold text-slate-500">
-              {(totalIndirectCosts / (totalExpenses || 1) * 100).toFixed(1)}% of total outflows
-            </p>
-          </div>
+          <InsightCard
+            label="Indirect & Fixed Costs"
+            items={indirectCostBreakdown}
+            barColor="bg-[var(--color-primary)]"
+            percentage={(totalIndirectCosts / (totalExpenses || 1)) * 100}
+          />
 
-          <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Recent Financial Actions</p>
+          <div className="brand-panel p-5">
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Recent Financial Actions</p>
             <div className="mt-5 space-y-4">
               {[1, 2, 3].map((item) => (
                 <div key={item} className="flex gap-3">
-                  <div className="w-1.5 rounded-full bg-emerald-400" />
+                  <div className="w-1.5 rounded-full bg-[var(--color-primary)]" />
                   <div>
-                    <p className="text-sm font-bold text-slate-800">Financial record synchronized</p>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">Automated audit log | now</p>
+                    <p className="text-sm font-bold text-[var(--color-text-primary)]">Financial record synchronized</p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Automated audit log | now</p>
                   </div>
                 </div>
               ))}
@@ -269,22 +253,32 @@ export const AnalyticsDashboard: React.FC = () => {
   );
 };
 
+const OverviewCard: React.FC<{
+  label: string;
+  items: Array<{ currency: string; value: number }>;
+}> = ({ label, items }) => (
+  <div className="rounded-[1rem] border border-white/70 bg-white/72 px-5 py-4 shadow-[0_14px_28px_-22px_rgba(111,130,5,0.22)] backdrop-blur-sm">
+    <p className="text-[0.85rem] uppercase tracking-[0.05em] text-[var(--color-text-secondary)]">{label}</p>
+    <MetricBreakdown items={items} />
+  </div>
+);
+
 const StatCard: React.FC<{
   label: string;
   items: Array<{ currency: string; value: number }>;
   trend: string;
   icon: LucideIcon;
-  color: 'emerald' | 'rose' | 'blue' | 'amber';
-}> = ({ label, items, trend, icon: Icon, color }) => (
-  <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+  tone: 'primary' | 'danger' | 'accent' | 'accent-soft';
+}> = ({ label, items, trend, icon: Icon, tone }) => (
+  <div className="brand-panel p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_38px_-30px_rgba(111,130,5,0.3)]">
     <div className="flex items-center justify-between">
       <div
         className={clsx(
           'flex h-12 w-12 items-center justify-center rounded-2xl',
-          color === 'emerald' && 'bg-emerald-100 text-emerald-700',
-          color === 'rose' && 'bg-rose-100 text-rose-700',
-          color === 'blue' && 'bg-sky-100 text-sky-700',
-          color === 'amber' && 'bg-amber-100 text-amber-700'
+          tone === 'primary' && 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+          tone === 'danger' && 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
+          tone === 'accent' && 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
+          tone === 'accent-soft' && 'bg-[var(--color-primary-tint)] text-[var(--color-primary-hover)]'
         )}
       >
         <Icon size={22} />
@@ -292,17 +286,35 @@ const StatCard: React.FC<{
       <span
         className={clsx(
           'text-[11px] font-black uppercase tracking-[0.24em]',
-          color === 'emerald' && 'text-emerald-600',
-          color === 'rose' && 'text-rose-600',
-          color === 'blue' && 'text-sky-600',
-          color === 'amber' && 'text-amber-600'
+          tone === 'primary' && 'text-[var(--color-primary)]',
+          tone === 'danger' && 'text-[var(--color-danger)]',
+          tone === 'accent' && 'text-[var(--color-accent-hover)]',
+          tone === 'accent-soft' && 'text-[var(--color-primary-hover)]'
         )}
       >
         {trend}
       </span>
     </div>
-    <p className="mt-6 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">{label}</p>
+    <p className="mt-6 text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">{label}</p>
     <MetricBreakdown items={items} compact />
+  </div>
+);
+
+const InsightCard: React.FC<{
+  label: string;
+  items: Array<{ currency: string; value: number }>;
+  barColor: string;
+  percentage: number;
+}> = ({ label, items, barColor, percentage }) => (
+  <div className="rounded-[1.8rem] border border-[var(--color-border)] bg-[linear-gradient(180deg,var(--color-surface)_0%,var(--color-surface-soft)_100%)] p-5 shadow-[0_16px_32px_-28px_rgba(111,130,5,0.22)]">
+    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">{label}</p>
+    <MetricBreakdown items={items} compact />
+    <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[var(--color-primary-soft)]">
+      <div className={clsx('h-full rounded-full', barColor)} style={{ width: `${percentage}%` }} />
+    </div>
+    <p className="mt-3 text-xs font-semibold text-[var(--color-text-secondary)]">
+      {percentage.toFixed(1)}% of total outflows
+    </p>
   </div>
 );
 
@@ -313,8 +325,8 @@ const MetricBreakdown: React.FC<{
   <div className={clsx('mt-3 space-y-2', compact && 'space-y-1.5')}>
     {items.map((item) => (
       <div key={item.currency} className="flex items-center justify-between text-sm">
-        <span className={clsx('font-semibold text-slate-500', compact && 'text-xs uppercase tracking-[0.18em]')}>{item.currency}</span>
-        <span className={clsx('font-black text-slate-900', compact ? 'text-sm' : 'text-lg')}>{item.value.toLocaleString()}</span>
+        <span className={clsx('font-semibold text-[var(--color-text-secondary)]', compact && 'text-xs uppercase tracking-[0.18em]')}>{item.currency}</span>
+        <span className={clsx('font-black text-[var(--color-text-primary)]', compact ? 'text-sm' : 'text-lg')}>{item.value.toLocaleString()}</span>
       </div>
     ))}
   </div>
@@ -323,24 +335,24 @@ const MetricBreakdown: React.FC<{
 const ReportLink: React.FC<{ label: string; description: string; icon: LucideIcon; onClick: () => void }> = ({ label, description, icon: Icon, onClick }) => (
   <button
     onClick={onClick}
-    className="flex w-full items-center justify-between rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4 text-left transition-colors hover:bg-primary-50"
+    className="flex w-full items-center justify-between rounded-[1.4rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-4 text-left transition-colors hover:bg-[var(--color-primary-soft)]"
   >
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-primary-700 shadow-sm">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[var(--color-primary)] shadow-sm">
         <Icon size={20} />
       </div>
       <div>
-        <p className="text-sm font-black text-slate-900">{label}</p>
-        <p className="mt-1 text-xs font-medium text-slate-500">{description}</p>
+        <p className="text-sm font-black text-[var(--color-text-primary)]">{label}</p>
+        <p className="mt-1 text-xs font-medium text-[var(--color-text-secondary)]">{description}</p>
       </div>
     </div>
-    <ChevronRight size={18} className="text-slate-400" />
+    <ChevronRight size={18} className="text-[var(--color-text-muted)]" />
   </button>
 );
 
 const Legend: React.FC<{ label: string; color: string }> = ({ label, color }) => (
   <div className="flex items-center gap-2">
     <div className={clsx('h-3 w-3 rounded-full', color)} />
-    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">{label}</span>
   </div>
 );

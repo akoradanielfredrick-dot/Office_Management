@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building, TrendingDown } from 'lucide-react';
+import { clsx } from 'clsx';
 import { ReportToolbar } from './ReportToolbar';
 import { downloadCsvFile } from '../../lib/download';
 
@@ -57,42 +58,46 @@ export const SupplierSpend: React.FC = () => {
     );
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Aggregating vendor expenditure...</div>;
+  if (loading) return <div className="p-8 text-center text-[var(--color-text-muted)]">Aggregating vendor expenditure...</div>;
 
   return (
     <div className="space-y-8">
       <section className="flex items-start gap-4">
         <button
           onClick={() => navigate('/analytics')}
-          className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50"
+          className="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] shadow-[0_12px_24px_-20px_rgba(111,130,5,0.24)] transition-colors hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"
         >
           <ArrowLeft size={18} />
         </button>
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Detailed Analytics</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Supplier Expenditure</h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">Vendor concentration and categorized procurement spend across operations.</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Detailed Analytics</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--color-primary-strong)]">Supplier Expenditure</h1>
+          <p className="mt-2 text-sm font-medium text-[var(--color-text-secondary)]">Vendor concentration and categorized procurement spend across operations.</p>
         </div>
       </section>
 
       <section className="grid gap-5 md:grid-cols-3">
-        <div className="rounded-[1.8rem] border border-slate-900 bg-slate-950 p-5 text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.8)]">
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/50">Gross Operational Spend</p>
+        <div className="rounded-[1.8rem] border border-[var(--color-border)] bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_55%,var(--color-primary-strong)_100%)] p-5 text-white shadow-[0_18px_40px_-28px_rgba(111,130,5,0.55)]">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/72">Gross Operational Spend</p>
           <p className="mt-3 text-3xl font-black">{totalSpend.toLocaleString()}</p>
-          <div className="mt-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-rose-400">
-            <TrendingDown size={24} />
+          <div className="mt-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent)] text-[var(--color-primary-strong)]">
+            <TrendingDown size={22} />
           </div>
         </div>
-        <Metric label="Active Vendors" value={`${supplierData.length}`} />
-        <Metric label="Average Spend / Vendor" value={`${(totalSpend / (supplierData.length || 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
+        <Metric label="Active Vendors" value={`${supplierData.length}`} tone="accent" />
+        <Metric
+          label="Average Spend / Vendor"
+          value={`${(totalSpend / (supplierData.length || 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          tone="primary"
+        />
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-white shadow-[0_16px_36px_-30px_rgba(111,130,5,0.28)]">
         <ReportToolbar placeholder="Search suppliers or categories..." onSearch={() => {}} onDateChange={() => {}} onExport={handleExport} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead className="bg-white">
-              <tr className="border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+              <tr className="border-b border-[var(--color-border)] text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]">
                 <th className="px-6 py-4">Supplier</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4 text-center">Transactions</th>
@@ -100,34 +105,41 @@ export const SupplierSpend: React.FC = () => {
                 <th className="px-6 py-4 text-right">% of Gross</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {supplierData.sort((a, b) => b.total_spend - a.total_spend).map((s) => (
-                <tr key={s.id} className="transition-colors hover:bg-slate-50/80">
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-                        <Building size={18} />
+            <tbody className="divide-y divide-[var(--color-border)]">
+              {supplierData
+                .sort((a, b) => b.total_spend - a.total_spend)
+                .map((supplier) => (
+                  <tr key={supplier.id} className="transition-colors hover:bg-[var(--color-primary-tint)]">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                          <Building size={18} />
+                        </div>
+                        <p className="font-black text-[var(--color-text-primary)]">{supplier.name}</p>
                       </div>
-                      <p className="font-black text-slate-900">{s.name}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 ring-1 ring-slate-200">
-                      {s.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5 text-center text-sm font-black text-slate-900">{s.transactions}</td>
-                  <td className="px-6 py-5 text-right text-sm font-black text-slate-900">{Number(s.total_spend).toLocaleString()}</td>
-                  <td className="px-6 py-5 text-right">
-                    <div className="ml-auto flex w-28 items-center justify-end gap-3">
-                      <span className="text-xs font-black text-slate-500">{((Number(s.total_spend) / (totalSpend || 1)) * 100).toFixed(1)}%</span>
-                      <div className="h-2 w-16 overflow-hidden rounded-full bg-slate-100">
-                        <div className="h-full rounded-full bg-primary-600" style={{ width: `${(Number(s.total_spend) / (totalSpend || 1)) * 100}%` }} />
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className="inline-flex rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--color-accent-hover)] ring-1 ring-[var(--color-accent)]/20">
+                        {supplier.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5 text-center text-sm font-black text-[var(--color-text-primary)]">{supplier.transactions}</td>
+                    <td className="px-6 py-5 text-right text-sm font-black text-[var(--color-text-primary)]">{Number(supplier.total_spend).toLocaleString()}</td>
+                    <td className="px-6 py-5 text-right">
+                      <div className="ml-auto flex w-28 items-center justify-end gap-3">
+                        <span className="text-xs font-black text-[var(--color-text-secondary)]">
+                          {((Number(supplier.total_spend) / (totalSpend || 1)) * 100).toFixed(1)}%
+                        </span>
+                        <div className="h-2 w-16 overflow-hidden rounded-full bg-[var(--color-primary-soft)]">
+                          <div
+                            className="h-full rounded-full bg-[var(--color-primary)]"
+                            style={{ width: `${(Number(supplier.total_spend) / (totalSpend || 1)) * 100}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -136,9 +148,18 @@ export const SupplierSpend: React.FC = () => {
   );
 };
 
-const Metric: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-sm">
-    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">{label}</p>
-    <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
+const Metric: React.FC<{ label: string; value: string; tone: 'primary' | 'accent' }> = ({ label, value, tone }) => (
+  <div className="rounded-[1.8rem] border border-[var(--color-border)] bg-white p-5 shadow-[0_16px_32px_-28px_rgba(111,130,5,0.22)]">
+    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">{label}</p>
+    <p className="mt-3 text-3xl font-black text-[var(--color-primary-strong)]">{value}</p>
+    <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[var(--color-primary-soft)]">
+      <div
+        className={clsx(
+          'h-full rounded-full',
+          tone === 'accent' ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-primary)]'
+        )}
+        style={{ width: tone === 'accent' ? '58%' : '74%' }}
+      />
+    </div>
   </div>
 );
