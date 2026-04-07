@@ -285,12 +285,7 @@ export const DashboardHome: React.FC = () => {
           className="rounded-[1.45rem] bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_58%,var(--color-primary-strong)_100%)] px-8 py-8 text-white shadow-[0_24px_40px_-28px_rgba(111,130,5,0.62)]"
         >
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-[0.9rem] font-medium text-[var(--color-primary-strong)]">
-              <Activity size={14} />
-              EXECUTIVE OVERVIEW
-            </div>
-
-            <h1 className="mt-6 text-[2.85rem] font-semibold tracking-tight text-white">
+            <h1 className="text-[2.85rem] font-semibold tracking-tight text-white">
               Welcome back, {firstName}
             </h1>
             <p className="mt-3 text-[1.02rem] font-medium text-white/92">
@@ -395,9 +390,6 @@ export const DashboardHome: React.FC = () => {
                 <div>
                   <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">BOOKING DESK</p>
                   <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Bookings at a glance</h3>
-                  <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-[var(--color-text-secondary)]">
-                    Keep the office team focused on fresh reservations, payment follow-up, and the next booking action without leaving the dashboard.
-                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
