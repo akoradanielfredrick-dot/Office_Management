@@ -7,12 +7,9 @@ import {
   ShoppingCart,
   ChevronRight,
   Clock3,
-  TrendingUp,
   ShieldCheck,
   CreditCard,
   Users,
-  Activity,
-  Boxes,
   type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -184,90 +181,6 @@ export const DashboardHome: React.FC = () => {
     },
   ];
 
-  const quickActions = [
-    {
-      module: 'bookings' as PortalModuleKey,
-      label: 'View Bookings',
-      description: 'Open module and continue workflow',
-      icon: Calendar,
-      path: '/bookings',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'products' as PortalModuleKey,
-      label: 'Manage Products',
-      description: 'Update tours, rates, and catalog data',
-      icon: Boxes,
-      path: '/products',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-primary-strong)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'catalog' as PortalModuleKey,
-      label: 'Catalog View',
-      description: 'See clients, products, and excursions together',
-      icon: Boxes,
-      path: '/catalog',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-primary)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'schedules' as PortalModuleKey,
-      label: 'Create Schedule',
-      description: 'Publish departures and live capacity',
-      icon: Clock3,
-      path: '/schedules/new',
-      tone: 'bg-[linear-gradient(135deg,var(--color-accent)_0%,var(--color-accent-hover)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'availability' as PortalModuleKey,
-      label: 'View Availability',
-      description: 'See remaining, reserved, and confirmed space',
-      icon: Activity,
-      path: '/availability',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary-strong)_0%,var(--color-sidebar-bg)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'integrations' as PortalModuleKey,
-      label: 'Integration Ops',
-      description: 'Review mappings, payloads, and idempotency keys',
-      icon: ShieldCheck,
-      path: '/integrations',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-sidebar-bg)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'reservations' as PortalModuleKey,
-      label: 'Create Reservation',
-      description: 'Place temporary inventory holds',
-      icon: ShieldCheck,
-      path: '/reservations/new',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-strong)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'payments' as PortalModuleKey,
-      label: 'Record Payment',
-      description: 'Open module and continue workflow',
-      icon: Wallet,
-      path: '/finance/payments/new',
-      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-    {
-      module: 'analytics' as PortalModuleKey,
-      label: 'Analytics',
-      description: 'Open module and continue workflow',
-      icon: TrendingUp,
-      path: '/analytics',
-      tone: 'bg-[linear-gradient(135deg,var(--color-accent)_0%,var(--color-accent-hover)_100%)]',
-      iconBg: 'bg-white/15 text-white',
-    },
-  ].filter((action) => canAccessModule(action.module));
-
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -358,237 +271,193 @@ export const DashboardHome: React.FC = () => {
         </motion.div>
       </section>
 
-      <section className="grid items-start gap-6 xl:grid-cols-[1.7fr_0.95fr]">
-        <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-4">
-            {kpis.map((kpi, idx) => (
-              <motion.div
-                key={kpi.label}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.07 + idx * 0.05 }}
-                className="brand-panel p-5"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className={clsx('flex h-12 w-12 items-center justify-center rounded-xl', kpi.iconWrap)}>
-                    <kpi.icon size={22} />
-                  </div>
-                  <span className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">SNAPSHOT</span>
+      <section className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {kpis.map((kpi, idx) => (
+            <motion.div
+              key={kpi.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.07 + idx * 0.05 }}
+              className="brand-panel p-5"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className={clsx('flex h-12 w-12 items-center justify-center rounded-xl', kpi.iconWrap)}>
+                  <kpi.icon size={22} />
                 </div>
-
-                <div className="mt-5">
-                  <p className="text-[0.86rem] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">{kpi.label}</p>
-                  <h3 className="mt-3 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">{kpi.value}</h3>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {canAccessBookings || canAccessPayments ? (
-            <div className="brand-panel p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">BOOKING DESK</p>
-                  <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Bookings at a glance</h3>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  {canAccessBookings ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/bookings/new')}
-                        className="btn-primary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
-                      >
-                        <CirclePlus size={18} />
-                        New Booking
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/bookings')}
-                        className="btn-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
-                      >
-                        View All
-                        <ChevronRight size={18} />
-                      </button>
-                    </>
-                  ) : null}
-                </div>
+                <span className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">SNAPSHOT</span>
               </div>
 
+              <div className="mt-5">
+                <p className="text-[0.86rem] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">{kpi.label}</p>
+                <h3 className="mt-3 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">{kpi.value}</h3>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {canAccessBookings || canAccessPayments ? (
+          <div className="brand-panel p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">BOOKING DESK</p>
+                <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Bookings at a glance</h3>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {canAccessBookings ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/bookings/new')}
+                      className="btn-primary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
+                    >
+                      <CirclePlus size={18} />
+                      New Booking
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/bookings')}
+                      className="btn-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
+                    >
+                      View All
+                      <ChevronRight size={18} />
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            </div>
+
+            {canAccessBookings ? (
+              <div className="mt-6 grid gap-3 md:grid-cols-3">
+                {bookingStatusSummary.map((item) => (
+                  <div key={item.label} className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-4">
+                    <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
+                      {item.label}
+                    </span>
+                    <p className="mt-4 text-[2rem] font-semibold leading-none text-[var(--color-primary-strong)]">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <div className={clsx('mt-6 grid gap-4', canAccessBookings && canAccessPayments ? 'xl:grid-cols-[1.2fr_0.9fr]' : 'xl:grid-cols-1')}>
               {canAccessBookings ? (
-                <div className="mt-6 grid gap-3 md:grid-cols-3">
-                  {bookingStatusSummary.map((item) => (
-                    <div key={item.label} className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-4">
-                      <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
-                        {item.label}
-                      </span>
-                      <p className="mt-4 text-[2rem] font-semibold leading-none text-[var(--color-primary-strong)]">{item.value}</p>
+                <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">RECENT BOOKINGS</p>
+                      <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Newest reservations</p>
                     </div>
-                  ))}
+                    <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-[0.78rem] font-medium text-[var(--color-primary)]">
+                      {bookingActivity.length} items
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {bookingActivity.length > 0 ? bookingActivity.map((item) => (
+                      <button
+                        key={`${item.type}-${item.id}`}
+                        type="button"
+                        onClick={() => navigate(`/bookings/${item.id}`)}
+                        className="flex w-full items-start gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-primary-tint)]"
+                      >
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                          <Calendar size={20} />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-[1rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
+                            <span className={clsx(
+                              'rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em]',
+                              statusToneMap[item.status] || 'bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]'
+                            )}>
+                              {item.status.replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                          <p className="mt-2 truncate text-[0.96rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem] text-[var(--color-text-secondary)]">
+                            <span>{formatMoney(item.currency || 'USD', item.amount)}</span>
+                            <span>{formatActivityDate(item.date)}</span>
+                          </div>
+                        </div>
+                      </button>
+                    )) : (
+                      <div className="rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-10 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                          <Clock3 size={22} />
+                        </div>
+                        <p className="mt-4 text-[1.1rem] font-medium text-[var(--color-text-primary)]">No recent bookings yet</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : null}
 
-              <div className={clsx('mt-6 grid gap-4', canAccessBookings && canAccessPayments ? 'xl:grid-cols-[1.2fr_0.9fr]' : 'xl:grid-cols-1')}>
-                {canAccessBookings ? (
-                  <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">RECENT BOOKINGS</p>
-                        <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Newest reservations</p>
-                      </div>
-                      <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-[0.78rem] font-medium text-[var(--color-primary)]">
-                        {bookingActivity.length} items
-                      </span>
+              {canAccessPayments ? (
+                <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">FOLLOW-UP</p>
+                      <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Payments tied to bookings</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/finance/payments')}
+                      className="text-[0.92rem] font-medium text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)]"
+                    >
+                      Open payments
+                    </button>
+                  </div>
 
-                    <div className="mt-4 space-y-3">
-                      {bookingActivity.length > 0 ? bookingActivity.map((item) => (
+                  <div className="mt-4 space-y-3">
+                    {paymentActivity.length > 0 ? paymentActivity.map((item) => {
+                      const presentation = activityPresentation[item.type];
+                      return (
                         <button
                           key={`${item.type}-${item.id}`}
                           type="button"
-                          onClick={() => navigate(`/bookings/${item.id}`)}
-                          className="flex w-full items-start gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-primary-tint)]"
+                          onClick={() => navigate(presentation.destination(item))}
+                          className="flex w-full items-center gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent-soft)]"
                         >
-                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                            <Calendar size={20} />
+                          <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
+                            {React.createElement(presentation.icon, { size: 20 })}
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="truncate text-[1rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
-                              <span className={clsx(
-                                'rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em]',
-                                statusToneMap[item.status] || 'bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]'
-                              )}>
-                                {item.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <p className="mt-2 truncate text-[0.96rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
-                            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem] text-[var(--color-text-secondary)]">
-                              <span>{formatMoney(item.currency || 'USD', item.amount)}</span>
-                              <span>{formatActivityDate(item.date)}</span>
-                            </div>
+                            <p className="truncate text-[0.98rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
+                            <p className="mt-1 truncate text-[0.92rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="text-[0.95rem] font-semibold text-[var(--color-text-primary)]">{formatMoney(item.currency || 'USD', item.amount)}</p>
+                            <p className="mt-1 text-[0.82rem] text-[var(--color-text-secondary)]">{formatActivityDate(item.date)}</p>
                           </div>
                         </button>
-                      )) : (
-                        <div className="rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-10 text-center">
-                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                            <Clock3 size={22} />
-                          </div>
-                          <p className="mt-4 text-[1.1rem] font-medium text-[var(--color-text-primary)]">No recent bookings yet</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-
-                {canAccessPayments ? (
-                  <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">FOLLOW-UP</p>
-                        <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Payments tied to bookings</p>
+                      );
+                    }) : (
+                      <div className="rounded-[1rem] border border-dashed border-[var(--color-border-strong)] bg-white px-4 py-10 text-center">
+                        <p className="text-[1rem] font-medium text-[var(--color-text-primary)]">No booking payments have landed yet</p>
+                        <p className="mt-2 text-[0.92rem] text-[var(--color-text-secondary)]">
+                          Payment activity will appear here as soon as receipts start coming in.
+                        </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/finance/payments')}
-                        className="text-[0.92rem] font-medium text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)]"
-                      >
-                        Open payments
-                      </button>
-                    </div>
-
-                    <div className="mt-4 space-y-3">
-                      {paymentActivity.length > 0 ? paymentActivity.map((item) => {
-                        const presentation = activityPresentation[item.type];
-                        return (
-                          <button
-                            key={`${item.type}-${item.id}`}
-                            type="button"
-                            onClick={() => navigate(presentation.destination(item))}
-                            className="flex w-full items-center gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent-soft)]"
-                          >
-                            <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
-                              {React.createElement(presentation.icon, { size: 20 })}
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[0.98rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
-                              <p className="mt-1 truncate text-[0.92rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
-                            </div>
-
-                            <div className="text-right">
-                              <p className="text-[0.95rem] font-semibold text-[var(--color-text-primary)]">{formatMoney(item.currency || 'USD', item.amount)}</p>
-                              <p className="mt-1 text-[0.82rem] text-[var(--color-text-secondary)]">{formatActivityDate(item.date)}</p>
-                            </div>
-                          </button>
-                        );
-                      }) : (
-                        <div className="rounded-[1rem] border border-dashed border-[var(--color-border-strong)] bg-white px-4 py-10 text-center">
-                          <p className="text-[1rem] font-medium text-[var(--color-text-primary)]">No booking payments have landed yet</p>
-                          <p className="mt-2 text-[0.92rem] text-[var(--color-text-secondary)]">
-                            Payment activity will appear here as soon as receipts start coming in.
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                ) : null}
-              </div>
-            </div>
-          ) : (
-            <div className="brand-panel p-6">
-              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">WORKSPACE</p>
-              <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Dashboard overview</h3>
-              <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-[var(--color-text-secondary)]">
-                Your account is active, but booking and finance modules have not been assigned yet. Contact your administrator if you need those work areas added to your portal.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <div className="brand-panel p-6">
-            <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">ACTION CENTER</p>
-            <h3 className="mt-3 text-[1.8rem] font-semibold text-[var(--color-primary-strong)]">Quick Actions</h3>
-
-            <div className="mt-5 space-y-3">
-              {quickActions.map((action, idx) => (
-                <motion.button
-                  key={action.label}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 + idx * 0.05 }}
-                  onClick={() => navigate(action.path)}
-                  className={clsx(
-                    'flex w-full items-center gap-4 rounded-[0.95rem] px-4 py-4 text-left text-white shadow-sm transition-transform hover:-translate-y-0.5',
-                    action.tone
-                  )}
-                >
-                  <div className={clsx('flex h-10 w-10 items-center justify-center rounded-xl', action.iconBg)}>
-                    <action.icon size={20} />
-                  </div>
-                  <div>
-                    <p className="text-[1rem] font-semibold">{action.label}</p>
-                    <p className="text-[0.92rem] text-white/90">{action.description}</p>
-                  </div>
-                </motion.button>
-              ))}
+                </div>
+              ) : null}
             </div>
           </div>
-
-          <div className="rounded-[1.2rem] border border-[var(--color-border)] bg-[linear-gradient(135deg,var(--color-primary-soft)_0%,var(--color-accent-soft)_100%)] p-6">
-            <div className="flex items-center gap-2 text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-primary)]">
-              <Activity size={14} />
-              OPERATIONAL NOTE
-            </div>
-            <h4 className="mt-3 text-[1.75rem] font-semibold text-[var(--color-primary-strong)]">Daily visibility is set</h4>
-            <p className="mt-4 text-[1rem] leading-8 text-[var(--color-text-secondary)]">
-              This dashboard is ready for daily office monitoring, with finance, bookings, and client actions kept one click away.
+        ) : (
+          <div className="brand-panel p-6">
+            <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">WORKSPACE</p>
+            <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Dashboard overview</h3>
+            <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-[var(--color-text-secondary)]">
+              Your account is active, but booking and finance modules have not been assigned yet. Contact your administrator if you need those work areas added to your portal.
             </p>
           </div>
-        </div>
+        )}
       </section>
     </div>
   );
