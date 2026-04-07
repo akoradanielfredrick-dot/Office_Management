@@ -290,7 +290,16 @@ export const DashboardHome: React.FC = () => {
 
               <div className="mt-5">
                 <p className="text-[0.86rem] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">{kpi.label}</p>
-                <h3 className="mt-3 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">{kpi.value}</h3>
+                <h3
+                  className={clsx(
+                    'mt-3 font-semibold text-[var(--color-primary-strong)]',
+                    kpi.label === 'Monthly Expenses'
+                      ? 'text-[1.2rem] leading-8 tracking-tight md:text-[1.35rem]'
+                      : 'text-[1.95rem]'
+                  )}
+                >
+                  {kpi.value}
+                </h3>
               </div>
             </motion.div>
           ))}
