@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building, TrendingDown } from 'lucide-react';
 import { ReportToolbar } from './ReportToolbar';
+import { downloadCsvFile } from '../../lib/download';
 
 interface SupplierData {
   id: string;
@@ -42,6 +43,19 @@ export const SupplierSpend: React.FC = () => {
   }, []);
 
   const totalSpend = supplierData.reduce((sum, d) => sum + Number(d.total_spend), 0);
+  const handleExport = () => {
+    downloadCsvFile(
+      'supplier-expenditure.csv',
+      ['Supplier', 'Category', 'Transactions', 'Total Spend', 'Last Transaction'],
+      supplierData.map((supplier) => [
+        supplier.name,
+        supplier.category,
+        supplier.transactions,
+        supplier.total_spend,
+        supplier.last_transaction || '',
+      ])
+    );
+  };
 
   if (loading) return <div className="p-8 text-center text-slate-400">Aggregating vendor expenditure...</div>;
 
@@ -74,7 +88,7 @@ export const SupplierSpend: React.FC = () => {
       </section>
 
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <ReportToolbar placeholder="Search suppliers or categories..." onSearch={() => {}} onDateChange={() => {}} onExport={() => window.print()} />
+        <ReportToolbar placeholder="Search suppliers or categories..." onSearch={() => {}} onDateChange={() => {}} onExport={handleExport} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead className="bg-white">

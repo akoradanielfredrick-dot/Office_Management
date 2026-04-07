@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { jsPDF } from 'jspdf';
-import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
+import { api, toNumber } from '../../lib/api';
+import { downloadApiFile } from '../../lib/download';
 import { useAuthStore } from '../../store/authStore';
 import type { PaginatedResponse } from './listTypes';
 
@@ -273,6 +274,23 @@ export const BookingDetails: React.FC = () => {
       window.alert('Unable to cancel this booking right now.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleReceiptDownload = async (payment: BookingPayment) => {
+    if (!payment.receipt?.id) {
+      return;
+    }
+
+    try {
+      setLoadError('');
+      await downloadApiFile(
+        `/finance/receipts/${payment.receipt.id}/download/`,
+        `Receipt_${payment.internal_reference}.pdf`
+      );
+    } catch (error) {
+      console.error('Failed to download receipt:', error);
+      setLoadError(`Receipt for payment ${payment.internal_reference} could not be downloaded right now.`);
     }
   };
 
@@ -955,7 +973,7 @@ export const BookingDetails: React.FC = () => {
                           </td>
                           <td className="px-5 py-5 text-right">
                             <button
-                              onClick={() => p.receipt?.id && window.open(buildBackendApiUrl(`/finance/receipts/${p.receipt.id}/download/`), '_blank', 'noopener,noreferrer')}
+                              onClick={() => handleReceiptDownload(p)}
                               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
                             >
                               <Download size={15} />

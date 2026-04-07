@@ -14,6 +14,7 @@ import {
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { ReportToolbar } from './ReportToolbar';
+import { downloadCsvFile } from '../../lib/download';
 
 interface Stats {
   total_revenue: string | number;
@@ -90,6 +91,20 @@ export const AnalyticsDashboard: React.FC = () => {
     value: Math.max(expenseBreakdown[index].value - directCostBreakdown[index].value, 0),
   }));
   const totalIndirectCosts = indirectCostBreakdown.reduce((sum, item) => sum + item.value, 0);
+  const handleExport = () => {
+    downloadCsvFile(
+      'analytics-dashboard-summary.csv',
+      ['Metric', 'KES', 'USD', 'EUR', 'GBP'],
+      [
+        ['Revenue', ...revenueBreakdown.map((item) => item.value)],
+        ['Expenses', ...expenseBreakdown.map((item) => item.value)],
+        ['Direct Costs', ...directCostBreakdown.map((item) => item.value)],
+        ['Indirect Costs', ...indirectCostBreakdown.map((item) => item.value)],
+        ['Net Cashflow', ...netCashflowBreakdown.map((item) => item.value)],
+        ['Outstanding', ...outstandingBreakdown.map((item) => item.value)],
+      ]
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -170,7 +185,7 @@ export const AnalyticsDashboard: React.FC = () => {
             placeholder="Search financial summaries..."
             onSearch={() => {}}
             onDateChange={() => {}}
-            onExport={() => window.print()}
+            onExport={handleExport}
           />
 
           <div className="p-6">

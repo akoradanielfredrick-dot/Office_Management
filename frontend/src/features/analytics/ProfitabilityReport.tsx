@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ReportToolbar } from './ReportToolbar';
+import { downloadCsvFile } from '../../lib/download';
 
 interface ProfitData {
   id: string;
@@ -53,6 +54,22 @@ export const ProfitabilityReport: React.FC = () => {
     revenue: reportData.filter((item) => (item.currency || 'KES') === currency).reduce((sum, item) => sum + Number(item.revenue), 0),
     costs: reportData.filter((item) => (item.currency || 'KES') === currency).reduce((sum, item) => sum + Number(item.costs), 0),
   }));
+  const handleExport = () => {
+    downloadCsvFile(
+      'booking-profitability-report.csv',
+      ['Booking Ref', 'Client', 'Product', 'Currency', 'Revenue', 'Costs', 'Profit', 'Margin %'],
+      reportData.map((item) => [
+        item.ref,
+        item.client,
+        item.product || '',
+        item.currency || 'KES',
+        item.revenue,
+        item.costs,
+        item.profit,
+        Number(item.margin).toFixed(1),
+      ])
+    );
+  };
 
   if (loading) return <div className="p-8 text-center text-slate-400">Analyzing tour margins...</div>;
 
@@ -81,7 +98,7 @@ export const ProfitabilityReport: React.FC = () => {
       </section>
 
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <ReportToolbar placeholder="Filter by booking or client..." onSearch={() => {}} onDateChange={() => {}} onExport={() => window.print()} />
+        <ReportToolbar placeholder="Filter by booking or client..." onSearch={() => {}} onDateChange={() => {}} onExport={handleExport} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead className="bg-white">

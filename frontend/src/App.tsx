@@ -67,13 +67,13 @@ class FeatureErrorBoundary extends React.Component<FeatureErrorBoundaryProps, Fe
   render() {
     if (this.state.hasError) {
       return (
-        <div className="rounded-[2rem] border border-rose-200 bg-white p-8 shadow-sm">
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-rose-400">Feature Error</p>
-          <h1 className="mt-3 text-2xl font-black text-slate-900">{this.props.featureName} could not load</h1>
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-600">
+        <div className="brand-panel p-8">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-rose-500">Feature Error</p>
+          <h1 className="mt-3 text-2xl font-black text-[var(--color-text-primary)]">{this.props.featureName} could not load</h1>
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[var(--color-text-secondary)]">
             The page hit a frontend error while rendering. Refresh the page first. If it keeps happening, share the message below and we can fix the exact failing branch.
           </p>
-          <pre className="mt-5 overflow-x-auto rounded-[1.4rem] border border-rose-100 bg-rose-50 px-4 py-4 text-sm font-semibold text-rose-700">
+          <pre className="mt-5 overflow-x-auto rounded-[1.4rem] border border-rose-200 bg-[var(--color-danger-soft)] px-4 py-4 text-sm font-semibold text-rose-700">
             {this.state.errorMessage}
           </pre>
         </div>
@@ -111,10 +111,10 @@ const getAccessibleModulePaths = (user: ReturnType<typeof useAuthStore.getState>
 };
 
 const AccessWelcome: React.FC = () => (
-  <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Portal Access</p>
-    <h1 className="mt-3 text-2xl font-black text-slate-900">Welcome to the portal</h1>
-    <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500">
+  <div className="brand-panel bg-[linear-gradient(135deg,var(--color-surface)_0%,var(--color-surface-soft)_100%)] p-8">
+    <p className="text-[11px] font-black uppercase tracking-[0.32em] text-[var(--color-text-muted)]">Mranga Portal Access</p>
+    <h1 className="mt-3 text-2xl font-black text-[var(--color-primary-strong)]">Welcome to the portal</h1>
+    <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[var(--color-text-secondary)]">
       You currently do not have any modules assigned. Please contact your administrator for access.
     </p>
   </div>

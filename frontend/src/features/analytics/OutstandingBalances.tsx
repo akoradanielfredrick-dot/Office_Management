@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle, ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ReportToolbar } from './ReportToolbar';
 import { api } from '../../lib/api';
+import { downloadCsvFile } from '../../lib/download';
 
 interface DebtData {
   id: string;
@@ -44,6 +45,22 @@ export const OutstandingBalances: React.FC = () => {
       .filter((debt) => debt.currency === currency)
       .reduce((sum, debt) => sum + Number(debt.balance), 0),
   }));
+  const handleExport = () => {
+    downloadCsvFile(
+      'outstanding-balances.csv',
+      ['Booking Ref', 'Client', 'Currency', 'Total Cost', 'Paid Amount', 'Balance', 'Last Payment', 'Days Overdue'],
+      debtData.map((debt) => [
+        debt.ref,
+        debt.client,
+        debt.currency,
+        debt.total_cost,
+        debt.paid_amount,
+        debt.balance,
+        debt.last_payment || '',
+        debt.days_overdue,
+      ])
+    );
+  };
 
   if (loading) return <div className="p-8 text-center text-slate-400">Aging debt records...</div>;
 
@@ -95,7 +112,7 @@ export const OutstandingBalances: React.FC = () => {
       </section>
 
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <ReportToolbar placeholder="Search debtors or bookings..." onSearch={() => {}} onDateChange={() => {}} onExport={() => window.print()} />
+        <ReportToolbar placeholder="Search debtors or bookings..." onSearch={() => {}} onDateChange={() => {}} onExport={handleExport} />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1080px] text-left">
             <thead className="bg-white">

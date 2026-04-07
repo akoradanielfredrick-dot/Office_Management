@@ -7,10 +7,39 @@
 @layer base {
   :root {
     color-scheme: light;
+    --color-primary: #6f8205;
+    --color-primary-hover: #526004;
+    --color-primary-strong: #384203;
+    --color-primary-soft: #eef3db;
+    --color-primary-tint: #f7f8ee;
+    --color-accent: #ffa203;
+    --color-accent-hover: #bf7400;
+    --color-accent-soft: #fff2d6;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f7f8f2;
+    --color-surface-soft: #fbfcf7;
+    --color-text-primary: #243014;
+    --color-text-secondary: #62704d;
+    --color-text-muted: #83906e;
+    --color-border: #d9dfc8;
+    --color-border-strong: #c8cfb3;
+    --color-sidebar-bg: #445004;
+    --color-sidebar-hover: #566504;
+    --color-sidebar-text: #fefdf9;
+    --color-sidebar-muted: #dfe7c0;
+    --color-shadow: 111 130 5;
+    --color-danger: #d9485f;
+    --color-danger-soft: #fff1f3;
+    --color-success: #54700d;
+    --color-success-soft: #edf4df;
+    --color-warning: #b66e00;
+    --color-warning-soft: #fff1d9;
+    --color-info: #6f8205;
+    --color-info-soft: #f0f4e1;
   }
 
   * {
-    @apply border-slate-200;
+    border-color: var(--color-border);
   }
 
   html {
@@ -18,76 +47,194 @@
   }
 
   body {
-    @apply font-sans antialiased text-slate-900;
-    background-image:
-      radial-gradient(circle at top left, rgba(236, 217, 164, 0.1), transparent 24rem),
-      linear-gradient(180deg, #f5f6f1 0%, #fafaf8 24%, #f3f5f1 100%);
+    @apply font-sans antialiased;
+    color: var(--color-text-primary);
+    background:
+      radial-gradient(circle at top left, rgba(255, 162, 3, 0.12), transparent 24rem),
+      radial-gradient(circle at top right, rgba(111, 130, 5, 0.12), transparent 20rem),
+      linear-gradient(180deg, #f5f7ef 0%, #fbfbf8 22%, #f4f6ee 100%);
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-slate-950;
-    font-feature-settings: "liga" 1, "kern" 1;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight;
+    color: var(--color-text-primary);
+    font-feature-settings: 'liga' 1, 'kern' 1;
   }
 
-  p, span, button, input, textarea, select, label {
-    font-feature-settings: "liga" 1, "kern" 1;
+  p,
+  span,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    font-feature-settings: 'liga' 1, 'kern' 1;
+  }
+
+  a {
+    color: var(--color-primary);
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--color-primary) 75%, white 25%);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, white 84%);
   }
 
   ::selection {
-    @apply bg-primary-200 text-primary-950;
+    background: color-mix(in srgb, var(--color-accent) 65%, white 35%);
+    color: var(--color-primary-strong);
+  }
+
+  th {
+    color: var(--color-primary-strong);
+  }
+
+  tbody tr:hover {
+    background-color: color-mix(in srgb, var(--color-primary-soft) 60%, white 40%);
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-medium 
-    hover:bg-primary-700 transition-all duration-200 active:scale-95 
-    disabled:opacity-50 disabled:pointer-events-none shadow-sm;
+    @apply rounded-xl px-4 py-2 font-semibold text-white transition-all duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 92%, white 8%) 0%, var(--color-primary) 100%);
+    box-shadow: 0 16px 28px -20px rgba(var(--color-shadow), 0.7);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary-hover) 90%, white 10%) 0%, var(--color-primary-hover) 100%);
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-white text-slate-900 border border-slate-200 rounded-lg font-medium 
-    hover:bg-slate-50 transition-all duration-200 active:scale-95 
-    disabled:opacity-50 disabled:pointer-events-none shadow-xs;
+    @apply rounded-xl border px-4 py-2 font-semibold transition-all duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50;
+    color: var(--color-primary);
+    background: var(--color-surface);
+    border-color: color-mix(in srgb, var(--color-primary) 18%, white 82%);
+    box-shadow: 0 8px 20px -18px rgba(var(--color-shadow), 0.4);
+  }
+
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-primary-soft) 42%, white 58%);
+    border-color: color-mix(in srgb, var(--color-primary) 35%, white 65%);
+  }
+
+  .btn-accent {
+    @apply rounded-xl px-4 py-2 font-semibold transition-all duration-200 active:scale-95 disabled:pointer-events-none disabled:opacity-50;
+    color: #3c2800;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 94%, white 6%) 0%, var(--color-accent) 100%);
+    box-shadow: 0 16px 28px -20px rgba(255, 162, 3, 0.72);
+  }
+
+  .btn-accent:hover {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent-hover) 88%, white 12%) 0%, var(--color-accent-hover) 100%);
+    color: #fff8ee;
+  }
+
+  .btn-ghost {
+    @apply rounded-xl px-4 py-2 font-semibold transition-colors duration-200;
+    color: var(--color-primary);
+    background: transparent;
+  }
+
+  .btn-ghost:hover {
+    background: color-mix(in srgb, var(--color-primary-soft) 65%, white 35%);
   }
 
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-xl shadow-lg;
+    @apply rounded-[1.5rem] border backdrop-blur-md;
+    background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+    border-color: color-mix(in srgb, var(--color-border) 65%, white 35%);
+    box-shadow: 0 18px 42px -34px rgba(var(--color-shadow), 0.34);
   }
 
   .card {
-    @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+    @apply rounded-[1.5rem] border p-6;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    box-shadow: 0 16px 36px -30px rgba(var(--color-shadow), 0.28);
   }
 
   .dashboard-shell {
-    background-image:
-      radial-gradient(circle at top right, rgba(243, 225, 174, 0.14), transparent 24rem),
-      linear-gradient(180deg, #eef1e8 0%, #f8f7f2 18%, #f4f5ef 100%);
+    background:
+      radial-gradient(circle at top left, rgba(255, 162, 3, 0.12), transparent 22rem),
+      radial-gradient(circle at top right, rgba(111, 130, 5, 0.08), transparent 24rem),
+      linear-gradient(180deg, #f4f6ed 0%, #fbfbf7 24%, #f3f5ed 100%);
   }
 
   .dashboard-panel {
-    @apply border border-white/70 bg-white/80 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.34)] backdrop-blur-sm;
+    @apply rounded-[1.5rem] border backdrop-blur-sm;
+    background: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+    border-color: color-mix(in srgb, var(--color-border) 75%, white 25%);
+    box-shadow: 0 18px 45px -35px rgba(var(--color-shadow), 0.26);
   }
 
   .eyebrow {
     @apply text-[11px] font-extrabold uppercase tracking-[0.34em];
+    color: var(--color-text-muted);
   }
 
-  /* Custom functional styles */
+  .brand-panel {
+    @apply rounded-[1.6rem] border;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    box-shadow: 0 16px 34px -28px rgba(var(--color-shadow), 0.24);
+  }
+
+  .brand-soft-panel {
+    @apply rounded-[1.6rem] border;
+    background: var(--color-surface-soft);
+    border-color: color-mix(in srgb, var(--color-border) 72%, white 28%);
+  }
+
+  .brand-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em];
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+
   .layout-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  background: color-mix(in srgb, var(--color-primary) 26%, white 74%);
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-primary) 38%, white 62%);
 }

@@ -12,7 +12,8 @@ import {
   ReceiptText,
   ArrowUpRight,
 } from 'lucide-react';
-import { api, buildBackendApiUrl, toNumber } from '../../lib/api';
+import { api, toNumber } from '../../lib/api';
+import { downloadApiFile } from '../../lib/download';
 import type { PaginatedResponse } from '../operations/listTypes';
 
 interface Payment {
@@ -388,7 +389,22 @@ export const PaymentTable: React.FC = () => {
                         Booking
                       </button>
                       <button
-                        onClick={() => p.receipt?.id && window.open(buildBackendApiUrl(`/finance/receipts/${p.receipt.id}/download/`), '_blank', 'noopener,noreferrer')}
+                        onClick={async () => {
+                          if (!p.receipt?.id) {
+                            return;
+                          }
+
+                          try {
+                            setTableError('');
+                            await downloadApiFile(
+                              `/finance/receipts/${p.receipt.id}/download/`,
+                              `Receipt_${p.receipt_no || p.internal_reference}.pdf`
+                            );
+                          } catch (error) {
+                            console.error('Failed to download receipt:', error);
+                            setTableError(`Receipt ${p.receipt_no || p.internal_reference} could not be downloaded right now.`);
+                          }
+                        }}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
                       >
                         <Download size={15} />

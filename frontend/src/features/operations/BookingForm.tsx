@@ -129,10 +129,12 @@ const extractResults = <T,>(payload: T[] | PaginatedResponse<T> | undefined | nu
   return [];
 };
 
-const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-slate-400';
+const labelClassName = 'mb-2 block text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]';
 const inputClassName =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
-const readonlyInputClassName = `${inputClassName} bg-slate-50 text-slate-500`;
+  'w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary-soft)]';
+const readonlyInputClassName = `${inputClassName} bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]`;
+const textareaClassName =
+  'min-h-[110px] w-full rounded-[1.6rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-4 text-sm font-medium text-[var(--color-text-primary)] outline-none transition-all focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary-soft)]';
 
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();
@@ -331,10 +333,10 @@ export const BookingForm: React.FC = () => {
     <div className="mx-auto max-w-7xl space-y-8">
       <section className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">Operations Workspace</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-muted)]">Operations Workspace</p>
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Create Structured Booking</h1>
-            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            <h1 className="text-3xl font-black tracking-tight text-[var(--color-primary-strong)]">Create Structured Booking</h1>
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-[var(--color-text-secondary)]">
               Create a confirmed booking with or without a live product schedule so office-led bookings stay flexible while scheduled departures remain inventory-safe.
             </p>
           </div>
@@ -342,7 +344,7 @@ export const BookingForm: React.FC = () => {
 
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-400 shadow-sm transition-colors hover:bg-slate-50"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] shadow-[0_12px_24px_-20px_rgba(111,130,5,0.45)] transition-colors hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"
         >
           <X size={22} />
         </button>
@@ -350,14 +352,14 @@ export const BookingForm: React.FC = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 xl:grid-cols-[1.65fr_0.85fr]">
         <div className="space-y-8">
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+          <section className="brand-panel p-6">
+            <div className="flex items-center gap-3 border-b border-[var(--color-border)] pb-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                 <Users size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Setup</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Client, Product & Schedule</h2>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]">Booking Setup</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--color-primary-strong)]">Client, Product & Schedule</h2>
               </div>
             </div>
 
@@ -373,7 +375,7 @@ export const BookingForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
                 {errors.client && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.client.message}</p>}
               </div>
@@ -406,7 +408,7 @@ export const BookingForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
                 {errors.product && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.product.message}</p>}
               </div>
@@ -427,10 +429,10 @@ export const BookingForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
                 {errors.schedule && <p className="mt-2 text-xs font-semibold text-rose-500">{errors.schedule.message}</p>}
-                <p className="mt-2 text-xs font-semibold text-slate-500">
+                <p className="mt-2 text-xs font-semibold text-[var(--color-text-secondary)]">
                   Leave this blank for a manual booking that is not tied to a specific departure schedule.
                 </p>
               </div>
@@ -438,7 +440,7 @@ export const BookingForm: React.FC = () => {
               <div>
                 <label className={labelClassName}>Travel Date</label>
                 <div className="relative">
-                  <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
                   <input type="date" {...register('travel_date')} className={`${inputClassName} pl-11`} />
                 </div>
               </div>
@@ -459,7 +461,7 @@ export const BookingForm: React.FC = () => {
                     <option value="FAILED">Failed</option>
                     <option value="AMENDED">Amended</option>
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
               </div>
 
@@ -474,20 +476,20 @@ export const BookingForm: React.FC = () => {
                     <option value="API">API</option>
                     <option value="LEGACY">Legacy</option>
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#2964ff]">
+          <section className="brand-panel p-6">
+            <div className="flex items-center gap-3 border-b border-[var(--color-border)] pb-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]">
                 <WalletCards size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Pricing</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Participant Inventory & Charges</h2>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]">Pricing</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--color-primary-strong)]">Participant Inventory & Charges</h2>
               </div>
             </div>
 
@@ -534,117 +536,117 @@ export const BookingForm: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+          <section className="brand-panel p-6">
+            <div className="flex items-center gap-3 border-b border-[var(--color-border)] pb-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-tint)] text-[var(--color-primary)]">
                 <FileText size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Booking Content</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-900">Itinerary, Policies & Notes</h2>
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[var(--color-text-muted)]">Booking Content</p>
+                <h2 className="mt-1 text-2xl font-black text-[var(--color-primary-strong)]">Itinerary, Policies & Notes</h2>
               </div>
             </div>
 
             <div className="mt-6 grid gap-5">
               <div>
                 <label className={labelClassName}>Itinerary / Description</label>
-                <textarea {...register('itinerary')} className="min-h-[150px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('itinerary')} className={`${textareaClassName} min-h-[150px]`} />
               </div>
               <div>
                 <label className={labelClassName}>Booking Validity</label>
-                <textarea {...register('booking_validity')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('booking_validity')} className={textareaClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Deposit Terms</label>
-                <textarea {...register('deposit_terms')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('deposit_terms')} className={textareaClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Payment Channels</label>
-                <textarea {...register('payment_channels')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('payment_channels')} className={textareaClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Client Notes</label>
-                <textarea {...register('notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('notes')} className={textareaClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Internal Notes</label>
-                <textarea {...register('internal_notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('internal_notes')} className={textareaClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Supplier / Fulfilment Notes</label>
-                <textarea {...register('supplier_notes')} className="min-h-[110px] w-full rounded-[1.6rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+                <textarea {...register('supplier_notes')} className={textareaClassName} />
               </div>
             </div>
           </section>
         </div>
 
         <div className="space-y-6">
-          <section className="overflow-hidden rounded-[2rem] border border-[#cfe7c8] bg-[linear-gradient(180deg,#eff9ec_0%,#def2d7_100%)] text-[#234126] shadow-[0_18px_50px_-30px_rgba(86,135,72,0.35)]">
-            <div className="border-b border-[#c8dfc0] px-6 py-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6b8f65]">Live Summary</p>
-              <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[#234126]">
+          <section className="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-[linear-gradient(180deg,var(--color-primary-soft)_0%,var(--color-accent-soft)_100%)] text-[var(--color-primary-strong)] shadow-[0_18px_50px_-30px_rgba(111,130,5,0.35)]">
+            <div className="border-b border-[var(--color-border-strong)] px-6 py-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[var(--color-text-secondary)]">Live Summary</p>
+              <h2 className="mt-2 flex items-center gap-2 text-2xl font-black text-[var(--color-primary-strong)]">
                 <Clock3 size={22} />
                 Inventory Snapshot
               </h2>
             </div>
 
             <div className="space-y-4 px-6 py-6">
-              <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Product</p>
-                <p className="mt-2 text-lg font-black text-[#234126]">{selectedProduct?.name || 'No product selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">{selectedProduct?.category_display || 'Choose a sellable product'}</p>
+              <div className="rounded-[1.4rem] border border-white/60 bg-white/78 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(111,130,5,0.35)]">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">Selected Product</p>
+                <p className="mt-2 text-lg font-black text-[var(--color-primary-strong)]">{selectedProduct?.name || 'No product selected yet'}</p>
+                <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">{selectedProduct?.category_display || 'Choose a sellable product'}</p>
               </div>
 
-              <div className="rounded-[1.4rem] border border-[#c5dcbf] bg-white/70 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(86,135,72,0.35)]">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#6b8f65]">Selected Schedule</p>
-                <p className="mt-2 text-sm font-black text-[#234126]">{selectedSchedule?.schedule_code || 'No schedule selected yet'}</p>
-                <p className="mt-1 text-sm font-medium text-[#4f6a50]">
+              <div className="rounded-[1.4rem] border border-white/60 bg-white/78 px-4 py-4 shadow-[0_10px_24px_-20px_rgba(111,130,5,0.35)]">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">Selected Schedule</p>
+                <p className="mt-2 text-sm font-black text-[var(--color-primary-strong)]">{selectedSchedule?.schedule_code || 'No schedule selected yet'}</p>
+                <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">
                   {selectedSchedule?.start_at ? selectedSchedule.start_at.replace('T', ' ').slice(0, 16) : 'Choose a departure or access window'}
                 </p>
-                <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-[#6b8f65]">
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">
                   {selectedSchedule ? `${selectedSchedule.remaining_capacity} / ${selectedSchedule.total_capacity} spaces left` : 'Availability pending'}
                 </p>
               </div>
 
               <div className="grid gap-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Travellers</span>
-                  <span className="font-black text-[#234126]">{totalParticipants}</span>
+                  <span className="text-[var(--color-text-secondary)]">Travellers</span>
+                  <span className="font-black text-[var(--color-primary-strong)]">{totalParticipants}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Subtotal</span>
-                  <span className="font-black text-[#234126]">{formatMoney(currency, subtotal)}</span>
+                  <span className="text-[var(--color-text-secondary)]">Subtotal</span>
+                  <span className="font-black text-[var(--color-primary-strong)]">{formatMoney(currency, subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#5e7d5d]">Discount</span>
-                  <span className="font-black text-[#234126]">{formatMoney(currency, discount)}</span>
+                  <span className="text-[var(--color-text-secondary)]">Discount</span>
+                  <span className="font-black text-[var(--color-primary-strong)]">{formatMoney(currency, discount)}</span>
                 </div>
-                <div className="flex items-center justify-between border-t border-[#c8dfc0] pt-3 text-sm">
-                  <span className="text-[#3c593d]">Total Cost</span>
-                  <span className="text-xl font-black text-[#234126]">{formatMoney(currency, totalCost)}</span>
+                <div className="flex items-center justify-between border-t border-[var(--color-border-strong)] pt-3 text-sm">
+                  <span className="text-[var(--color-primary-strong)]">Total Cost</span>
+                  <span className="text-xl font-black text-[var(--color-primary-strong)]">{formatMoney(currency, totalCost)}</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="brand-panel p-6">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e6] text-[#d97706]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]">
                 <MapPinned size={20} />
               </div>
               <div>
-                <p className="text-sm font-black text-slate-900">Product Context</p>
-                <p className="mt-1 text-xs font-medium leading-6 text-slate-500">
+                <p className="text-sm font-black text-[var(--color-primary-strong)]">Product Context</p>
+                <p className="mt-1 text-xs font-medium leading-6 text-[var(--color-text-secondary)]">
                   {selectedProduct?.destination || 'Destination will appear here once a product is selected.'}
                 </p>
                 {selectedProduct?.cancellation_policy ? (
-                  <p className="mt-2 text-xs font-medium leading-6 text-slate-500">
+                  <p className="mt-2 text-xs font-medium leading-6 text-[var(--color-text-secondary)]">
                     Cancellation policy: {selectedProduct.cancellation_policy}
                   </p>
                 ) : null}
@@ -661,7 +663,7 @@ export const BookingForm: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-3 rounded-[1.3rem] bg-primary-600 px-5 py-4 text-sm font-black text-white shadow-[0_16px_28px_-20px_rgba(70,111,42,0.85)] transition-all hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-3 rounded-[1.3rem] bg-[var(--color-primary)] px-5 py-4 text-sm font-black text-white shadow-[0_16px_28px_-20px_rgba(111,130,5,0.85)] transition-all hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Save size={18} />
             {isSubmitting ? 'Saving Booking...' : 'Create Booking'}

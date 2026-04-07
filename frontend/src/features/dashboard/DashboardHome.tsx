@@ -65,25 +65,25 @@ const activityPresentation: Record<ActivityItem['type'], {
 }> = {
   BOOKING: {
     icon: Calendar,
-    iconWrap: 'bg-[#e9fbf2] text-[#17a86b]',
+    iconWrap: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
     destination: (item) => `/bookings/${item.id}`,
   },
   PAYMENT: {
     icon: Wallet,
-    iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
+    iconWrap: 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
     destination: (item) => item.booking_id ? `/bookings/${item.booking_id}` : '/finance/payments',
   },
 };
 
 const statusToneMap: Record<string, string> = {
-  CONFIRMED: 'bg-[#e9fbf2] text-[#148454]',
-  PENDING: 'bg-[#fff5db] text-[#a56a00]',
-  ONGOING: 'bg-[#e8f1ff] text-[#295ed8]',
-  COMPLETED: 'bg-slate-100 text-slate-600',
-  CANCELLED: 'bg-[#ffecef] text-[#c53b5a]',
-  FAILED: 'bg-[#ffecef] text-[#c53b5a]',
-  AMENDED: 'bg-[#f1ebff] text-[#6f49c6]',
-  RECEIVED: 'bg-[#fff1e8] text-[#cc541c]',
+  CONFIRMED: 'bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]',
+  PENDING: 'bg-[var(--color-accent-soft)] text-[var(--color-warning)]',
+  ONGOING: 'bg-[var(--color-primary-tint)] text-[var(--color-primary)]',
+  COMPLETED: 'bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]',
+  CANCELLED: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
+  FAILED: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
+  AMENDED: 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
+  RECEIVED: 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
 };
 
 const formatActivityDate = (value: string): string => {
@@ -138,17 +138,17 @@ export const DashboardHome: React.FC = () => {
     {
       label: 'Confirmed',
       value: stats?.active_bookings ?? 0,
-      tone: 'bg-[#e9fbf2] text-[#148454]',
+      tone: 'bg-[var(--color-primary-soft)] text-[var(--color-primary-strong)]',
     },
     {
       label: 'Awaiting payment',
       value: stats?.pending_payments ?? 0,
-      tone: 'bg-[#fff5db] text-[#a56a00]',
+      tone: 'bg-[var(--color-accent-soft)] text-[var(--color-warning)]',
     },
     {
       label: 'Recently created',
       value: bookingActivity.length,
-      tone: 'bg-[#e8f1ff] text-[#295ed8]',
+      tone: 'bg-[var(--color-primary-tint)] text-[var(--color-primary)]',
     },
   ];
   const todayLabel = new Date().toLocaleDateString('en-US', {
@@ -162,25 +162,25 @@ export const DashboardHome: React.FC = () => {
       label: 'Clients',
       value: canAccessClients ? stats?.total_clients ?? 0 : 'Hidden',
       icon: Users,
-      iconWrap: 'bg-[#eef4ff] text-[#2964ff]',
+      iconWrap: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
     },
     {
       label: 'Active Bookings',
       value: canAccessBookings ? stats?.active_bookings ?? 0 : 'Hidden',
       icon: Calendar,
-      iconWrap: 'bg-[#e9fbf2] text-[#17a86b]',
+      iconWrap: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
     },
     {
       label: 'Pending Payments',
       value: canAccessPayments ? stats?.pending_payments ?? 0 : 'Hidden',
       icon: CreditCard,
-      iconWrap: 'bg-[#fff1e8] text-[#ff6224]',
+      iconWrap: 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
     },
     {
       label: 'Monthly Expenses',
       value: monthlyExpenseBreakdown.map(({ currency, value }) => `${currency} ${value.toLocaleString()}`).join(' | '),
       icon: ShoppingCart,
-      iconWrap: 'bg-[#ffecef] text-[#f33a5f]',
+      iconWrap: 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]',
     },
   ];
 
@@ -191,8 +191,8 @@ export const DashboardHome: React.FC = () => {
       description: 'Open module and continue workflow',
       icon: Calendar,
       path: '/bookings',
-      tone: 'bg-[#384a66]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
       module: 'products' as PortalModuleKey,
@@ -200,8 +200,8 @@ export const DashboardHome: React.FC = () => {
       description: 'Update tours, rates, and catalog data',
       icon: Boxes,
       path: '/products',
-      tone: 'bg-[#4c5b85]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-primary-strong)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
       module: 'catalog' as PortalModuleKey,
@@ -209,8 +209,8 @@ export const DashboardHome: React.FC = () => {
       description: 'See clients, products, and excursions together',
       icon: Boxes,
       path: '/catalog',
-      tone: 'bg-[#4d6a58]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-primary)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
       module: 'schedules' as PortalModuleKey,
@@ -218,8 +218,8 @@ export const DashboardHome: React.FC = () => {
       description: 'Publish departures and live capacity',
       icon: Clock3,
       path: '/schedules/new',
-      tone: 'bg-[#7a5f42]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-accent)_0%,var(--color-accent-hover)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
       module: 'availability' as PortalModuleKey,
@@ -227,24 +227,26 @@ export const DashboardHome: React.FC = () => {
       description: 'See remaining, reserved, and confirmed space',
       icon: Activity,
       path: '/availability',
-      tone: 'bg-[#255b7a]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary-strong)_0%,var(--color-sidebar-bg)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
+      module: 'integrations' as PortalModuleKey,
       label: 'Integration Ops',
       description: 'Review mappings, payloads, and idempotency keys',
       icon: ShieldCheck,
       path: '/integrations',
-      tone: 'bg-[#5a4f84]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary-hover)_0%,var(--color-sidebar-bg)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
+      module: 'reservations' as PortalModuleKey,
       label: 'Create Reservation',
       description: 'Place temporary inventory holds',
       icon: ShieldCheck,
       path: '/reservations/new',
-      tone: 'bg-[#2c6b63]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-strong)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
       module: 'payments' as PortalModuleKey,
@@ -252,23 +254,24 @@ export const DashboardHome: React.FC = () => {
       description: 'Open module and continue workflow',
       icon: Wallet,
       path: '/finance/payments/new',
-      tone: 'bg-[#6d8141]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
     {
+      module: 'analytics' as PortalModuleKey,
       label: 'Analytics',
       description: 'Open module and continue workflow',
       icon: TrendingUp,
       path: '/analytics',
-      tone: 'bg-[#ffb120]',
-      iconBg: 'bg-white/15',
+      tone: 'bg-[linear-gradient(135deg,var(--color-accent)_0%,var(--color-accent-hover)_100%)]',
+      iconBg: 'bg-white/15 text-white',
     },
   ].filter((action) => canAccessModule(action.module));
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#6d8141]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[var(--color-primary)]" />
       </div>
     );
   }
@@ -279,10 +282,10 @@ export const DashboardHome: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[1.45rem] bg-[#667a3d] px-8 py-8 text-white shadow-[0_16px_34px_-24px_rgba(66,82,39,0.5)]"
+          className="rounded-[1.45rem] bg-[linear-gradient(135deg,var(--color-primary)_0%,var(--color-primary-hover)_58%,var(--color-primary-strong)_100%)] px-8 py-8 text-white shadow-[0_24px_40px_-28px_rgba(111,130,5,0.62)]"
         >
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#ffb120] px-4 py-2 text-[0.9rem] font-medium text-[#334012]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-[0.9rem] font-medium text-[var(--color-primary-strong)]">
               <Activity size={14} />
               EXECUTIVE OVERVIEW
             </div>
@@ -291,7 +294,7 @@ export const DashboardHome: React.FC = () => {
               Welcome back, {firstName}
             </h1>
             <p className="mt-3 text-[1.02rem] font-medium text-white/92">
-              Keep bookings moving, monitor cashflow, and stay on top of operations from one central workspace.
+              Keep bookings moving, monitor cashflow, and stay on top of operations from one central safari-branded workspace.
             </p>
 
             <div className="mt-9 grid gap-4 md:grid-cols-3">
@@ -307,7 +310,7 @@ export const DashboardHome: React.FC = () => {
                 <p className="text-[0.85rem] uppercase tracking-[0.05em] text-white/80">WORKSPACE</p>
                 <div className="mt-2 flex items-center gap-2">
                   <p className="text-[1.05rem] font-semibold text-white">Managerial Portal</p>
-                  <span className="h-2 w-2 rounded-full bg-[#ffb120]" />
+                  <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
                 </div>
               </div>
             </div>
@@ -318,41 +321,41 @@ export const DashboardHome: React.FC = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]"
+          className="brand-panel p-6"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">SYSTEM HEALTH</p>
-              <h2 className="mt-3 text-[2rem] font-semibold leading-tight text-slate-950">
+              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">SYSTEM HEALTH</p>
+              <h2 className="mt-3 text-[2rem] font-semibold leading-tight text-[var(--color-primary-strong)]">
                 All core services are stable
               </h2>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#eff8ef] text-[#11a960]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
               <ShieldCheck size={22} />
             </div>
           </div>
 
           <div className="mt-7 space-y-4">
-            <div className="rounded-[1rem] bg-[#f8fafc] px-4 py-4">
+            <div className="rounded-[1rem] bg-[var(--color-surface-soft)] px-4 py-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[1rem] font-medium text-slate-900">Session Access</p>
-                <span className="rounded-full bg-[#c9f7d8] px-3 py-1 text-[0.78rem] font-medium uppercase tracking-[0.05em] text-[#15a05a]">
+                <p className="text-[1rem] font-medium text-[var(--color-text-primary)]">Session Access</p>
+                <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-[0.78rem] font-medium uppercase tracking-[0.05em] text-[var(--color-primary)]">
                   ACTIVE
                 </span>
               </div>
-              <p className="mt-3 text-[0.98rem] leading-8 text-slate-600">
+              <p className="mt-3 text-[0.98rem] leading-8 text-[var(--color-text-secondary)]">
                 Authenticated workspace access is available for operational tasks.
               </p>
             </div>
 
-            <div className="rounded-[1rem] bg-[#f8fafc] px-4 py-4">
+            <div className="rounded-[1rem] bg-[var(--color-surface-soft)] px-4 py-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[1rem] font-medium text-slate-900">Finance Visibility</p>
-                <span className="rounded-full bg-[#c9f7d8] px-3 py-1 text-[0.78rem] font-medium uppercase tracking-[0.05em] text-[#15a05a]">
+                <p className="text-[1rem] font-medium text-[var(--color-text-primary)]">Finance Visibility</p>
+                <span className="rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-[0.78rem] font-medium uppercase tracking-[0.05em] text-[var(--color-accent-hover)]">
                   LIVE
                 </span>
               </div>
-              <p className="mt-3 text-[0.98rem] leading-8 text-slate-600">
+              <p className="mt-3 text-[0.98rem] leading-8 text-[var(--color-text-secondary)]">
                 Dashboard summaries and transaction monitoring are connected.
               </p>
             </div>
@@ -369,184 +372,184 @@ export const DashboardHome: React.FC = () => {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.07 + idx * 0.05 }}
-                className="rounded-[1.15rem] border border-[#d8dee7] bg-white p-5 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]"
+                className="brand-panel p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className={clsx('flex h-12 w-12 items-center justify-center rounded-xl', kpi.iconWrap)}>
                     <kpi.icon size={22} />
                   </div>
-                  <span className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">SNAPSHOT</span>
+                  <span className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">SNAPSHOT</span>
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-[0.86rem] uppercase tracking-[0.06em] text-slate-500">{kpi.label}</p>
-                  <h3 className="mt-3 text-[1.95rem] font-semibold text-slate-950">{kpi.value}</h3>
+                  <p className="text-[0.86rem] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">{kpi.label}</p>
+                  <h3 className="mt-3 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">{kpi.value}</h3>
                 </div>
               </motion.div>
             ))}
           </div>
 
           {canAccessBookings || canAccessPayments ? (
-            <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">BOOKING DESK</p>
-                <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Bookings at a glance</h3>
-                <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-slate-500">
-                  Keep the office team focused on fresh reservations, payment follow-up, and the next booking action without leaving the dashboard.
-                </p>
+            <div className="brand-panel p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">BOOKING DESK</p>
+                  <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Bookings at a glance</h3>
+                  <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-[var(--color-text-secondary)]">
+                    Keep the office team focused on fresh reservations, payment follow-up, and the next booking action without leaving the dashboard.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {canAccessBookings ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/bookings/new')}
+                        className="btn-primary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
+                      >
+                        <CirclePlus size={18} />
+                        New Booking
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/bookings')}
+                        className="btn-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[0.95rem] font-medium"
+                      >
+                        View All
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              {canAccessBookings ? (
+                <div className="mt-6 grid gap-3 md:grid-cols-3">
+                  {bookingStatusSummary.map((item) => (
+                    <div key={item.label} className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-4">
+                      <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
+                        {item.label}
+                      </span>
+                      <p className="mt-4 text-[2rem] font-semibold leading-none text-[var(--color-primary-strong)]">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className={clsx('mt-6 grid gap-4', canAccessBookings && canAccessPayments ? 'xl:grid-cols-[1.2fr_0.9fr]' : 'xl:grid-cols-1')}>
                 {canAccessBookings ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/bookings/new')}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#6d8141] px-4 py-2.5 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#566633]"
-                    >
-                      <CirclePlus size={18} />
-                      New Booking
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/bookings')}
-                      className="inline-flex items-center gap-2 rounded-full border border-[#d8dee7] px-4 py-2.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-50"
-                    >
-                      View All
-                      <ChevronRight size={18} />
-                    </button>
-                  </>
+                  <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">RECENT BOOKINGS</p>
+                        <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Newest reservations</p>
+                      </div>
+                      <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-[0.78rem] font-medium text-[var(--color-primary)]">
+                        {bookingActivity.length} items
+                      </span>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {bookingActivity.length > 0 ? bookingActivity.map((item) => (
+                        <button
+                          key={`${item.type}-${item.id}`}
+                          type="button"
+                          onClick={() => navigate(`/bookings/${item.id}`)}
+                          className="flex w-full items-start gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-primary-tint)]"
+                        >
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                            <Calendar size={20} />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="truncate text-[1rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
+                              <span className={clsx(
+                                'rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em]',
+                                statusToneMap[item.status] || 'bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]'
+                              )}>
+                                {item.status.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                            <p className="mt-2 truncate text-[0.96rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
+                            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem] text-[var(--color-text-secondary)]">
+                              <span>{formatMoney(item.currency || 'USD', item.amount)}</span>
+                              <span>{formatActivityDate(item.date)}</span>
+                            </div>
+                          </div>
+                        </button>
+                      )) : (
+                        <div className="rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-10 text-center">
+                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                            <Clock3 size={22} />
+                          </div>
+                          <p className="mt-4 text-[1.1rem] font-medium text-[var(--color-text-primary)]">No recent bookings yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {canAccessPayments ? (
+                  <div className="rounded-[1rem] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[0.76rem] uppercase tracking-[0.12em] text-[var(--color-text-muted)]">FOLLOW-UP</p>
+                        <p className="mt-2 text-[1.2rem] font-semibold text-[var(--color-primary-strong)]">Payments tied to bookings</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/finance/payments')}
+                        className="text-[0.92rem] font-medium text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)]"
+                      >
+                        Open payments
+                      </button>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {paymentActivity.length > 0 ? paymentActivity.map((item) => {
+                        const presentation = activityPresentation[item.type];
+                        return (
+                          <button
+                            key={`${item.type}-${item.id}`}
+                            type="button"
+                            onClick={() => navigate(presentation.destination(item))}
+                            className="flex w-full items-center gap-4 rounded-[1rem] border border-[var(--color-border)] bg-white px-4 py-4 text-left transition-all hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent-soft)]"
+                          >
+                            <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
+                              {React.createElement(presentation.icon, { size: 20 })}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[0.98rem] font-semibold text-[var(--color-text-primary)]">{item.title}</p>
+                              <p className="mt-1 truncate text-[0.92rem] text-[var(--color-text-secondary)]">{item.subtitle}</p>
+                            </div>
+
+                            <div className="text-right">
+                              <p className="text-[0.95rem] font-semibold text-[var(--color-text-primary)]">{formatMoney(item.currency || 'USD', item.amount)}</p>
+                              <p className="mt-1 text-[0.82rem] text-[var(--color-text-secondary)]">{formatActivityDate(item.date)}</p>
+                            </div>
+                          </button>
+                        );
+                      }) : (
+                        <div className="rounded-[1rem] border border-dashed border-[var(--color-border-strong)] bg-white px-4 py-10 text-center">
+                          <p className="text-[1rem] font-medium text-[var(--color-text-primary)]">No booking payments have landed yet</p>
+                          <p className="mt-2 text-[0.92rem] text-[var(--color-text-secondary)]">
+                            Payment activity will appear here as soon as receipts start coming in.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ) : null}
               </div>
             </div>
-
-            {canAccessBookings ? (
-              <div className="mt-6 grid gap-3 md:grid-cols-3">
-                {bookingStatusSummary.map((item) => (
-                  <div key={item.label} className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] px-4 py-4">
-                    <span className={clsx('inline-flex rounded-full px-3 py-1 text-[0.74rem] font-semibold uppercase tracking-[0.08em]', item.tone)}>
-                      {item.label}
-                    </span>
-                    <p className="mt-4 text-[2rem] font-semibold leading-none text-slate-950">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            <div className={clsx('mt-6 grid gap-4', canAccessBookings && canAccessPayments ? 'xl:grid-cols-[1.2fr_0.9fr]' : 'xl:grid-cols-1')}>
-              {canAccessBookings ? (
-                <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fcfdfc] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">RECENT BOOKINGS</p>
-                    <p className="mt-2 text-[1.2rem] font-semibold text-slate-950">Newest reservations</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.78rem] font-medium text-slate-500">
-                    {bookingActivity.length} items
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {bookingActivity.length > 0 ? bookingActivity.map((item) => (
-                    <button
-                      key={`${item.type}-${item.id}`}
-                      type="button"
-                      onClick={() => navigate(`/bookings/${item.id}`)}
-                      className="flex w-full items-start gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#cfd9e6] hover:bg-slate-50"
-                    >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e9fbf2] text-[#17a86b]">
-                        <Calendar size={20} />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-[1rem] font-semibold text-slate-950">{item.title}</p>
-                          <span className={clsx(
-                            'rounded-full px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em]',
-                            statusToneMap[item.status] || 'bg-slate-100 text-slate-600'
-                          )}>
-                            {item.status.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-                        <p className="mt-2 truncate text-[0.96rem] text-slate-500">{item.subtitle}</p>
-                        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.88rem] text-slate-500">
-                          <span>{formatMoney(item.currency || 'USD', item.amount)}</span>
-                          <span>{formatActivityDate(item.date)}</span>
-                        </div>
-                      </div>
-                    </button>
-                  )) : (
-                    <div className="rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-10 text-center">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                        <Clock3 size={22} />
-                      </div>
-                      <p className="mt-4 text-[1.1rem] font-medium text-slate-700">No recent bookings yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              ) : null}
-
-              {canAccessPayments ? (
-                <div className="rounded-[1rem] border border-[#e7ebf0] bg-[#fbfcfd] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[0.76rem] uppercase tracking-[0.12em] text-slate-400">FOLLOW-UP</p>
-                    <p className="mt-2 text-[1.2rem] font-semibold text-slate-950">Payments tied to bookings</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/finance/payments')}
-                    className="text-[0.92rem] font-medium text-[#6d8141] transition-colors hover:text-[#52632f]"
-                  >
-                    Open payments
-                  </button>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {paymentActivity.length > 0 ? paymentActivity.map((item) => {
-                    const presentation = activityPresentation[item.type];
-                    return (
-                      <button
-                        key={`${item.type}-${item.id}`}
-                        type="button"
-                        onClick={() => navigate(presentation.destination(item))}
-                        className="flex w-full items-center gap-4 rounded-[1rem] border border-[#e7ebf0] bg-white px-4 py-4 text-left transition-all hover:border-[#cfd9e6] hover:bg-slate-50"
-                      >
-                        <div className={clsx('flex h-11 w-11 items-center justify-center rounded-xl', presentation.iconWrap)}>
-                          {React.createElement(presentation.icon, { size: 20 })}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[0.98rem] font-semibold text-slate-950">{item.title}</p>
-                          <p className="mt-1 truncate text-[0.92rem] text-slate-500">{item.subtitle}</p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="text-[0.95rem] font-semibold text-slate-950">{formatMoney(item.currency || 'USD', item.amount)}</p>
-                          <p className="mt-1 text-[0.82rem] text-slate-500">{formatActivityDate(item.date)}</p>
-                        </div>
-                      </button>
-                    );
-                  }) : (
-                    <div className="rounded-[1rem] border border-dashed border-[#d8dee7] bg-white px-4 py-10 text-center">
-                      <p className="text-[1rem] font-medium text-slate-700">No booking payments have landed yet</p>
-                      <p className="mt-2 text-[0.92rem] text-slate-500">
-                        Payment activity will appear here as soon as receipts start coming in.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              ) : null}
-            </div>
-          </div>
           ) : (
-            <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
-              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">WORKSPACE</p>
-              <h3 className="mt-2 text-[1.95rem] font-semibold text-slate-950">Dashboard overview</h3>
-              <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-slate-500">
+            <div className="brand-panel p-6">
+              <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">WORKSPACE</p>
+              <h3 className="mt-2 text-[1.95rem] font-semibold text-[var(--color-primary-strong)]">Dashboard overview</h3>
+              <p className="mt-3 max-w-2xl text-[0.98rem] leading-7 text-[var(--color-text-secondary)]">
                 Your account is active, but booking and finance modules have not been assigned yet. Contact your administrator if you need those work areas added to your portal.
               </p>
             </div>
@@ -554,9 +557,9 @@ export const DashboardHome: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-[1.2rem] border border-[#d8dee7] bg-white p-6 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.22)]">
-            <p className="text-[0.78rem] uppercase tracking-[0.14em] text-slate-400">ACTION CENTER</p>
-            <h3 className="mt-3 text-[1.8rem] font-semibold text-slate-950">Quick Actions</h3>
+          <div className="brand-panel p-6">
+            <p className="text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-text-muted)]">ACTION CENTER</p>
+            <h3 className="mt-3 text-[1.8rem] font-semibold text-[var(--color-primary-strong)]">Quick Actions</h3>
 
             <div className="mt-5 space-y-3">
               {quickActions.map((action, idx) => (
@@ -583,13 +586,13 @@ export const DashboardHome: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-[1.2rem] border border-[#b7edd7] bg-[#eefcf4] p-6">
-            <div className="flex items-center gap-2 text-[0.78rem] uppercase tracking-[0.14em] text-[#0f9f69]">
+          <div className="rounded-[1.2rem] border border-[var(--color-border)] bg-[linear-gradient(135deg,var(--color-primary-soft)_0%,var(--color-accent-soft)_100%)] p-6">
+            <div className="flex items-center gap-2 text-[0.78rem] uppercase tracking-[0.14em] text-[var(--color-primary)]">
               <Activity size={14} />
               OPERATIONAL NOTE
             </div>
-            <h4 className="mt-3 text-[1.75rem] font-semibold text-slate-950">Daily visibility is set</h4>
-            <p className="mt-4 text-[1rem] leading-8 text-slate-600">
+            <h4 className="mt-3 text-[1.75rem] font-semibold text-[var(--color-primary-strong)]">Daily visibility is set</h4>
+            <p className="mt-4 text-[1rem] leading-8 text-[var(--color-text-secondary)]">
               This dashboard is ready for daily office monitoring, with finance, bookings, and client actions kept one click away.
             </p>
           </div>

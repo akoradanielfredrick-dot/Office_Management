@@ -224,3 +224,42 @@ class AdminUserFormTests(TestCase):
 
         self.assertTrue(updated_user.check_password("NewVisiblePass123!"))
         self.assertEqual(getattr(updated_user, "_admin_plaintext_password", None), "NewVisiblePass123!")
+
+    def test_system_can_store_more_than_fifteen_users(self):
+        for index in range(16):
+            get_user_model().objects.create_user(
+                email=f"staff{index}@example.com",
+                password="StaffPass123!",
+                full_name=f"Staff User {index}",
+                role=self.operations_role,
+            )
+
+        self.assertEqual(get_user_model().objects.count(), 16)
+
+    def test_creation_form_remains_valid_after_fifteen_existing_users(self):
+        for index in range(15):
+            get_user_model().objects.create_user(
+                email=f"existing{index}@example.com",
+                password="StaffPass123!",
+                full_name=f"Existing User {index}",
+                role=self.operations_role,
+            )
+
+        form = CustomUserCreationForm(
+            data={
+                "email": "sixteenth@example.com",
+                "full_name": "Sixteenth User",
+                "role": self.operations_role.pk,
+                "phone": "",
+                "status": "active",
+                "portal_modules": [],
+                "password1": "VisiblePass123!",
+                "password2": "VisiblePass123!",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        self.assertEqual(user.email, "sixteenth@example.com")
+        self.assertEqual(get_user_model().objects.count(), 16)
